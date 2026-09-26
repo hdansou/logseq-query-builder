@@ -211,5 +211,11 @@ one `default`/unset from the production-bundle instance, i.e. created implicitly
 before the startup `upsertProperty` had taken effect. Fix: `stateSchemaFor` + `ensureStateProperty`
 before every write, hiding an existing property without changing its type. The stray one was
 repaired in place with `upsert_block_property(<property uuid>, "logseq.property/hide?", true)`.
+Setting `hide?` on that `default`-typed property did **not** stop the block from rendering the
+value: `:default` values are text entities and render as nested rows under the block regardless of
+the flag, whereas the `string`-typed property from the fixed code does not render at all. The
+value was removed from the block with `remove_block_property(uuid, "plugin.property.<id>/state")`.
 Each console registration gets a fresh id and therefore its own property; a real install has the
-stable id `logseq-query-builder`.
+stable id `logseq-query-builder`. Consequence for `stateSchemaFor`: hiding an existing
+`default`-typed state property is not enough, so a future migration would have to move the value
+to a `string` property; for now that case only arises from dev-time races.
