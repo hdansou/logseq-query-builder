@@ -133,3 +133,14 @@ describe("Graph.values / nodes / assets (FEAT-13)", () => {
     expect(log.find((q) => q.includes("count-distinct"))).toContain("[?v :block/title ?label] [?v :block/uuid ?u]");
   });
 });
+
+describe("Graph.pages (scope picker)", () => {
+  it("searches page titles case-insensitively, excluding built-in, property and tag pages", async () => {
+    const log: string[] = [];
+    const g = new Graph(async (q) => { log.push(q); return [["u-b", "Book"], ["u-a", "Art notes"]]; });
+    expect(await g.pages("O")).toEqual([{ uuid: "u-a", title: "Art notes" }, { uuid: "u-b", title: "Book" }]);
+    expect(log[0]).toContain("[?p :block/name _]");
+    expect(log[0]).toContain("(not [?p :logseq.property/built-in? true])");
+    expect(log[0]).toContain(`[(clojure.string/includes? ?lt "o")]`);
+  });
+});

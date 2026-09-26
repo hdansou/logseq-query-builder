@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addRow, addTag, emptyQuery, setContent, setJoin, setRow, setTag, toggleNot, type PropertyRef, type Query, type TagRef, type Value } from "./model";
+import { addRow, addTag, emptyQuery, setContent, setJoin, setRow, setScope, setTag, toggleNot, type PropertyRef, type Query, type TagRef, type Value } from "./model";
 import { readback } from "./readback";
 
 const project: TagRef = { ident: ":user.class/project-1", title: "project" };
@@ -51,5 +51,13 @@ describe("readback", () => {
   it("ignores unfilled rows and reads an empty query honestly", () => {
     expect(readback(emptyQuery())).toBe("all nodes");
     expect(readback(row(addTag(emptyQuery(), project), { property: status }))).toBe("project nodes");
+  });
+});
+
+describe("readback with a scope", () => {
+  it("names the page or the Library after the subject", () => {
+    const artist: TagRef = { ident: ":user.class/artist-1", title: "artist" };
+    expect(readback(addTag(setScope(emptyQuery(), { kind: "referenced-in", page: { uuid: "u", title: "Book" } }), artist))).toBe("artist nodes referenced in Book");
+    expect(readback(setScope(emptyQuery(), { kind: "library" }))).toBe("all nodes in the Library");
   });
 });

@@ -45,6 +45,8 @@ describe("state round trip", () => {
     expect(deserializeState("not json")).toBeNull();
     expect(deserializeState(JSON.stringify({ v: 2, query: {} }))).toBeNull();
     expect(deserializeState(JSON.stringify({ v: 1, query: { name: "x" } }))).toBeNull();
+    const old = { v: 1, query: { name: "x", tags: [], inherit: true, rows: [], content: null } };
+    expect(deserializeState(JSON.stringify(old))?.scope).toEqual({ kind: "anywhere" });
     expect(deserializeState("")).toBeNull();
   });
 });

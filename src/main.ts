@@ -13,6 +13,7 @@ import { Store, nameFor, targetFromEvent } from "./ui/store";
 import { upsertProperty } from "./sdk";
 import { watchTheme } from "./theme";
 import { renderTags } from "./ui/tags";
+import { renderScope } from "./ui/scope";
 
 const dq = (q: string, ...ins: unknown[]) => logseq.DB.datascriptQuery(q, ...ins);
 
@@ -48,7 +49,7 @@ function main() {
       void logseq.UI.showMsg(`Insert failed: ${e instanceof Error ? e.message : String(e)}`, "error");
     }
   };
-  store.subscribe(createRenderer(root, { store, graph, insert }, { tags: renderTags, rows: renderRows, content: renderContent }));
+  store.subscribe(createRenderer(root, { store, graph, insert }, { scope: renderScope, tags: renderTags, rows: renderRows, content: renderContent }));
   /** The round-trip property: a hidden string in our namespace. Ensured at start and again before every write. */
   const ensureStateProperty = async () => {
     const existing = (await logseq.Editor.getProperty(STATE_KEY).catch(() => null)) as { type?: string; hide?: boolean } | null;

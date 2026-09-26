@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { RULES, emit } from "./emit";
-import { addRow, addTag, emptyQuery, setContent, setInherit, setJoin, setName, setRow, setTag, toggleNot, type PropertyRef, type Query, type TagRef, type Value } from "./model";
+import { addRow, addTag, emptyQuery, setContent, setInherit, setJoin, setName, setRow, setScope, setTag, toggleNot, type PropertyRef, type Query, type TagRef, type Value } from "./model";
 
 // Idents carry the graph's random suffixes; the emitter embeds whatever it is given.
 const task: TagRef = { ident: ":logseq.class/Task", title: "Task" };
@@ -183,5 +183,21 @@ describe("block text without inputs or rules", () => {
   });
   it("throws on a query the guard refuses (callers check the guard first)", () => {
     expect(() => emit(emptyQuery())).toThrow(/guard/);
+  });
+});
+
+describe("scopes", () => {
+  const artist: TagRef = { ident: ":user.class/artist-1", title: "artist" };
+  it("referenced-in: the user's book/artist case, scope clause first", () => {
+    const q = addTag(setScope(emptyQuery(), { kind: "referenced-in", page: { uuid: "b00k", title: "Book" } }), artist);
+    const e = emit(q);
+    expect(e.where[0]).toBe(`[?src :block/uuid #uuid "b00k"] [?sb :block/page ?src] [?sb :block/refs ?b]`);
+    expect(e.where[1]).toBe(INHERIT(artist));
+  });
+  it("library: pages under the built-in Library page or blocks on them, via the parent rule", () => {
+    const e = emit(setScope(emptyQuery(), { kind: "library" }));
+    expect(e.where).toEqual([`[?lib :block/name "library"] [?lib :logseq.property/built-in? true] (parent ?lib ?lp) [?lp :block/tags :logseq.class/Page] (or [(= ?b ?lp)] [?b :block/page ?lp])`]);
+    expect(e.rules).toBe(true);
+    expect(RULES).toContain("(parent ?p ?c)");
   });
 });

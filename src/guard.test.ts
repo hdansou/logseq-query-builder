@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { guard } from "./guard";
-import { addRow, addTag, emptyQuery, setContent, setJoin, setRow, setTag, toggleNot, type PropertyRef, type Query, type TagRef } from "./model";
+import { addRow, addTag, emptyQuery, setContent, setJoin, setRow, setScope, setTag, toggleNot, type PropertyRef, type Query, type TagRef } from "./model";
 
 const project: TagRef = { ident: ":user.class/project-1", title: "project" };
 const status: PropertyRef = { ident: ":user.property/status-1", title: "status", type: "default", cardinality: "one" };
@@ -54,5 +54,13 @@ describe("guard", () => {
     expect(guard(q).ok).toBe(true);
     const q2 = row(emptyQuery(), { property: status, op: "contains-any", values: [] });
     expect(guard(q2)).toEqual({ ok: false, reason: "Add a tag, a filter or a content search." });
+  });
+});
+
+describe("guard with a scope", () => {
+  it("a scope alone is a runnable, positive query, and lets NOT-only filters run", () => {
+    expect(guard(setScope(emptyQuery(), { kind: "library" })).ok).toBe(true);
+    const q = row(setScope(emptyQuery(), { kind: "referenced-in", page: { uuid: "u", title: "Book" } }), { property: status, op: "not-contains", values: [todo] });
+    expect(guard(q).ok).toBe(true);
   });
 });

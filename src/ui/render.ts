@@ -33,7 +33,7 @@ function captureFocus() {
   };
 }
 
-export function createRenderer(root: HTMLElement, ctx: Ctx, zones: { tags: ZoneRenderer; rows: ZoneRenderer; content: ZoneRenderer }) {
+export function createRenderer(root: HTMLElement, ctx: Ctx, zones: { scope: ZoneRenderer; tags: ZoneRenderer; rows: ZoneRenderer; content: ZoneRenderer }) {
   const { store } = ctx;
   return (s: State) => {
     const restore = captureFocus();
@@ -55,6 +55,7 @@ export function createRenderer(root: HTMLElement, ctx: Ctx, zones: { tags: ZoneR
     head.appendChild(count);
     root.appendChild(head);
 
+    const scope = el("div", "zone"); zones.scope(scope, s, ctx); root.appendChild(scope);
     const tags = el("div", "zone"); zones.tags(tags, s, ctx); root.appendChild(tags);
     const rows = el("div", "zone"); zones.rows(rows, s, ctx); root.appendChild(rows);
     const content = el("div", "zone"); zones.content(content, s, ctx); root.appendChild(content);

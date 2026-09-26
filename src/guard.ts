@@ -26,10 +26,11 @@ const OR = "A NOT clause can only be combined with AND.";
 
 export function guard(q: Query): GuardResult {
   const rows = q.rows.filter(rowComplete);
-  if (q.tags.length === 0 && rows.length === 0 && !q.content) return { ok: false, reason: EMPTY };
+  const scoped = q.scope.kind !== "anywhere";
+  if (!scoped && q.tags.length === 0 && rows.length === 0 && !q.content) return { ok: false, reason: EMPTY };
 
   if (q.tags.slice(1).some((t) => t.join === "or" && !tagPositive(t))) return { ok: false, reason: OR };
   if (rows.slice(1).some((r) => r.join === "or" && !rowPositive(r))) return { ok: false, reason: OR };
-  const positive = q.tags.some(tagPositive) || q.content !== null || rows.some(rowPositive);
+  const positive = scoped || q.tags.some(tagPositive) || q.content !== null || rows.some(rowPositive);
   return positive ? { ok: true } : { ok: false, reason: POSITIVE };
 }

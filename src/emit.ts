@@ -2,7 +2,7 @@ import { absoluteLiteral, bounds, relativeInput, type Boundary } from "./dates";
 import { guard, rowComplete, rowPositive, tagPositive } from "./guard";
 import { contextPull } from "./context";
 import { str } from "./edn";
-import type { ContentClause, DateValue, FilterRow, Join, PropertyRef, Query, TagClause, Value } from "./model";
+import type { ContentClause, DateValue, FilterRow, Join, PropertyRef, Query, Scope, TagClause, Value } from "./model";
 
 /**
  * Builder state → Datalog. One emitter for the preview (narrow pull, inputs passed as strings,
@@ -19,7 +19,9 @@ export interface Emitted {
 
 /** Leading space on purpose: a string input starting with `[[` is taken for a page ref. */
 export const RULES = ` [[(class-extends ?p ?c) [?c :logseq.property.class/extends ?p]]
- [(class-extends ?p ?c) [?t :logseq.property.class/extends ?p] (class-extends ?t ?c)]] `;
+ [(class-extends ?p ?c) [?t :logseq.property.class/extends ?p] (class-extends ?t ?c)]
+ [(parent ?p ?c) [?c :block/parent ?p]]
+ [(parent ?p ?c) [?t :block/parent ?p] (parent ?t ?c)]] `;
 
 const previewPull = (q: Query) => {
   const ctx = contextPull(q.rows.flatMap((r) => (r.property ? [r.property] : [])));
@@ -124,6 +126,25 @@ function dateClause(r: FilterRow, n: number, ctx: Ctx): string {
   return [bind, ...cmps].join(" ");
 }
 
+/**
+ * Scope clauses bind ?b, so they are positive. `referenced-in`: blocks of the page reference ?b.
+ * `library`: ?b is a page under the built-in Library (the :block/parent tree, host `parent` rule)
+ * or a block on such a page.
+ */
+function scopeClause(scope: Scope, ctx: Ctx): Clause | null {
+  switch (scope.kind) {
+    case "anywhere": return null;
+    case "referenced-in":
+      return { text: `[?src :block/uuid #uuid "${scope.page.uuid}"] [?sb :block/page ?src] [?sb :block/refs ?b]`, positive: true, join: "and" };
+    case "library":
+      ctx.rules = true;
+      return {
+        text: `[?lib :block/name "library"] [?lib :logseq.property/built-in? true] (parent ?lib ?lp) [?lp :block/tags :logseq.class/Page] (or [(= ?b ?lp)] [?b :block/page ?lp])`,
+        positive: true, join: "and",
+      };
+  }
+}
+
 function contentClause(c: ContentClause): Clause {
   const lower = `[?b :block/title ?title] [(clojure.string/lower-case ?title) ?lt]`;
   const v = str(c.value.toLowerCase());
@@ -156,11 +177,12 @@ export function emit(q: Query): Emitted {
   const g = guard(q);
   if (!g.ok) throw new Error(`guard: ${g.reason}`);
   const ctx = new Ctx();
+  const scope = scopeClause(q.scope, ctx);
   const tags = fold(q.tags.map((t, i) => tagClause(t, i + 1, q.inherit, ctx)));
   const content = q.content ? [contentClause(q.content)] : [];
   const rows = fold(q.rows.filter(rowComplete).map((r, i) => rowClause(r, i + 1, ctx)));
   // Positive clauses bind ?b; negations must follow them. Order within a conjunction is free.
-  const all = [...tags, ...content, ...rows];
+  const all = [...(scope ? [scope] : []), ...tags, ...content, ...rows];
   const where = [...all.filter((c) => c.positive), ...all.filter((c) => !c.positive)].map((c) => c.text);
 
   const ins = ctx.inputs.map((_, i) => `?in${i + 1}`);

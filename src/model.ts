@@ -40,15 +40,27 @@ export interface FilterRow {
 export type ContentOp = "contains" | "not-contains" | "starts-with" | "matches";
 export interface ContentClause { op: ContentOp; value: string }
 
+/**
+ * Where to look. `referenced-in`: nodes referenced from the blocks of one page (the "artists
+ * mentioned in my #book page" case). `library`: pages inside the built-in Library and the blocks
+ * on them (Library membership is the :block/parent tree under that page).
+ */
+export type Scope =
+  | { kind: "anywhere" }
+  | { kind: "referenced-in"; page: { uuid: string; title: string } }
+  | { kind: "library" };
+
 export interface Query {
   name: string;
+  scope: Scope;
   tags: TagClause[];
   inherit: boolean;
   rows: FilterRow[];
   content: ContentClause | null;
 }
 
-export const emptyQuery = (): Query => ({ name: "", tags: [], inherit: true, rows: [], content: null });
+export const emptyQuery = (): Query => ({ name: "", scope: { kind: "anywhere" }, tags: [], inherit: true, rows: [], content: null });
+export const setScope = (q: Query, scope: Scope): Query => ({ ...q, scope });
 
 let nextId = 0;
 const newId = () => `row${++nextId}`;

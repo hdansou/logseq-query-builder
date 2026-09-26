@@ -136,6 +136,14 @@ export class Graph {
       .slice(0, limit);
   }
 
+  /** Pages (not built-in ones) whose title contains the needle, for the "referenced in" scope. */
+  async pages(needle: string, limit = 20): Promise<AssetInfo[]> {
+    const rows = await this.rows<[string, string]>(
+      `[:find ?u ?title :where [?p :block/name _] [?p :block/title ?title] [?p :block/uuid ?u] (not [?p :logseq.property/built-in? true]) (not [?p :block/tags :logseq.class/Property]) (not [?p :block/tags :logseq.class/Tag]) [(clojure.string/lower-case ?title) ?lt] [(clojure.string/includes? ?lt ${str(needle.toLowerCase())})]]`,
+    );
+    return rows.map(([uuid, title]) => ({ uuid, title })).sort((a, b) => a.title.localeCompare(b.title)).slice(0, limit);
+  }
+
   async assets(): Promise<AssetInfo[]> {
     const rows = await this.rows<[string, string]>(`[:find ?u ?title :where [?a :block/tags :logseq.class/Asset] [?a :block/uuid ?u] [?a :block/title ?title]]`);
     return rows.map(([uuid, title]) => ({ uuid, title })).sort((a, b) => a.title.localeCompare(b.title));

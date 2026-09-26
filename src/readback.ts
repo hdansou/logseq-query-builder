@@ -66,9 +66,18 @@ function content(c: ContentClause): string {
   }
 }
 
+function scope(q: Query): string {
+  switch (q.scope.kind) {
+    case "anywhere": return "";
+    case "referenced-in": return ` referenced in ${q.scope.page.title}`;
+    case "library": return " in the Library";
+  }
+}
+
 export function readback(q: Query): string {
   const rows = q.rows.filter(rowComplete);
   const clauses = rows.map((r, i) => (i === 0 ? rowText(r) : `${r.join} ${rowText(r)}`));
   if (q.content) clauses.push(`${clauses.length ? "and " : ""}${content(q.content)}`);
-  return clauses.length ? `${tags(q.tags)} where ${clauses.join(" ")}` : tags(q.tags);
+  const subject = tags(q.tags) + scope(q);
+  return clauses.length ? `${subject} where ${clauses.join(" ")}` : subject;
 }

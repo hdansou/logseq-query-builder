@@ -29,6 +29,9 @@ All notable changes to this plugin are recorded here. The format follows
 - The open shortcut is `⌘⇧F`, not `⌘⇧Q`, which is the macOS log-out chord. It takes over Logseq's toggle-favorite while the plugin is enabled; rebind in the keymap settings if needed.
 - The hidden state property's schema is ensured right before every write, never changing an existing property's type; a write racing the startup call could leave a visible, untyped `state` property on the block.
 
+### Added (after the first implementation)
+- Scope zone: *anywhere*, *in the Library* (pages under the built-in Library page and the blocks on them), or *referenced in page…* (nodes referenced from the blocks of a chosen page, e.g. artists mentioned in a book page). A scope is a positive clause, so NOT-only filters can run inside it. `Page` is offered in the tag selector.
+
 ### Notes
 - Requires `@logseq/libs` 0.3.4 or later: 0.2.x drops the last input of `datascriptQuery`.
 - DB graphs only.

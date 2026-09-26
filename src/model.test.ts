@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   addRow, addTag, emptyQuery, removeRow, removeTag, setContent, setInherit, setJoin, setName,
-  setRow, toggleNot, type PropertyRef, type Query, type TagRef,
+  setRow, setScope, toggleNot, type PropertyRef, type Query, type TagRef,
 } from "./model";
 
 const project: TagRef = { ident: ":user.class/project-Kq9x2mzp", title: "project" };
@@ -9,7 +9,7 @@ const status: PropertyRef = { ident: ":user.property/status-Xab12cde", title: "s
 
 describe("emptyQuery", () => {
   it("has no name, no tags, no rows, no content, inheritance on", () => {
-    expect(emptyQuery()).toEqual({ name: "", tags: [], inherit: true, rows: [], content: null });
+    expect(emptyQuery()).toEqual({ name: "", scope: { kind: "anywhere" }, tags: [], inherit: true, rows: [], content: null });
   });
 });
 
@@ -79,5 +79,13 @@ describe("content and name", () => {
     q = setContent(q, null);
     expect(q.content).toBeNull();
     expect(setName(q, "  Open projects ").name).toBe("Open projects");
+  });
+});
+
+describe("scope", () => {
+  it("defaults to anywhere and can be set to a page or the Library", () => {
+    const q = setScope(emptyQuery(), { kind: "referenced-in", page: { uuid: "u", title: "Book" } });
+    expect(q.scope).toEqual({ kind: "referenced-in", page: { uuid: "u", title: "Book" } });
+    expect(setScope(q, { kind: "library" }).scope).toEqual({ kind: "library" });
   });
 });

@@ -20,6 +20,7 @@ corner, click the graph behind it.
 
 | Zone | What it does |
 |---|---|
+| **Scope** | *anywhere*, *in the Library* (pages inside Logseq's Library page and their blocks), or *referenced in page…* (nodes referenced from the blocks of a page you pick, e.g. all artists mentioned in a book page). |
 | **Name** | The query's title once inserted. Prefilled with a plain-English reading of your filters; edit or replace it. |
 | **Tags** | Autocomplete over your graph's tags, most-used first. Several tags combine with AND / OR; each can be NOT. "any tag" is a presence test. *Include sub-tags* (on by default) also matches tags that extend the chosen one. |
 | **Filters** | One row per property: property → operator → value. Operators follow the property's type (text, number, URL, node, asset, date, date-time, checkbox). Rows combine with AND / OR left to right, each can be NOT. Values are picked from what the graph actually holds, with counts; text and numbers also accept free entry; dates accept `today`, `tomorrow`, `yesterday`, `±Nd/w/m/y` or `YYYY-MM-DD`. |
