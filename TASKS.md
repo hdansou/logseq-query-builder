@@ -36,20 +36,15 @@ Single source of truth for work in this repo. Nothing gets implemented before it
 | FEAT-8 | feat | `emit.ts`: state → `{:query :inputs}` string; `%` last in `:in`; idents embedded; inherit toggle | 21 unit tests: spec scenarios 1–5 (scenario 2 as a full block-text snapshot), every operator row from `docs/probes.md`, AND/OR/NOT composition, input dedup, escaping; preview and block differ only in `:find` |
 | FEAT-9 | feat | Guard: refuse an unbounded query (no positive clause) with a message | 7 unit tests: empty, only-NOT, NOT joined with OR refused; NOT anywhere accepted once a positive clause exists (scenario 5) |
 | FEAT-10 | feat | `readback.ts`: plain-English line from state | 5 unit tests incl. scenario 2 verbatim, OR/NOT rows, presence tags, content search |
+| FEAT-11 | feat | `graph.ts`: tags with usage counts, structural tags hidden | Unit on a fake `datascriptQuery`: sorted most-used first; Page/Tag/Property/Root/Asset absent. Live: matches the graph's All Tags |
+| FEAT-12 | feat | `graph.ts`: properties with type, cardinality, owner tags; selected tags' properties first | Unit: ordering rule; hidden/built-in-non-public excluded. Live: `status` shows its owner tag |
+| FEAT-13 | feat | `graph.ts`: distinct values with counts (open + closed), node search, asset list | Unit: grouped by text, placeholder excluded. Live: counts equal the graph's |
+| FEAT-14 | feat | `preview.ts`: run the emitted query with string inputs + rule string; normalise rows; page of 10 + load more | Unit: paging; rows carry uuid, title, page title. Live: scenario 1 count matches a hand-run query |
+| FEAT-15 | feat | Result row navigation via `pushState('page', {name: uuid})`; builder stays open | Chrome 2026-09-26: selecting the Gamma result routed to `#/page/<uuid>` (title "Gamma"), panel and results still there. Driven by keyboard (Tab/Enter) because the Chrome extension cannot deliver synthetic clicks into the cross-origin plugin iframe |
 
-## Now — P2, vocabulary and preview
+## Now — P3, panel, entry points, keyboard, theme
 
-P1 exit met 2026-09-26: five spec scenarios emit the live-verified Datalog, every operator row has a test, an all-negative query is refused with a message. 66 unit tests.
-
-| ID | Type | Title | Status | Acceptance test |
-|---|---|---|---|---|
-| FEAT-11 | feat | `graph.ts`: tags with usage counts, structural tags hidden | done (unit; live check with FEAT-15) | Unit on a fake `datascriptQuery`: sorted most-used first; Page/Tag/Property/Root/Asset absent. Live: matches the graph's All Tags |
-| FEAT-12 | feat | `graph.ts`: properties with type, cardinality, owner tags; selected tags' properties first | done (unit; live check with FEAT-15) | Unit: ordering rule; hidden/built-in-non-public excluded. Live: `status` shows its owner tag |
-| FEAT-13 | feat | `graph.ts`: distinct values with counts (open + closed), node search, asset list | done (unit; live check with FEAT-15) | Unit: grouped by text, placeholder excluded. Live: counts equal the graph's |
-| FEAT-14 | feat | `preview.ts`: run the emitted query with string inputs + rule string; normalise rows; page of 10 + load more | done (unit; live check with FEAT-15) | Unit: paging; rows carry uuid, title, page title. Live: scenario 1 count matches a hand-run query |
-| FEAT-15 | feat | Result row navigation via `pushState('page', {name: uuid})`; builder stays open | todo | Chrome: click zooms to the block; panel and filters still there |
-
-## Then — P3, panel, entry points, keyboard, theme
+P2 exit met 2026-09-26: the dev-only `Query Builder: demo (P2)` palette command drives graph → emit → preview → navigation on the scratch graph (`docs/probes.md`, "P2 demo"). 80 unit tests.
 
 | ID | Type | Title | Status | Acceptance test |
 |---|---|---|---|---|
@@ -75,6 +70,7 @@ P1 exit met 2026-09-26: five spec scenarios emit the live-verified Datalog, ever
 |---|---|---|---|---|
 | FEAT-26 | feat | Debounce + session cache; search-as-you-type for large value sets | todo | Gate on FEAT-4 numbers |
 | FEAT-27 | feat | Result row context: page, key properties | todo | |
+| FEAT-28 | feat | Hide settings-like built-in properties from the property picker (`Enable bidirectional properties`, `Enable property history`, `Hide empty value` passed the host's public/hidden rule live) — probably by `:logseq.property/view-context` | todo | Found in the P2 demo |
 | TASK-5 | task | Production build, real `manifest.json`, icon, README for users | todo | |
 
 ## Bugs

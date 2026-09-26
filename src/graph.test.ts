@@ -111,6 +111,7 @@ describe("Graph.values / nodes / assets (FEAT-13)", () => {
     expect(found).toEqual([{ uuid: "u1", title: "Maria", page: { uuid: "p1", title: "People" } }, { uuid: "u2", title: "Marian Keyes", page: null }]);
     expect(log[0]).toContain(`[(clojure.string/includes? ?lt "mar\\"ia")]`);
     expect(log[0]).not.toContain(":block/tags");
+    expect(log[0]).toContain("(not [?b :logseq.property/built-in? true])");
     await g.nodes("mar", ":user.class/person-1");
     expect(log[1]).toContain("[?b :block/tags :user.class/person-1]");
   });

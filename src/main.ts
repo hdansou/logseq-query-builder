@@ -1,6 +1,7 @@
 import "@logseq/libs";
 import { manifest } from "./manifest";
 import { registerProbeCommands } from "./probes";
+import { registerDemo } from "./demo";
 
 const COMMAND_KEY = "query-builder-open";
 
@@ -20,10 +21,10 @@ function main() {
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") close();
   });
-  document.getElementById("backdrop")?.addEventListener("click", (e) => {
-    if (e.target === e.currentTarget) close();
-  });
-  if (import.meta.env.DEV) registerProbeCommands();
+  if (import.meta.env.DEV) {
+    registerProbeCommands();
+    registerDemo();
+  }
   console.info(`[${manifest.id}] ready v${manifest.version}`);
 }
 

@@ -12,17 +12,14 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: transparent; }
   body { font-family: system-ui, sans-serif; color: var(--fg); }
-  #backdrop {
-    position: fixed; inset: 0; display: flex; align-items: flex-start;
-    justify-content: center; padding-top: 12vh; background: rgba(0,0,0,.45);
-  }
+  /* The host sizes and positions the iframe container (draggable, resizable); the panel fills it. */
+  #backdrop { position: fixed; inset: 0; display: flex; }
   #panel {
-    width: min(720px, 92vw); max-height: 76vh; display: flex; flex-direction: column;
-    background: var(--bg); border: 1px solid var(--border); border-radius: 14px;
-    overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.55);
+    flex: 1; display: flex; flex-direction: column; min-height: 0;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 0 0 10px 10px; overflow: hidden;
   }
   #panel header { padding: 14px 20px; border-bottom: 1px solid var(--line); font-weight: 600; }
-  #panel main { padding: 20px; font-size: 13.5px; color: var(--dim); }
+  #panel main { padding: 20px; font-size: 13.5px; color: var(--dim); overflow-y: auto; flex: 1; }
   #panel footer {
     display: flex; gap: 14px; padding: 10px 20px; border-top: 1px solid var(--line);
     background: #1a1a1d; font-size: 11px; color: var(--mut);

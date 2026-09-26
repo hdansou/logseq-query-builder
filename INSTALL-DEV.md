@@ -71,3 +71,14 @@ After changing `node_modules` (e.g. an SDK upgrade) restart vite with `--force`.
 `Query Builder: probe <name>` palette commands run the P0 probes; results are POSTed to the dev
 server and appended to `docs/probes.jsonl`. `probe seed` builds the scratch page once per graph;
 `probe ALL` runs the read-only ones. Summarise with `python3 scripts/summarise_probes.py`.
+
+## Driving the panel from browser automation
+
+Synthetic clicks from the Claude-in-Chrome extension do not reach the plugin iframe (it is
+cross-origin). Focus the frame from the host console and use the keyboard:
+
+```js
+const f = document.querySelector("iframe.lsp-iframe-sandbox"); f.focus(); f.contentWindow.focus();
+```
+
+then Tab / Enter / Escape. Manual mouse use in a real browser is unaffected.

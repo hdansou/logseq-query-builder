@@ -113,3 +113,27 @@ After `npm install @logseq/libs@^0.3.4` and removing the trailing-input workarou
   operator form still returns the right rows; the scope now excludes Query-tagged blocks so the
   count reads 32 / 32 on the next run.
 - **theme, latency:** unchanged.
+
+## P2 demo (2026-09-26, `Query Builder: demo (P2)`)
+
+Graph → emit → preview → navigation end to end on the seed graph, rendered as a bare list:
+
+- Read-back: *QBProject nodes where qbStatus is not Done and text contains "a"*; results Alpha plan,
+  Gamma (Beta excluded by status) in 26–67 ms including all vocabulary fetches.
+- Tags most-used first, structural hidden: Journal (3), QBPerson (2), QBProject (2), Query (2),
+  QBSubproject (1), then unused tags at 0.
+- Properties for QBProject: alphabetical since the seed declared no class properties; the list
+  includes built-in public settings-like properties (**FEAT-28** follow-up).
+- Values of qbStatus: Todo (2), Done (1). No closed values on the seed.
+- Node search "m": first run returned dozens of built-in property pages; with
+  `(not [?b :logseq.property/built-in? true])` it returns Gamma, Maria, Tom.
+- **Navigation:** selecting "Gamma · QB Scratch" routed to `#/page/6ab72cbd-361a-…` (tab title
+  "Gamma") with the panel and results still open.
+
+**Chrome automation limit.** The extension's synthetic clicks are not delivered into the
+cross-origin plugin iframe (verified: `elementFromPoint` is the iframe, pointer-events auto, yet no
+click handler fires). Keyboard events follow focus, so UI checks inside the panel are driven by
+focusing the iframe from the host (`iframe.focus(); iframe.contentWindow.focus()`) and pressing
+Tab/Enter. The host-DOM parts (title bar, drag, resize, click-through) do respond to clicks.
+Also: the scaffold's backdrop click-to-close was removed; a floating panel must not close on a
+click inside its own frame.

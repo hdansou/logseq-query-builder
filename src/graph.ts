@@ -107,11 +107,11 @@ export class Graph {
     return [...closedList, ...openList];
   }
 
-  /** Nodes whose title contains the needle (case-insensitive), optionally constrained to a tag. */
+  /** Nodes whose title contains the needle (case-insensitive), optionally constrained to a tag. Built-in entities (property and class pages) are excluded: observed live, they swamped the list. */
   async nodes(needle: string, tagIdent?: string, limit = 20): Promise<NodeInfo[]> {
     const tag = tagIdent ? ` [?b :block/tags ${tagIdent}]` : "";
     const rows = await this.cached(
-      `[:find (pull ?b [:block/uuid :block/title {:block/page [:block/uuid :block/title]}]) :where [?b :block/title ?title] [?b :block/uuid _]${tag} (not [?b :logseq.property/created-from-property _]) [(clojure.string/lower-case ?title) ?lt] [(clojure.string/includes? ?lt ${str(needle.toLowerCase())})]]`,
+      `[:find (pull ?b [:block/uuid :block/title {:block/page [:block/uuid :block/title]}]) :where [?b :block/title ?title] [?b :block/uuid _]${tag} (not [?b :logseq.property/created-from-property _]) (not [?b :logseq.property/built-in? true]) [(clojure.string/lower-case ?title) ?lt] [(clojure.string/includes? ?lt ${str(needle.toLowerCase())})]]`,
     );
     return rows
       .map((r: any[]) => r[0])
