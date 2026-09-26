@@ -30,7 +30,12 @@ All notable changes to this plugin are recorded here. The format follows
 - The hidden state property's schema is ensured right before every write, never changing an existing property's type; a write racing the startup call could leave a visible, untyped `state` property on the block.
 
 ### Added (after the first implementation)
-- Scope zone: *anywhere*, *in the Library* (pages under the built-in Library page and the blocks on them), or *referenced in page…* (nodes referenced from the blocks of a chosen page, e.g. artists mentioned in a book page). A scope is a positive clause, so NOT-only filters can run inside it. `Page` is offered in the tag selector.
+- **Scope** zone above the tags, choosing where the query looks:
+  - *anywhere* (default);
+  - *in the Library*: pages inside Logseq's built-in Library page, at any depth, and the blocks on them;
+  - *referenced in page…*: nodes referenced from the blocks of a page picked by title, e.g. every `artist` mentioned in a `Book` page. Properties and tags a block uses count as references, so add a tag or filter to narrow.
+  A scope counts as a positive clause, so a scope with only NOT filters can run. The read-back says "referenced in X" or "in the Library"; queries saved before scopes existed reopen as *anywhere*.
+- `Page` is offered in the tag selector, so "all pages" and "pages tagged X" can be built.
 
 ### Notes
 - Requires `@logseq/libs` 0.3.4 or later: 0.2.x drops the last input of `datascriptQuery`.

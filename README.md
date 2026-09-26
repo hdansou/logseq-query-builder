@@ -1,8 +1,8 @@
 # Query Builder
 
-Build a Logseq DB query visually — pick tags, add typed property filters, optionally search node
-text — see the matching nodes as you go, jump to one, or insert the query into a page as a named,
-live query node. No Datalog written by hand.
+Build a Logseq DB query visually — choose where to look, pick tags, add typed property filters,
+optionally search node text — see the matching nodes as you go, jump to one, or insert the query
+into a page as a named, live query node. No Datalog written by hand.
 
 ![Query Builder panel: a tag chip, three typed filter rows, the plain-English read-back and a matching node with its property values](docs/screenshot.jpg)
 
@@ -20,7 +20,7 @@ corner, click the graph behind it.
 
 | Zone | What it does |
 |---|---|
-| **Scope** | *anywhere*, *in the Library* (pages inside Logseq's Library page and their blocks), or *referenced in page…* (nodes referenced from the blocks of a page you pick, e.g. all artists mentioned in a book page). |
+| **Scope** | Where to look: *anywhere* (default), *in the Library*, or *referenced in page…*. See [Scopes](#scopes). |
 | **Name** | The query's title once inserted. Prefilled with a plain-English reading of your filters; edit or replace it. |
 | **Tags** | Autocomplete over your graph's tags, most-used first. Several tags combine with AND / OR; each can be NOT. "any tag" is a presence test. *Include sub-tags* (on by default) also matches tags that extend the chosen one. |
 | **Filters** | One row per property: property → operator → value. Operators follow the property's type (text, number, URL, node, asset, date, date-time, checkbox). Rows combine with AND / OR left to right, each can be NOT. Values are picked from what the graph actually holds, with counts; text and numbers also accept free entry; dates accept `today`, `tomorrow`, `yesterday`, `±Nd/w/m/y` or `YYYY-MM-DD`. |
@@ -28,6 +28,22 @@ corner, click the graph behind it.
 | **Results** | The first 10 matches with the values you filtered on and the page they live on; *Show more* reveals the rest. Click or select one to jump to it — the builder stays open. |
 
 The **datalog** toggle in the footer shows what would be inserted.
+
+### Scopes
+
+A scope narrows the whole query before tags and filters apply. It counts as a filter on its own,
+so a scope with only NOT filters still runs.
+
+| Scope | Returns | Typical use |
+|---|---|---|
+| **anywhere** | every node in the graph | the default |
+| **in the Library** | pages inside Logseq's Library page (any depth) and the blocks on them | "tasks in my library pages", "library pages without a description" |
+| **referenced in page…** | nodes that the blocks of the page you pick reference | pick your `Book` page, add the tag `artist`: every artist mentioned in that book, without leaving the page |
+
+Two details about *referenced in page…*: references are taken from the page's blocks, not from the
+page's own properties, and Logseq records the properties and tags a block uses as references too.
+Without a tag or filter you will therefore see entries such as *Status* or *Task* among the
+results; add the tag you are after and they drop out.
 
 ### Keys
 
