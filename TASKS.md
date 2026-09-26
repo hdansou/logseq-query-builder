@@ -42,7 +42,7 @@ P0 exit met 2026-09-26: `docs/probes.md` complete; no emitted form needed replac
 | FEAT-6 | feat | `operators.ts`: single table type → operators → arity / value-control kind | done | Unit: the eight spec types list exactly the spec's operators; checkbox has no value control; `between` has arity 2 |
 | FEAT-7 | feat | `dates.ts`: relative expression → input keyword; absolute → journal-day int or ms; datetime day-granularity uses `-start/-end/-ms` | done | Unit: `-7d` → `:-7d`; "on or before +7d" on datetime → `:+7d-ms` with `<=`; "after -3d" → `:-3d-end` with `>`; week/month boundaries are not offered |
 | FEAT-8 | feat | `emit.ts`: state → `{:query :inputs}` string; `%` last in `:in`; idents embedded; inherit toggle | todo | Unit: spec scenarios 1–5 match SPEC § Grounding 9 byte-for-byte; every operator row has a test; preview and block differ only in `:find` |
-| FEAT-9 | feat | Guard: refuse an unbounded query (no positive clause) with a message | todo | Unit: only-NOT rows → `{ok:false, reason}`; adding a tag makes it ok |
+| FEAT-9 | feat | Guard: refuse an unbounded query (no positive clause) with a message | done | 7 unit tests: empty, only-NOT, NOT joined with OR refused; NOT anywhere accepted once a positive clause exists (scenario 5) |
 | FEAT-10 | feat | `readback.ts`: plain-English line from state | todo | Unit: scenario 2 reads "project nodes where assignee is Maria and status is not done and deadline is on or before 30 days from now" |
 
 ## Then — P2, vocabulary and preview
