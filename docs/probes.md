@@ -179,3 +179,17 @@ Findings on the way:
   projects"; the store now keeps the raw text and trims at use.
 - A "/" typed directly after a word does not open the slash menu, so `/Query Builder` appended
   to a query title once; repaired with `update_block`.
+
+## P5 polish (2026-09-26)
+
+- Built-in public properties in the scratch graph, with `:logseq.property/view-context`: Status,
+  Priority, Deadline, Scheduled, Assignee, Description have none; Enable property history,
+  Hide empty value (`property`), Extends, Enable bidirectional properties, Hide from Node
+  (`class`), Page Tags, Published URL, Alias (`page`), Tag Properties (`never`). The picker keeps
+  only the first group.
+- Pull-map keys from `datascriptQuery`: `:block/*` attributes lose the namespace (`title`,
+  `journal-day`); every other attribute keeps the full ident with its colon
+  (`:plugin.property.<id>/qbStatus`, `:logseq.property/value`). `context.ts` relies on this.
+- Light mode: after `set_theme_mode('light')` the panel re-rendered white with dark text through
+  the same token copy. Saving a source file while the panel is open makes vite reload the frame
+  and breaks the plugin bridge (black panel) — reload the plugin, do not trust that screenshot.

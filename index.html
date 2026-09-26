@@ -18,7 +18,7 @@
     --qb-font: var(--ls-font-family, Inter, system-ui, sans-serif);
     --qb-r1: var(--ls-border-radius-low, 4px);
     --qb-r2: var(--ls-border-radius-medium, 8px);
-    --qb-amber: #e0af68; --qb-amber-bg: #3a3327; --qb-amber-br: #55492f;
+    --qb-amber: #b8860b; --qb-amber-bg: color-mix(in srgb, #e0af68 22%, var(--qb-bg)); --qb-amber-br: color-mix(in srgb, #e0af68 45%, var(--qb-bg));
     --qb-mono: ui-monospace, Menlo, monospace;
   }
   * { box-sizing: border-box; }
@@ -45,7 +45,7 @@
   .tog.on { color: var(--qb-fg); }
 
   .picker { position: relative; display: inline-block; }
-  .picker input { min-width: 120px; height: 28px; padding: 0 8px; border: 1px solid var(--qb-border); border-radius: var(--qb-r1); background: var(--qb-bg2); outline: 0; }
+  .picker input { min-width: 110px; width: 130px; height: 28px; padding: 0 8px; border: 1px solid var(--qb-border); border-radius: var(--qb-r1); background: var(--qb-bg2); outline: 0; }
   .picker input:focus { border-color: var(--qb-accent); }
   .picker ul { position: absolute; z-index: 5; top: 30px; left: 0; min-width: 240px; max-height: 220px; overflow-y: auto; margin: 0; padding: 4px; list-style: none; background: var(--qb-bg2); border: 1px solid var(--qb-border); border-radius: var(--qb-r2); box-shadow: 0 12px 30px rgba(0,0,0,.4); }
   .picker li { display: flex; justify-content: space-between; gap: 12px; padding: 5px 8px; border-radius: var(--qb-r1); cursor: pointer; }
@@ -59,6 +59,7 @@
   input.date { width: 150px; }
   input:focus.num, input:focus.date { border-color: var(--qb-accent); }
   .row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 4px 0; }
+  .row .x { flex-shrink: 0; }
   .row .join, .tog.join { min-width: 44px; height: 26px; }
   .row .spacer { width: 56px; text-align: center; color: var(--qb-fg2); font-size: 11px; }
   .btn { height: 28px; padding: 0 10px; border: 1px solid var(--qb-border); border-radius: var(--qb-r1); background: var(--qb-bg2); }
@@ -68,11 +69,12 @@
   .shortcuts { display: flex; gap: 4px; flex-wrap: wrap; }
   .shortcuts button { font-size: 11px; height: 22px; padding: 0 7px; }
 
-  #guard { display: none; align-items: center; gap: 8px; padding: 8px 14px; background: var(--qb-amber-bg); border-bottom: 1px solid var(--qb-amber-br); color: #f0dcb8; font-size: 12px; }
+  #guard { display: none; align-items: center; gap: 8px; padding: 8px 14px; background: var(--qb-amber-bg); border-bottom: 1px solid var(--qb-amber-br); color: var(--qb-fg); font-size: 12px; }
   #guard.on { display: flex; }
   #readback { padding: 8px 14px; font-weight: 600; border-bottom: 1px solid var(--qb-border); color: var(--qb-fg); }
-  #results { flex: 1; overflow-y: auto; min-height: 60px; }
-  .result { display: flex; align-items: baseline; gap: 10px; width: 100%; padding: 0 14px; height: 32px; border: 0; background: transparent; text-align: left; }
+  #results { flex: 1; overflow-y: auto; min-height: 120px; }
+  .result { display: flex; align-items: baseline; gap: 10px; width: 100%; padding: 0 14px; min-height: 32px; border: 0; background: transparent; text-align: left; }
+  .result .ctx { color: var(--qb-fg2); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%; }
   .result:hover, .result:focus-visible { background: var(--qb-sel); outline: 0; }
   .result .t { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .result .m { color: var(--qb-fg2); font-size: 11.5px; flex-shrink: 0; }

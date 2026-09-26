@@ -9,7 +9,7 @@ let sized = false;
 export function showPanel() {
   if (!sized) {
     logseq.setMainUIAttrs({ draggable: true, resizable: true } as never);
-    logseq.setMainUIInlineStyle({ width: "680px", height: "520px", top: "70px", left: "220px", zIndex: 99 } as never);
+    logseq.setMainUIInlineStyle({ width: "780px", height: "620px", top: "60px", left: "200px", zIndex: 99 } as never);
     sized = true;
   }
   logseq.showMainUI({ autoFocus: true });

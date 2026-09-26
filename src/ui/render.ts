@@ -1,4 +1,5 @@
 import type { Graph } from "../graph";
+import { formatContext } from "../context";
 import { canInsert } from "../insert";
 import { navigateTo } from "../nav";
 import { page } from "../preview";
@@ -69,6 +70,8 @@ export function createRenderer(root: HTMLElement, ctx: Ctx, zones: { tags: ZoneR
         const b = el("button", "result") as HTMLButtonElement;
         b.dataset.fid = `result-${i}`;
         b.appendChild(el("span", "t", r.title || "(untitled)"));
+        const ctxText = formatContext(s.q.rows.flatMap((row) => (row.property ? [row.property] : [])), r.raw);
+        if (ctxText) b.appendChild(el("span", "ctx", ctxText));
         if (r.page) b.appendChild(el("span", "m", r.page.title));
         b.addEventListener("click", () => void navigateTo(r.uuid));
         results.appendChild(b);

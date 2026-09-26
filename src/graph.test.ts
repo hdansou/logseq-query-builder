@@ -55,14 +55,16 @@ describe("Graph.properties (FEAT-12)", () => {
       [":user.property/deadline-1", ":logseq.class/Task"],
     ],
     ":block/tags :logseq.class/Property]": [
-      [":user.property/status-1", "status", "u-s", "default", ":db.cardinality/one"],
-      [":user.property/deadline-1", "deadline", "u-d", "datetime", ":db.cardinality/one"],
-      [":user.property/assignee-1", "assignee", "u-a", "node", ":db.cardinality/many"],
-      [":user.property/notes-1", "notes", "u-n", "default", ":db.cardinality/one"],
-      [":logseq.property/weird-1", "weird", "u-w", "keyword", ":db.cardinality/one"],
+      [":user.property/status-1", "status", "u-s", "default", ":db.cardinality/one", ":none"],
+      [":user.property/deadline-1", "deadline", "u-d", "datetime", ":db.cardinality/one", ":none"],
+      [":user.property/assignee-1", "assignee", "u-a", "node", ":db.cardinality/many", ":none"],
+      [":user.property/notes-1", "notes", "u-n", "default", ":db.cardinality/one", ":none"],
+      [":logseq.property/weird-1", "weird", "u-w", "keyword", ":db.cardinality/one", ":none"],
+      [":logseq.property/enable-history?", "Enable property history", "u-e", "checkbox", ":db.cardinality/one", ":property"],
+      [":logseq.property.class/extends", "Extends", "u-x", "class", ":db.cardinality/many", ":class"],
     ],
   };
-  it("returns type, cardinality and owner tags; drops types the builder has no control for", async () => {
+  it("returns type, cardinality and owner tags; drops types the builder has no control for and settings-like built-ins (view-context set)", async () => {
     const g = new Graph(fake(table));
     const props = await g.properties();
     expect(props.map((p) => p.title)).toEqual(["assignee", "deadline", "notes", "status"]);

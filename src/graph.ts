@@ -61,14 +61,16 @@ export class Graph {
    */
   async properties(selected: string[] = []): Promise<PropertyInfo[]> {
     const [rows, owners] = await Promise.all([
-      this.cached(`[:find ?i ?title ?u ?type ?card :where [?p :block/tags :logseq.class/Property] [?p :db/ident ?i] [?p :block/title ?title] [?p :block/uuid ?u] [?p :logseq.property/type ?type] [?p :db/cardinality ?card] (not [?p :logseq.property/deleted-at _]) (not [?p :logseq.property/hide? true]) (or (not [?p :logseq.property/built-in? true]) [?p :logseq.property/public? true])]`),
+      this.cached(`[:find ?i ?title ?u ?type ?card ?vc :where [?p :block/tags :logseq.class/Property] [?p :db/ident ?i] [?p :block/title ?title] [?p :block/uuid ?u] [?p :logseq.property/type ?type] [?p :db/cardinality ?card] (not [?p :logseq.property/deleted-at _]) (not [?p :logseq.property/hide? true]) (or (not [?p :logseq.property/built-in? true]) [?p :logseq.property/public? true]) [(get-else $ ?p :logseq.property/view-context :none) ?vc]]`),
       this.cached(`[:find ?pi ?ci :where [?c :logseq.property.class/properties ?p] [?p :db/ident ?pi] [?c :db/ident ?ci]]`),
     ]);
     const ownersOf = new Map<string, string[]>();
     for (const [pi, ci] of owners) ownersOf.set(String(pi), [...(ownersOf.get(String(pi)) ?? []), String(ci)]);
     const sel = new Set(selected);
+    // Settings-like built-ins (Enable property history, Extends, Page Tags…) carry a view-context of
+    // property/class/page/never; node-level properties (Status, Deadline…) carry none. Observed live.
     return rows
-      .filter((r: any[]) => BUILDER_TYPES.has(String(r[3])))
+      .filter((r: any[]) => BUILDER_TYPES.has(String(r[3])) && String(r[5]).endsWith("none"))
       .map((r: any[]): PropertyInfo => ({
         ident: String(r[0]), title: String(r[1]), uuid: String(r[2]), type: String(r[3]) as PropertyType,
         cardinality: String(r[4]).endsWith("many") ? "many" : "one", owners: ownersOf.get(String(r[0])) ?? [],

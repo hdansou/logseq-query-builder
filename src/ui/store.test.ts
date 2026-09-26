@@ -28,7 +28,7 @@ describe("Store", () => {
 
   it("debounces the preview 300 ms after the last change and only runs when the guard passes", async () => {
     vi.useFakeTimers();
-    const preview = vi.fn(async () => [{ uuid: "u", title: "T", page: null }]);
+    const preview = vi.fn(async () => [{ uuid: "u", title: "T", page: null, raw: {} }]);
     const s = new Store({ preview });
     s.update((q) => ({ ...q, tags: [{ tag: project, not: false, join: "and" }] }));
     s.update((q) => ({ ...q, inherit: false }));

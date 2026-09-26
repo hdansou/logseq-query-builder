@@ -6,7 +6,7 @@ import type { Dq } from "./graph";
  * The host strips namespaces from pull maps (`{uuid, title, page: {uuid, title}}`), observed live
  * on 2026-09-26; anything else is an error, not a blank row.
  */
-export interface ResultRow { uuid: string; title: string; page: { uuid: string; title: string } | null }
+export interface ResultRow { uuid: string; title: string; page: { uuid: string; title: string } | null; raw: Record<string, unknown> }
 
 export const PAGE_SIZE = 10;
 
@@ -15,7 +15,7 @@ export function normalize(rows: any[]): ResultRow[] {
     .map((r) => {
       const m = Array.isArray(r) ? r[0] : r;
       if (!m || typeof m !== "object" || typeof m.uuid !== "string") throw new Error(`preview row is not a pull map: ${JSON.stringify(r)}`);
-      return { uuid: m.uuid, title: String(m.title ?? ""), page: m.page ? { uuid: String(m.page.uuid), title: String(m.page.title) } : null };
+      return { uuid: m.uuid, title: String(m.title ?? ""), page: m.page ? { uuid: String(m.page.uuid), title: String(m.page.title) } : null, raw: m };
     })
     .sort((a, b) => a.title.localeCompare(b.title));
 }

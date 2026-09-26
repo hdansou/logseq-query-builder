@@ -1,5 +1,6 @@
 import { absoluteLiteral, bounds, relativeInput, type Boundary } from "./dates";
 import { guard, rowComplete, rowPositive, tagPositive } from "./guard";
+import { contextPull } from "./context";
 import { str } from "./edn";
 import type { ContentClause, DateValue, FilterRow, Join, PropertyRef, Query, TagClause, Value } from "./model";
 
@@ -20,7 +21,10 @@ export interface Emitted {
 export const RULES = ` [[(class-extends ?p ?c) [?c :logseq.property.class/extends ?p]]
  [(class-extends ?p ?c) [?t :logseq.property.class/extends ?p] (class-extends ?t ?c)]] `;
 
-const PREVIEW_PULL = "(pull ?b [:block/uuid :block/title {:block/page [:block/uuid :block/title]}])";
+const previewPull = (q: Query) => {
+  const ctx = contextPull(q.rows.flatMap((r) => (r.property ? [r.property] : [])));
+  return `(pull ?b [:block/uuid :block/title {:block/page [:block/uuid :block/title]}${ctx ? " " + ctx : ""}])`;
+};
 const BLOCK_PULL = "(pull ?b [*])";
 
 /**
@@ -165,7 +169,7 @@ export function emit(q: Query): Emitted {
     `{:query [:find ${BLOCK_PULL}` + (inClause ? `\n ${inClause}` : "") + `\n :where\n ${where.join("\n ")}]` +
     (ctx.inputs.length ? `\n :inputs [${ctx.inputs.join(" ")}]` : "") + `}`;
   const preview = {
-    query: `[:find ${PREVIEW_PULL}${inClause ? ` ${inClause}` : ""} :where ${where.join(" ")}]`,
+    query: `[:find ${previewPull(q)}${inClause ? ` ${inClause}` : ""} :where ${where.join(" ")}]`,
     inputs: [...ctx.inputs, ...(ctx.rules ? [RULES] : [])],
   };
   return { where, inputs: ctx.inputs, rules: ctx.rules, block, preview };

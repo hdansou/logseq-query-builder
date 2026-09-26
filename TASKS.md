@@ -58,11 +58,11 @@ P4 exit met 2026-09-26: both insert paths render live tables; reopening a query 
 
 | ID | Type | Title | Status | Notes |
 |---|---|---|---|---|
-| FEAT-26 | feat | Debounce + session cache; search-as-you-type for large value sets | todo | Gate on FEAT-4 numbers |
-| FEAT-27 | feat | Result row context: page, key properties | todo | |
-| FEAT-29 | feat | Layout: filter rows wrap onto two lines when a value picker is present; results zone gets squeezed at the default panel height | todo | Seen in the FEAT-21 run |
-| FEAT-30 | feat | Verify light-mode token refresh live (switch theme with the panel open) | todo | FEAT-22 was checked in dark mode only |
-| FEAT-28 | feat | Hide settings-like built-in properties from the property picker (`Enable bidirectional properties`, `Enable property history`, `Hide empty value` passed the host's public/hidden rule live) — probably by `:logseq.property/view-context` | todo | Found in the P2 demo |
+| FEAT-26 | feat | Debounce + session cache; search-as-you-type for large value sets | done (partial) | Preview debounced 300 ms (store), vocabulary cached per session and invalidated on `DB.onChanged` (graph.ts), node search is already search-as-you-type. A value-list fallback for huge properties is deferred until a real graph shows a need (FEAT-4 measured ms on the seed graph) |
+| FEAT-27 | feat | Result row context: page, key properties | done | Rows show the values of the properties the query filters on (`context.ts`, 3 unit tests); live: "qbStatus: Todo · QB Scratch". Pull-map keys keep the full ident except `:block/*` (observed live) |
+| FEAT-29 | feat | Layout: filter rows wrap onto two lines when a value picker is present; results zone gets squeezed at the default panel height | done | Default panel 780×620, narrower pickers, remove button no longer pushed right, results min-height 120; the host keeps a user's own size once dragged |
+| FEAT-30 | feat | Verify light-mode token refresh live | done | Live: `set_theme_mode('light')` → panel white with dark text and host link colours; guard bar colours now derive from the host background |
+| FEAT-28 | feat | Hide settings-like built-in properties from the property picker | done | Built-ins with a `:logseq.property/view-context` (property/class/page/never) are dropped; node-level ones (Status, Deadline, Assignee…) have none. Live: typing `ena` finds nothing |
 | TASK-5 | task | Production build, real `manifest.json`, icon, README for users | todo | |
 
 ## Bugs
