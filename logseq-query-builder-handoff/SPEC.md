@@ -588,20 +588,24 @@ that property, the builder loads it. Datalog is derived output and is never pars
 ### 9. Rewritten Datalog sketch (replaces the prototype's `datalog()`)
 
 Scenario 2, *Maria's open projects due this month*, with `deadline` a user `:datetime` property and
-"this month" rendered as "within +30d" per §2. Idents are illustrative; the real ones carry the
-graph's random suffixes.
+"this month" rendered as "within 30 days" per §2. This is the emitter's actual output
+(`src/emit.ts`, test "full block text"); idents are illustrative, the real ones carry the graph's
+random suffixes. Note the ordering: positive clauses first so `?b` is bound before the negation,
+and `%` last in `:in`.
 
 ```clojure
 {:query [:find (pull ?b [*])
-         :in $ ?in1 %
-         :where
-         [?tag :db/ident :user.class/project-Kq9x2mzp]
-         [?b :block/tags ?t] (or [(= ?t ?tag)] (class-extends ?tag ?t))
-         [?b :user.property/assignee-Bt4wq1zd ?a] [?a :block/uuid #uuid "0c2f…"]
-         (not [?b :user.property/status-Xab12cde ?s] [?s :block/title "done"])
-         [?b :user.property/deadline-Mn8d0pq2 ?ms] [(<= ?ms ?in1)]]
- :inputs [:+30d-ms]}
+ :in $ ?in1 %
+ :where
+ [?tag1 :db/ident :user.class/project-Kq9x2mzp] [?b :block/tags ?t1] (or [(= ?t1 ?tag1)] (class-extends ?tag1 ?t1))
+ [?b :user.property/assignee-Xab12cde ?v1] [?v1 :block/uuid ?x1] [(contains? #{#uuid "0c2f0000-0000-4000-8000-000000000001"} ?x1)]
+ [?b :user.property/deadline-Xab12cde ?x3] [(<= ?x3 ?in1)]
+ (not [?b :user.property/status-Xab12cde ?v2] [?v2 :block/title ?x2] [(contains? #{"done"} ?x2)])]
+ :inputs [:+30d-end]}
 ```
+
+Read-back line for the same state (`src/readback.ts`): *project nodes where assignee is Maria and
+status is not done and deadline is on or before 30 days from now*.
 
 Scenario 4, *tasks scheduled this week that mention "invoice"* (week = today…+7d per §2):
 
@@ -645,4 +649,4 @@ Operator table, one definition (property ident `P`, value symbol `?v`, inputs `?
 | has tag | `[?b :block/tags _]` |
 | content contains | `[?b :block/title ?t] [(clojure.string/lower-case ?t) ?lt] [(clojure.string/includes? ?lt "x")]` |
 
-Every row above was run live on 2026-09-26 and returned the expected rows (`docs/probes.md`, FEAT-1); the unit tests of the emitter encode exactly these forms.
+Every row above was run live on 2026-09-26 and returned the expected rows (`docs/probes.md`, FEAT-1); `src/emit.test.ts` encodes exactly these forms, and `src/dates.ts` `bounds` is the single definition of the date/datetime comparison semantics.

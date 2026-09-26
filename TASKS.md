@@ -30,22 +30,16 @@ Single source of truth for work in this repo. Nothing gets implemented before it
 | FEAT-2 | feat | Probe the insert sequence | Chrome: inserted block renders "Live query (3)" with the right rows; code sub-properties refused and unnecessary |
 | FEAT-3 | feat | Probe floating panel + theme tokens | Chrome: host title bar, drag, resize, click-through beside the panel, panel survives navigation; 13 of 14 tokens resolved; position memory deferred to a packaged build |
 | FEAT-4 | feat | Probe fetch latency | 1–5 ms per fetch on the seed graph, 66–86 ms for `getAllProperties`; too small to decide P5, re-run on a real graph |
+| FEAT-5 | feat | `model.ts`: builder state types + `addRow/removeRow/setJoin/toggleNot/setTags/setInherit` reducers | Unit: reducers are pure; a NOT toggle flips one row only; join is per row |
+| FEAT-6 | feat | `operators.ts`: single table type → operators → arity / value-control kind | Unit: the eight spec types list exactly the spec's operators; checkbox has no value control; `between` has arity 2 |
+| FEAT-7 | feat | `dates.ts`: relative expression → input keyword; absolute → journal-day int or ms; datetime day-granularity uses `-start/-end/-ms` | Unit: `-7d` → `:-7d`; "on or before +7d" on datetime → `:+7d-ms` with `<=`; "after -3d" → `:-3d-end` with `>`; week/month boundaries are not offered |
+| FEAT-8 | feat | `emit.ts`: state → `{:query :inputs}` string; `%` last in `:in`; idents embedded; inherit toggle | 21 unit tests: spec scenarios 1–5 (scenario 2 as a full block-text snapshot), every operator row from `docs/probes.md`, AND/OR/NOT composition, input dedup, escaping; preview and block differ only in `:find` |
+| FEAT-9 | feat | Guard: refuse an unbounded query (no positive clause) with a message | 7 unit tests: empty, only-NOT, NOT joined with OR refused; NOT anywhere accepted once a positive clause exists (scenario 5) |
+| FEAT-10 | feat | `readback.ts`: plain-English line from state | 5 unit tests incl. scenario 2 verbatim, OR/NOT rows, presence tags, content search |
 
-## Now — P1, pure core
+## Now — P2, vocabulary and preview
 
-P0 exit met 2026-09-26: `docs/probes.md` complete; no emitted form needed replacing.
-
-
-| ID | Type | Title | Status | Acceptance test |
-|---|---|---|---|---|
-| FEAT-5 | feat | `model.ts`: builder state types + `addRow/removeRow/setJoin/toggleNot/setTags/setInherit` reducers | done | Unit: reducers are pure; a NOT toggle flips one row only; join is per row |
-| FEAT-6 | feat | `operators.ts`: single table type → operators → arity / value-control kind | done | Unit: the eight spec types list exactly the spec's operators; checkbox has no value control; `between` has arity 2 |
-| FEAT-7 | feat | `dates.ts`: relative expression → input keyword; absolute → journal-day int or ms; datetime day-granularity uses `-start/-end/-ms` | done | Unit: `-7d` → `:-7d`; "on or before +7d" on datetime → `:+7d-ms` with `<=`; "after -3d" → `:-3d-end` with `>`; week/month boundaries are not offered |
-| FEAT-8 | feat | `emit.ts`: state → `{:query :inputs}` string; `%` last in `:in`; idents embedded; inherit toggle | done | 21 unit tests: spec scenarios 1–5 (scenario 2 as a full block-text snapshot), every operator row from `docs/probes.md`, AND/OR/NOT composition, input dedup, escaping; preview and block differ only in `:find` |
-| FEAT-9 | feat | Guard: refuse an unbounded query (no positive clause) with a message | done | 7 unit tests: empty, only-NOT, NOT joined with OR refused; NOT anywhere accepted once a positive clause exists (scenario 5) |
-| FEAT-10 | feat | `readback.ts`: plain-English line from state | todo | Unit: scenario 2 reads "project nodes where assignee is Maria and status is not done and deadline is on or before 30 days from now" |
-
-## Then — P2, vocabulary and preview
+P1 exit met 2026-09-26: five spec scenarios emit the live-verified Datalog, every operator row has a test, an all-negative query is refused with a message. 66 unit tests.
 
 | ID | Type | Title | Status | Acceptance test |
 |---|---|---|---|---|
