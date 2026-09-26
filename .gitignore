@@ -23,5 +23,8 @@ Thumbs.db
 .claude/
 .aider/
 
+# raw probe output written by the dev sink; docs/probes.md is the record
+docs/probes.jsonl
+
 # bundles
 *.zip

@@ -73,7 +73,7 @@ The probe palette commands and the `/__probe` result sink exist only when vite s
 should print 0.
 
 `Query Builder: probe <name>` palette commands run the P0 probes; results are POSTed to the dev
-server and appended to `docs/probes.jsonl`. `probe seed` builds the scratch page once per graph;
+server and appended to `docs/probes.jsonl` (ignored by git; `docs/probes.md` is the curated record). `probe seed` builds the scratch page once per graph;
 `probe ALL` runs the read-only ones. Summarise with `python3 scripts/summarise_probes.py`.
 
 ## Driving the panel from browser automation
