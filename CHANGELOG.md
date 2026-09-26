@@ -17,6 +17,9 @@ All notable changes to this plugin are recorded here. The format follows
 - Keyboard-only path: `⌘⇧F` open, `↩` pick, `Tab` next, `⇧↩` add filter, `⌘↩` insert, `Esc` close.
 - Host theme tokens copied into the panel, refreshed on theme change (light and dark verified).
 
+### Internal
+- Headless DOM tests for the panel (happy-dom), a dev-only `postMessage` test hook for driving the panel from the host page, and `npm run probe -- <graph>` to check emitted Datalog counts on a CLI graph (`docs/probes-cli.json`).
+
 ### Security
 - Cleared all eight `npm audit` advisories: `dompurify` and `lodash-es` (transitive through `@logseq/libs`) are pinned to patched versions with `overrides`; `esbuild` and `vite-node` are cleared by moving the toolchain to vite 7 and vitest 4.
 

@@ -28,5 +28,5 @@ export default defineConfig({
   publicDir: false,   // icon.svg lives at the repo root and travels in the release zip, not in dist/
   plugins: [probeSink()],
   build: { outDir: "dist", emptyOutDir: true },
-  test: { include: ["src/**/*.test.ts"] },
+  test: { include: ["src/**/*.test.ts", "probes/**/*.test.ts"] },
 });

@@ -1,0 +1,190 @@
+{
+  "_doc": "Emitter clauses checked read-only against CLI graphs with `npm run probe -- <graph>`; `--record` rewrites `expected`. Targets with a title and no uuid are resolved by title on the graph. Date inputs are not supported by the CLI.",
+  "probes": [
+    {
+      "name": "links to Quick Start",
+      "graph": "Demo-Graph",
+      "expected": 3,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [],
+        "inherit": true,
+        "rows": [],
+        "content": null,
+        "name": "",
+        "refs": [
+          {
+            "id": "r1",
+            "dir": "links-to",
+            "target": {
+              "kind": "node",
+              "uuid": null,
+              "title": "Quick Start"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ]
+      }
+    },
+    {
+      "name": "is linked from Quick Start",
+      "graph": "Demo-Graph",
+      "expected": 12,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [],
+        "inherit": true,
+        "rows": [],
+        "content": null,
+        "name": "",
+        "refs": [
+          {
+            "id": "r1",
+            "dir": "linked-from",
+            "target": {
+              "kind": "node",
+              "uuid": null,
+              "title": "Quick Start"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ancestor links to Quick Start",
+      "graph": "Demo-Graph",
+      "expected": 3,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [],
+        "inherit": true,
+        "rows": [],
+        "content": null,
+        "name": "",
+        "refs": [
+          {
+            "id": "r1",
+            "dir": "ancestor-links-to",
+            "target": {
+              "kind": "node",
+              "uuid": null,
+              "title": "Quick Start"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ]
+      }
+    },
+    {
+      "name": "links to any Task",
+      "graph": "Demo-Graph",
+      "expected": 2,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [],
+        "inherit": true,
+        "rows": [],
+        "content": null,
+        "name": "",
+        "refs": [
+          {
+            "id": "r1",
+            "dir": "links-to",
+            "target": {
+              "kind": "tag",
+              "tag": {
+                "ident": ":logseq.class/Task",
+                "title": "Task"
+              },
+              "name": "",
+              "rows": []
+            },
+            "not": false,
+            "join": "and"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Task nodes",
+      "graph": "Demo-Graph",
+      "expected": 15,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [
+          {
+            "tag": {
+              "ident": ":logseq.class/Task",
+              "title": "Task"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "inherit": true,
+        "rows": [],
+        "content": null,
+        "name": "",
+        "refs": []
+      }
+    },
+    {
+      "name": "in the Library",
+      "graph": "Library-Test",
+      "expected": 189,
+      "query": {
+        "scope": {
+          "kind": "library"
+        },
+        "tags": [],
+        "inherit": true,
+        "rows": [],
+        "content": null,
+        "name": "",
+        "refs": []
+      }
+    },
+    {
+      "name": "on page under Library",
+      "graph": "Library-Test",
+      "expected": 189,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [],
+        "inherit": true,
+        "rows": [],
+        "content": null,
+        "name": "",
+        "refs": [
+          {
+            "id": "r1",
+            "dir": "under",
+            "target": {
+              "kind": "node",
+              "uuid": null,
+              "title": "Library"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ]
+      }
+    }
+  ]
+}

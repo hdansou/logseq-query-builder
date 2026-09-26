@@ -97,3 +97,38 @@ npm run preview        # serves dist/ on :8292
 Register it exactly like the dev server, with `url: "http://localhost:8292"` and
 `installedFromUserWebUrl: "http://localhost:8292"`; `main` stays `index.html` because the preview
 server's root *is* `dist/`.
+
+## Driving the panel from the host console (dev builds only)
+
+The plugin frame is cross-origin, so browser automation cannot click into it. Dev builds install a
+`postMessage` hook (`src/devhook.ts`). From DevTools on the host page:
+
+```js
+const qb = (msg) => new Promise((res) => {
+  const id = Math.random().toString(36).slice(2);
+  const f = document.querySelector('iframe[src*="8291"]');
+  const h = (e) => { if (e.data?.qbReply === id) { window.removeEventListener("message", h); res(e.data); } };
+  window.addEventListener("message", h);
+  f.contentWindow.postMessage({ ...msg, id }, "*");
+});
+await qb({ qb: "click", fid: "add-ref" });
+const { fids } = await qb({ qb: "fids" });
+const target = fids.find((f) => f.startsWith("ref-target-"));
+await qb({ qb: "type", fid: target, text: "iris" });      // opens the picker
+await qb({ qb: "key", fid: target, key: "Enter" });        // picks the highlighted option
+await qb({ qb: "state" });                                 // { query, guard, readback, results, text }
+```
+
+Messages: `state`, `set` (`query`), `click` (`fid`), `type` (`fid`, `text`), `key` (`fid`, `key`),
+`fids`. The hook is absent from the production bundle.
+
+## Checking emitted Datalog on a CLI graph
+
+```bash
+npm run probe -- Demo-Graph            # runs docs/probes-cli.json fixtures for that graph, compares counts
+npm run probe -- Library-Test --record # rewrites the expected counts with what the graph returns
+```
+
+Read-only; fixtures name targets by title and are resolved on the graph. Date inputs are not
+supported by the CLI, keep fixtures date-free. Unit tests stay green without any graph (the probe
+file is skipped unless `QB_PROBE_GRAPH` is set).
