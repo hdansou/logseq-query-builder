@@ -60,8 +60,10 @@ manifest fields (`author`, `license`, `repository`, `engines`, `packageManager`,
 `supportsDBOnly`, `minSDKVersion`, icon at repo root); E14 `ci.yml` + `publish.yml` (Node 22).
 Also applied: D9 overrides (`dompurify` ^3.4.16, `lodash-es` ^4.18.1, resolved exactly) and D10 vite 7.3.6 +
 vitest 4.1.11; `npm audit` reports 0 vulnerabilities; suite, typecheck and build green on the new toolchain.
-Deferred: A2 `docs/probes.jsonl` (keep or ignore), B4 SDK typing wrapper, B5 `graph.ts` row types,
-E15 remote, E16 README screenshot, E17 handoff folder note.
+Then: A2 raw probe log untracked; B4 `sdk.ts` holds the SDK casts; B5 `graph.ts` rows typed at one boundary;
+E15 private repo `hdansou/logseq-query-builder` created and `main` pushed; E16 README screenshot from the
+scratch graph (`docs/screenshot.jpg`); E17 handoff folder kept and named as the design record in the README.
+Open: replace the screenshot with a real-graph capture before the marketplace PR; make the repo public then.
 
 ## Now — daily use
 

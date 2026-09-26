@@ -4,6 +4,8 @@ Build a Logseq DB query visually — pick tags, add typed property filters, opti
 text — see the matching nodes as you go, jump to one, or insert the query into a page as a named,
 live query node. No Datalog written by hand.
 
+![Query Builder panel: a tag chip, three typed filter rows, the plain-English read-back and a matching node with its property values](docs/screenshot.jpg)
+
 > **Status: first implementation complete, used on a scratch graph only.** State and next steps:
 > [`TASKS.md`](./TASKS.md). Loading it for testing: [`INSTALL-DEV.md`](./INSTALL-DEV.md).
 > Design record: [`PLAN.md`](./PLAN.md), the spec and prototype in `logseq-query-builder-handoff/`,
