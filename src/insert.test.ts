@@ -48,6 +48,8 @@ describe("state round trip", () => {
     const old = { v: 1, query: { name: "x", tags: [], inherit: true, rows: [], content: null } };
     expect(deserializeState(JSON.stringify(old))?.scope).toEqual({ kind: "anywhere" });
     expect(deserializeState(JSON.stringify(old))?.refs).toEqual([]);   // state saved before reference rows existed
+    const tagRef = { v: 1, query: { ...old.query, refs: [{ id: "ref1", dir: "links-to", target: { kind: "tag", tag: { ident: ":user.class/p-1", title: "p" }, name: "" }, not: false, join: "and" }] } };
+    expect((deserializeState(JSON.stringify(tagRef))?.refs[0].target as any).rows).toEqual([]);   // tag targets saved before conditions existed
     expect(deserializeState("")).toBeNull();
   });
 });

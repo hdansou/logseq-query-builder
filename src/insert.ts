@@ -75,7 +75,9 @@ export function deserializeState(text: string): Query | null {
     if (parsed?.v !== VERSION) return null;
     const q = parsed.query;
     if (!q || typeof q.name !== "string" || !Array.isArray(q.tags) || typeof q.inherit !== "boolean" || !Array.isArray(q.rows) || !("content" in q)) return null;
-    return { scope: { kind: "anywhere" }, refs: [], ...q } as Query;   // state saved before scopes / reference rows existed
+    const refs = ((q.refs ?? []) as Query["refs"]).map((r) =>   // tag targets saved before conditions existed carry no rows
+      r.target?.kind === "tag" ? { ...r, target: { ...r.target, rows: r.target.rows ?? [] } } : r);
+    return { scope: { kind: "anywhere" }, ...q, refs } as Query;   // state saved before scopes / reference rows existed
   } catch {
     return null;
   }

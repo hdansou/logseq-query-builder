@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addRef, addRow, addTag, emptyQuery, setContent, setJoin, setRef, setRow, setScope, setTag, toggleNot, type PropertyRef, type Query, type RefRow, type TagRef, type Value } from "./model";
+import { addRef, addRow, addTag, emptyQuery, setContent, setJoin, setRef, setRow, setScope, setTag, toggleNot, type PropertyRef, type Query, type RefRow, type RefTarget, type TagRef, type Value } from "./model";
 import { readback } from "./readback";
 
 const project: TagRef = { ident: ":user.class/project-1", title: "project" };
@@ -78,7 +78,7 @@ describe("readback with reference rows", () => {
     expect(readback(q)).toBe("project nodes that link to Project Iris where status is Todo");
   });
   it("tag targets read as any <tag>, with the name condition; NOT and OR compose", () => {
-    const anyProject = { kind: "tag", tag: project, name: "" } as const;
+    const anyProject: RefTarget = { kind: "tag", tag: project, name: "", rows: [] };
     expect(readback(withRef(emptyQuery(), { dir: "links-to", target: anyProject }))).toBe("all nodes that link to any project");
     expect(readback(withRef(emptyQuery(), { dir: "links-to", target: { ...anyProject, name: "iris" } }))).toBe('all nodes that link to any project named like "iris"');
     let q = withRef(emptyQuery(), { dir: "links-to", target: iris, not: true });
@@ -91,5 +91,19 @@ describe("readback with reference rows", () => {
   });
   it("skips rows without a target", () => {
     expect(readback(addRef(addTag(emptyQuery(), project)))).toBe("project nodes");
+  });
+});
+
+describe("readback of a filtered target set", () => {
+  const withRef = (q: Query, patch: Partial<Omit<RefRow, "id">>) => {
+    const q2 = addRef(q);
+    return setRef(q2, q2.refs[q2.refs.length - 1].id, patch);
+  };
+  const trow = (patch: Parameters<typeof setRow>[2], join: "and" | "or" = "and") => ({ id: `t${Math.random()}`, property: null, op: null, values: [], not: false, join, ...patch });
+  it("reads 'any <tag> whose <condition> and <condition>', after the name condition; incomplete rows skipped", () => {
+    const rows = [trow({ property: status, op: "contains-any", values: [text("Todo")] }), trow({ property: points, op: "gt", values: [{ kind: "number", n: 3 }] }, "or"), trow({ property: status })];
+    expect(readback(withRef(emptyQuery(), { dir: "links-to", target: { kind: "tag", tag: project, name: "iris", rows } })))
+      .toBe('all nodes that link to any project named like "iris" whose status is Todo or points is greater than 3');
+    expect(readback(withRef(emptyQuery(), { dir: "links-to", target: { kind: "tag", tag: project, name: "", rows: [rows[2]] } }))).toBe("all nodes that link to any project");
   });
 });

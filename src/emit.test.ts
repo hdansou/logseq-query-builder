@@ -231,10 +231,10 @@ describe("reference rows (SPEC §10)", () => {
     expect(e.rules).toBe(true);
   });
   it("a tag target uses tag inheritance like the tag selector, and an optional name condition", () => {
-    const q = withRef(emptyQuery(), { dir: "links-to", target: { kind: "tag", tag: project, name: "" } });
+    const q = withRef(emptyQuery(), { dir: "links-to", target: { kind: "tag", tag: project, name: "", rows: [] } });
     expect(emit(q).where).toEqual([`${TAG} [?b :block/refs ?r1] (not [?b :block/tags ?r1]) ${HIDDEN}`]);
     expect(emit(q).rules).toBe(true);
-    const named = withRef(emptyQuery(), { dir: "links-to", target: { kind: "tag", tag: project, name: "Iris" } });
+    const named = withRef(emptyQuery(), { dir: "links-to", target: { kind: "tag", tag: project, name: "Iris", rows: [] } });
     expect(emit(named).where).toEqual([`${TAG} [?r1 :block/title ?rt1] [(clojure.string/lower-case ?rt1) ?rl1] [(clojure.string/includes? ?rl1 "iris")] [?b :block/refs ?r1] (not [?b :block/tags ?r1]) ${HIDDEN}`]);
     const exact = setInherit(named, false);
     expect(emit(exact).where[0]).toMatch(/^\[\?r1 :block\/tags :user\.class\/project-Kq9x2mzp\] \[\?r1 :block\/title/);
@@ -251,5 +251,36 @@ describe("reference rows (SPEC §10)", () => {
   it("an incomplete row (no target) is skipped", () => {
     const q = addRef(addTag(emptyQuery(), task));
     expect(emit(q).where).toEqual([INHERIT(task)]);
+  });
+});
+
+describe("filtered target set (SPEC: a tag plus property or name conditions)", () => {
+  const withRef = (q: Query, patch: Partial<Omit<RefRow, "id">>) => {
+    const q2 = addRef(q);
+    return setRef(q2, q2.refs[q2.refs.length - 1].id, patch);
+  };
+  const TAG = `[?rtag1 :db/ident ${project.ident}] [?r1 :block/tags ?rtv1] (or [(= ?rtv1 ?rtag1)] (class-extends ?rtag1 ?rtv1))`;
+  const HIDDEN = `(not [?b :block/page ?hp1] [?hp1 :block/name ?hn1] [(clojure.string/starts-with? ?hn1 "$$$")])`;
+  const trow = (patch: Parameters<typeof setRow>[2], join: "and" | "or" = "and") => ({ id: `t${Math.random()}`, property: null, op: null, values: [], not: false, join, ...patch });
+  it("a property condition narrows the target set with the row emitter, subject ?rN, variables suffixed rN_k", () => {
+    const q = withRef(emptyQuery(), { dir: "links-to", target: { kind: "tag", tag: project, name: "", rows: [trow({ property: status, op: "contains-any", values: [text("Todo")] })] } });
+    expect(emit(q).where).toEqual([`${TAG} [?r1 ${P(status)} ?vr1_1] [?vr1_1 :block/title ?xr1_1] [(contains? #{"Todo"} ?xr1_1)] [?b :block/refs ?r1] (not [?b :block/tags ?r1]) ${HIDDEN}`]);
+  });
+  it("name and conditions combine; NOT and OR rows fold on the target variable; incomplete rows are skipped", () => {
+    const rows = [
+      trow({ property: status, op: "contains-any", values: [text("Todo")] }),
+      trow({ property: points, op: "gt", values: [num(3)], not: true }),
+      trow({ property: status }),   // incomplete
+    ];
+    const q = withRef(emptyQuery(), { dir: "under", target: { kind: "tag", tag: project, name: "Iris", rows } });
+    expect(emit(q).where).toEqual([`${TAG} [?r1 :block/title ?rt1] [(clojure.string/lower-case ?rt1) ?rl1] [(clojure.string/includes? ?rl1 "iris")] [?r1 ${P(status)} ?vr1_1] [?vr1_1 :block/title ?xr1_1] [(contains? #{"Todo"} ?xr1_1)] (not [?r1 ${P(points)} ?vr1_2] [?vr1_2 :logseq.property/value ?xr1_2] [(> ?xr1_2 3)]) (parent ?r1 ?b) (not [?b :logseq.property/created-from-property _])`]);
+    const or = withRef(emptyQuery(), { dir: "links-to", target: { kind: "tag", tag: project, name: "", rows: [rows[0], trow({ property: points, op: "gt", values: [num(3)] }, "or")] } });
+    expect(emit(or).where[0]).toContain(`(or-join [?r1] (and [?r1 ${P(status)} ?vr1_1] [?vr1_1 :block/title ?xr1_1] [(contains? #{"Todo"} ?xr1_1)]) (and [?r1 ${P(points)} ?vr1_2] [?vr1_2 :logseq.property/value ?xr1_2] [(> ?xr1_2 3)]))`);
+  });
+  it("a date condition on the target shares the query's inputs", () => {
+    const q = withRef(emptyQuery(), { dir: "links-to", target: { kind: "tag", tag: project, name: "", rows: [trow({ property: deadline, op: "on-or-before", values: [rel({ offset: 30, unit: "d" })] })] } });
+    const e = emit(q);
+    expect(e.inputs).toEqual([":+30d-end"]);   // on-or-before on a datetime: end of that day
+    expect(e.where[0]).toContain(`[?r1 ${P(deadline)} ?xr1_1] [(<= ?xr1_1 ?in1)]`);
   });
 });

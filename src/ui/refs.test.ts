@@ -15,7 +15,7 @@ describe("reference target options", () => {
   it("lists tags first as 'any <tag>' with their counts, then nodes with their page", () => {
     const opts = targetOptions(tags, nodes);
     expect(opts.map((o) => o.label)).toEqual(["any project", "any Journal", "Project Iris", "Iris Phase Two"]);
-    expect(opts[0]).toMatchObject({ id: ":user.class/project-1", hint: "18", value: { kind: "tag", tag: { ident: ":user.class/project-1", title: "project" }, name: "" } });
+    expect(opts[0]).toMatchObject({ id: ":user.class/project-1", hint: "18", value: { kind: "tag", tag: { ident: ":user.class/project-1", title: "project" }, name: "", rows: [] } });
     expect(opts[2]).toMatchObject({ id: "n1", value: { kind: "node", uuid: "n1", title: "Project Iris" } });
     expect(opts[3].hint).toBe("Projects");
   });

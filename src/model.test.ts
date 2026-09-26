@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  addRef, addRow, addTag, emptyQuery, removeRef, removeRow, removeTag, setContent, setInherit, setJoin, setName,
-  setRef, setRow, setScope, toggleNot, type PropertyRef, type Query, type TagRef,
+  addRef, addRow, addTag, addTargetRow, emptyQuery, removeRef, removeRow, removeTag, removeTargetRow, setContent, setInherit, setJoin, setName,
+  setRef, setRow, setScope, setTargetRow, toggleNot, type PropertyRef, type Query, type TagRef,
 } from "./model";
 
 const project: TagRef = { ident: ":user.class/project-Kq9x2mzp", title: "project" };
@@ -100,9 +100,9 @@ describe("reference rows", () => {
   it("setRef patches one row by id; removeRef drops it; both leave the input untouched", () => {
     const q1 = addRef(addRef(emptyQuery()));
     const [a, b] = q1.refs.map((r) => r.id);
-    const q2 = setRef(q1, b, { dir: "ancestor-links-to", target: { kind: "tag", tag: project, name: "iris" }, not: true, join: "or" });
+    const q2 = setRef(q1, b, { dir: "ancestor-links-to", target: { kind: "tag", tag: project, name: "iris", rows: [] }, not: true, join: "or" });
     expect(q2.refs[0]).toEqual(q1.refs[0]);
-    expect(q2.refs[1]).toEqual({ id: b, dir: "ancestor-links-to", target: { kind: "tag", tag: project, name: "iris" }, not: true, join: "or" });
+    expect(q2.refs[1]).toEqual({ id: b, dir: "ancestor-links-to", target: { kind: "tag", tag: project, name: "iris", rows: [] }, not: true, join: "or" });
     expect(q1.refs[1].target).toBeNull();
     expect(removeRef(q2, a).refs.map((r) => r.id)).toEqual([b]);
   });
@@ -110,5 +110,32 @@ describe("reference rows", () => {
     const q = addRef(emptyQuery());
     const q2 = setRef(q, q.refs[0].id, { target: { kind: "node", uuid: "u1", title: "Project Iris" } });
     expect(q2.refs[0].target).toEqual({ kind: "node", uuid: "u1", title: "Project Iris" });
+  });
+});
+
+describe("filtered target set: property conditions on a tag target", () => {
+  const tagTarget = () => {
+    const q = addRef(emptyQuery());
+    return setRef(q, q.refs[0].id, { target: { kind: "tag", tag: project, name: "", rows: [] } });
+  };
+  it("addTargetRow appends an empty filter row to the tag target; node targets are untouched", () => {
+    const q = tagTarget();
+    const q2 = addTargetRow(q, q.refs[0].id);
+    const t = q2.refs[0].target as { kind: "tag"; rows: any[] };
+    expect(t.rows).toHaveLength(1);
+    expect(t.rows[0]).toMatchObject({ property: null, op: null, values: [], not: false, join: "and" });
+    expect((q.refs[0].target as any).rows).toEqual([]);
+  });
+  it("setTargetRow patches one row like setRow (a property change resets op and values); removeTargetRow drops it", () => {
+    let q = addTargetRow(tagTarget(), tagTarget().refs[0].id);
+    q = addTargetRow(addTargetRow(tagTarget(), "nope"), "nope");   // unknown ref id: no change
+    expect(q.refs[0].target).toEqual({ kind: "tag", tag: project, name: "", rows: [] });
+    q = addTargetRow(q, q.refs[0].id);
+    const refId = q.refs[0].id, rowId = (q.refs[0].target as any).rows[0].id;
+    q = setTargetRow(q, refId, rowId, { property: status, op: "contains-any", values: [{ kind: "text", text: "Todo" }] });
+    expect((q.refs[0].target as any).rows[0]).toMatchObject({ property: status, op: "contains-any" });
+    q = setTargetRow(q, refId, rowId, { property: { ...status, ident: ":user.property/other-1", title: "other" } });
+    expect((q.refs[0].target as any).rows[0]).toMatchObject({ op: null, values: [] });
+    expect((removeTargetRow(q, refId, rowId).refs[0].target as any).rows).toEqual([]);
   });
 });

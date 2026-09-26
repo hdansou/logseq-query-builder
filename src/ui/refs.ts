@@ -20,7 +20,7 @@ const dirLabel = (id: RefDirection) => DIRECTIONS.find((d) => d.id === id)!.labe
 /** Tags first ("any project", count as hint), then the nodes the graph search returned. */
 export function targetOptions(tags: TagInfo[], nodes: NodeInfo[], text = ""): Option<RefTarget>[] {
   const tagOpts: Option<RefTarget>[] = tags.map((t) => ({
-    id: t.ident, label: `any ${t.title}`, hint: `${t.count}`, value: { kind: "tag", tag: { ident: t.ident, title: t.title }, name: "" },
+    id: t.ident, label: `any ${t.title}`, hint: `${t.count}`, value: { kind: "tag", tag: { ident: t.ident, title: t.title }, name: "", rows: [] },
   }));
   const nodeOpts: Option<RefTarget>[] = nodes.map((n) => ({
     id: n.uuid, label: n.title, hint: n.page?.title, value: { kind: "node", uuid: n.uuid, title: n.title },

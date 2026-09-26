@@ -59,7 +59,7 @@ export type Scope =
 export type RefDirection = "links-to" | "linked-from" | "ancestor-links-to" | "under";
 export type RefTarget =
   | { kind: "node"; uuid: string; title: string }
-  | { kind: "tag"; tag: TagRef; name: string };   // name "" = no condition
+  | { kind: "tag"; tag: TagRef; name: string; rows: FilterRow[] };   // name "" = no condition; rows = property conditions on the target set
 export interface RefRow { id: string; dir: RefDirection; target: RefTarget | null; not: boolean; join: Join }
 
 export interface Query {
@@ -94,21 +94,31 @@ export const setTag = (q: Query, index: number, patch: Partial<TagClause>): Quer
   ({ ...q, tags: q.tags.map((t, i) => (i === index ? { ...t, ...patch } : t)) });
 export const setInherit = (q: Query, inherit: boolean): Query => ({ ...q, inherit });
 
-export const addRow = (q: Query): Query =>
-  ({ ...q, rows: [...q.rows, { id: newId(), property: null, op: null, values: [], not: false, join: "and" }] });
-export const removeRow = (q: Query, id: string): Query => ({ ...q, rows: q.rows.filter((r) => r.id !== id) });
-
-const patchRow = (q: Query, id: string, f: (r: FilterRow) => FilterRow): Query =>
-  ({ ...q, rows: q.rows.map((r) => (r.id === id ? f(r) : r)) });
-
+/** Filter-row list operations: the query's own rows and a tag target's condition rows share them. */
+export const rowsAdd = (rows: FilterRow[]): FilterRow[] => [...rows, { id: newId(), property: null, op: null, values: [], not: false, join: "and" }];
+export const rowsRemove = (rows: FilterRow[], id: string): FilterRow[] => rows.filter((r) => r.id !== id);
+const rowsPatch = (rows: FilterRow[], id: string, f: (r: FilterRow) => FilterRow): FilterRow[] => rows.map((r) => (r.id === id ? f(r) : r));
 /** Changing the property invalidates operator and values, since both depend on its type. */
-export const setRow = (q: Query, id: string, patch: Partial<Omit<FilterRow, "id">>): Query =>
-  patchRow(q, id, (r) => {
+export const rowsSet = (rows: FilterRow[], id: string, patch: Partial<Omit<FilterRow, "id">>): FilterRow[] =>
+  rowsPatch(rows, id, (r) => {
     const propertyChanged = patch.property !== undefined && patch.property?.ident !== r.property?.ident;
     return { ...r, ...(propertyChanged ? { op: null, values: [] } : {}), ...patch, id: r.id };
   });
-export const toggleNot = (q: Query, id: string): Query => patchRow(q, id, (r) => ({ ...r, not: !r.not }));
-export const setJoin = (q: Query, id: string, join: Join): Query => patchRow(q, id, (r) => ({ ...r, join }));
+export const rowsToggleNot = (rows: FilterRow[], id: string): FilterRow[] => rowsPatch(rows, id, (r) => ({ ...r, not: !r.not }));
+export const rowsSetJoin = (rows: FilterRow[], id: string, join: Join): FilterRow[] => rowsPatch(rows, id, (r) => ({ ...r, join }));
+
+export const addRow = (q: Query): Query => ({ ...q, rows: rowsAdd(q.rows) });
+export const removeRow = (q: Query, id: string): Query => ({ ...q, rows: rowsRemove(q.rows, id) });
+export const setRow = (q: Query, id: string, patch: Partial<Omit<FilterRow, "id">>): Query => ({ ...q, rows: rowsSet(q.rows, id, patch) });
+export const toggleNot = (q: Query, id: string): Query => ({ ...q, rows: rowsToggleNot(q.rows, id) });
+export const setJoin = (q: Query, id: string, join: Join): Query => ({ ...q, rows: rowsSetJoin(q.rows, id, join) });
+
+/** Condition rows of a tag target (a node target has none; an unknown ref id is a no-op). */
+export const patchTargetRows = (q: Query, refId: string, f: (rows: FilterRow[]) => FilterRow[]): Query =>
+  ({ ...q, refs: q.refs.map((r) => (r.id === refId && r.target?.kind === "tag" ? { ...r, target: { ...r.target, rows: f(r.target.rows) } } : r)) });
+export const addTargetRow = (q: Query, refId: string): Query => patchTargetRows(q, refId, rowsAdd);
+export const removeTargetRow = (q: Query, refId: string, rowId: string): Query => patchTargetRows(q, refId, (rows) => rowsRemove(rows, rowId));
+export const setTargetRow = (q: Query, refId: string, rowId: string, patch: Partial<Omit<FilterRow, "id">>): Query => patchTargetRows(q, refId, (rows) => rowsSet(rows, rowId, patch));
 
 export const setContent = (q: Query, content: ContentClause | null): Query => ({ ...q, content });
 export const setName = (q: Query, name: string): Query => ({ ...q, name: name.trim() });

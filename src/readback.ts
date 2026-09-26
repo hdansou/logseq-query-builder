@@ -66,8 +66,11 @@ function content(c: ContentClause): string {
   }
 }
 
-const targetText = (t: RefTarget): string =>
-  t.kind === "node" ? t.title : `any ${t.tag.title}${t.name.trim() ? ` named like "${t.name.trim()}"` : ""}`;
+function targetText(t: RefTarget): string {
+  if (t.kind === "node") return t.title;
+  const conds = t.rows.filter(rowComplete).map((r, i) => (i === 0 ? rowText(r) : `${r.join} ${rowText(r)}`));
+  return `any ${t.tag.title}${t.name.trim() ? ` named like "${t.name.trim()}"` : ""}${conds.length ? ` whose ${conds.join(" ")}` : ""}`;
+}
 
 /** One reference row as a verb phrase: "link to X", "do not link to X". */
 export function refText(r: RefRow): string {
