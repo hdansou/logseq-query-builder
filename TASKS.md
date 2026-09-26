@@ -38,7 +38,7 @@ P0 exit met 2026-09-26: `docs/probes.md` complete; no emitted form needed replac
 
 | ID | Type | Title | Status | Acceptance test |
 |---|---|---|---|---|
-| FEAT-5 | feat | `model.ts`: builder state types + `addRow/removeRow/setJoin/toggleNot/setTags/setInherit` reducers | todo | Unit: reducers are pure; a NOT toggle flips one row only; join is per row |
+| FEAT-5 | feat | `model.ts`: builder state types + `addRow/removeRow/setJoin/toggleNot/setTags/setInherit` reducers | done | Unit: reducers are pure; a NOT toggle flips one row only; join is per row |
 | FEAT-6 | feat | `operators.ts`: single table type → operators → arity / value-control kind | todo | Unit: the eight spec types list exactly the spec's operators; checkbox has no value control; `between` has arity 2 |
 | FEAT-7 | feat | `dates.ts`: relative expression → input keyword; absolute → journal-day int or ms; datetime day-granularity uses `-start/-end/-ms` | todo | Unit: `-7d` → `:-7d`; "on or before +7d" on datetime → `:+7d-ms` with `<=`; "after -3d" → `:-3d-end` with `>`; week/month boundaries are not offered |
 | FEAT-8 | feat | `emit.ts`: state → `{:query :inputs}` string; `%` last in `:in`; idents embedded; inherit toggle | todo | Unit: spec scenarios 1–5 match SPEC § Grounding 9 byte-for-byte; every operator row has a test; preview and block differ only in `:find` |
