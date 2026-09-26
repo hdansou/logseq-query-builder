@@ -1,8 +1,8 @@
 import { absoluteLiteral, bounds, relativeInput, type Boundary } from "./dates";
-import { guard, rowComplete, rowPositive, tagPositive } from "./guard";
+import { guard, refComplete, refPositive, rowComplete, rowPositive, tagPositive } from "./guard";
 import { contextPull } from "./context";
 import { str } from "./edn";
-import type { ContentClause, DateValue, FilterRow, Join, PropertyRef, Query, Scope, TagClause, Value } from "./model";
+import type { ContentClause, DateValue, FilterRow, Join, PropertyRef, Query, RefRow, Scope, TagClause, Value } from "./model";
 
 /**
  * Builder state → Datalog. One emitter for the preview (narrow pull, inputs passed as strings,
@@ -126,11 +126,15 @@ function dateClause(r: FilterRow, n: number, ctx: Ctx): string {
   return [bind, ...cmps].join(" ");
 }
 
+/** Everything beneath `page` in the `:block/parent` tree: child pages and their blocks, any depth. */
+function underClause(page: string, ctx: Ctx): string {
+  ctx.rules = true;
+  return `(parent ${page} ?b) (not [?b :logseq.property/created-from-property _])`;
+}
+
 /**
  * Scope clauses bind ?b, so they are positive. `on-page`: ?b lives on the page. `referenced-in`:
- * blocks of the page reference ?b.
- * `library`: ?b is a page under the built-in Library (the :block/parent tree, host `parent` rule)
- * or a block on such a page.
+ * blocks of the page reference ?b. `library`: ?b is under the built-in Library page.
  */
 function scopeClause(scope: Scope, ctx: Ctx): Clause | null {
   switch (scope.kind) {
@@ -140,12 +144,44 @@ function scopeClause(scope: Scope, ctx: Ctx): Clause | null {
     case "referenced-in":
       return { text: `[?src :block/uuid #uuid "${scope.page.uuid}"] [?sb :block/page ?src] [?sb :block/refs ?b]`, positive: true, join: "and" };
     case "library":
-      ctx.rules = true;
-      return {
-        text: `[?lib :block/name "library"] [?lib :logseq.property/built-in? true] (parent ?lib ?lp) [?lp :block/tags :logseq.class/Page] (or [(identity ?lp) ?b] [?b :block/page ?lp])`,
-        positive: true, join: "and",
-      };
+      return { text: `[?lib :block/name "library"] [?lib :logseq.property/built-in? true] ${underClause("?lib", ctx)}`, positive: true, join: "and" };
   }
+}
+
+/** Blocks on the host's hidden `$$$views` pages are not results, as in the Linked References panel. */
+const hiddenClause = (n: number) => `(not [?b :block/page ?hp${n}] [?hp${n} :block/name ?hn${n}] [(clojure.string/starts-with? ?hn${n} "$$$")])`;
+
+/**
+ * Reference rows (SPEC §10). The target set binds ?rN: one node, or every node carrying a tag
+ * (inherited like the tag selector), optionally narrowed by a title fragment. Then one clause per
+ * direction. Tags applied to a block and its property keys sit in `:block/refs` too, so they are
+ * excluded where they would read as links.
+ */
+function refClause(r: RefRow, n: number, inherit: boolean, ctx: Ctx): Clause {
+  const t = `?r${n}`, target = r.target!;
+  let bind: string;
+  if (target.kind === "node") bind = `[${t} :block/uuid #uuid "${target.uuid}"]`;
+  else {
+    if (!inherit) bind = `[${t} :block/tags ${target.tag.ident}]`;
+    else {
+      ctx.rules = true;
+      bind = `[?rtag${n} :db/ident ${target.tag.ident}] [${t} :block/tags ?rtv${n}] (or [(= ?rtv${n} ?rtag${n})] (class-extends ?rtag${n} ?rtv${n}))`;
+    }
+    if (target.name.trim()) bind += ` [${t} :block/title ?rt${n}] [(clojure.string/lower-case ?rt${n}) ?rl${n}] [(clojure.string/includes? ?rl${n} ${str(target.name.trim().toLowerCase())})]`;
+  }
+  let text: string;
+  switch (r.dir) {
+    case "links-to":
+      text = `${bind} [?b :block/refs ${t}] (not [?b :block/tags ${t}]) ${hiddenClause(n)}`; break;
+    case "linked-from":
+      text = `${bind} (or [(identity ${t}) ?s${n}] [?s${n} :block/page ${t}]) [?s${n} :block/refs ?b] (not [?s${n} :block/tags ?b]) (not [?b :block/tags :logseq.class/Property])`; break;
+    case "ancestor-links-to":
+      ctx.rules = true;
+      text = `${bind} [?a${n} :block/refs ${t}] (or-join [?a${n} ?b] [(identity ?a${n}) ?b] (parent ?a${n} ?b)) ${hiddenClause(n)}`; break;
+    case "under":
+      text = `${bind} ${underClause(t, ctx)}`; break;
+  }
+  return { text: r.not ? `(not ${text})` : text, positive: refPositive(r), join: r.join };
 }
 
 function contentClause(c: ContentClause): Clause {
@@ -184,8 +220,9 @@ export function emit(q: Query): Emitted {
   const tags = fold(q.tags.map((t, i) => tagClause(t, i + 1, q.inherit, ctx)));
   const content = q.content ? [contentClause(q.content)] : [];
   const rows = fold(q.rows.filter(rowComplete).map((r, i) => rowClause(r, i + 1, ctx)));
+  const refs = fold(q.refs.filter(refComplete).map((r, i) => refClause(r, i + 1, q.inherit, ctx)));
   // Positive clauses bind ?b; negations must follow them. Order within a conjunction is free.
-  const all = [...(scope ? [scope] : []), ...tags, ...content, ...rows];
+  const all = [...(scope ? [scope] : []), ...tags, ...content, ...rows, ...refs];
   const where = [...all.filter((c) => c.positive), ...all.filter((c) => !c.positive)].map((c) => c.text);
 
   const ins = ctx.inputs.map((_, i) => `?in${i + 1}`);

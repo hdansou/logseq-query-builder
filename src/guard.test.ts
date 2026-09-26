@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { guard } from "./guard";
-import { addRow, addTag, emptyQuery, setContent, setJoin, setRow, setScope, setTag, toggleNot, type PropertyRef, type Query, type TagRef } from "./model";
+import { addRef, addRow, addTag, emptyQuery, setContent, setJoin, setRef, setRow, setScope, setTag, toggleNot, type PropertyRef, type Query, type TagRef } from "./model";
 
 const project: TagRef = { ident: ":user.class/project-1", title: "project" };
 const status: PropertyRef = { ident: ":user.property/status-1", title: "status", type: "default", cardinality: "one" };
@@ -12,10 +12,14 @@ const todo = { kind: "text", text: "Todo" } as const;
 
 describe("guard", () => {
   it("refuses an empty query", () => {
-    expect(guard(emptyQuery())).toEqual({ ok: false, reason: "Add a tag, a filter or a content search." });
+    expect(guard(emptyQuery())).toEqual({ ok: false, reason: "Add a tag, a filter, a reference or a content search." });
   });
-  it("accepts a single positive tag, filter or content search", () => {
+  it("accepts a single positive tag, filter, reference or content search", () => {
     expect(guard(addTag(emptyQuery(), project)).ok).toBe(true);
+    const r = addRef(emptyQuery());
+    expect(guard(setRef(r, r.refs[0].id, { target: { kind: "node", uuid: "u", title: "X" } })).ok).toBe(true);
+    expect(guard(setRef(r, r.refs[0].id, { target: { kind: "node", uuid: "u", title: "X" }, not: true })).ok).toBe(false);
+    expect(guard(r).ok).toBe(false);   // no target yet
     expect(guard(row(emptyQuery(), { property: status, op: "contains-any", values: [todo] })).ok).toBe(true);
     expect(guard(setContent(emptyQuery(), { op: "contains", value: "x" })).ok).toBe(true);
   });
@@ -53,7 +57,7 @@ describe("guard", () => {
     const q = row(addTag(emptyQuery(), project), { property: status });
     expect(guard(q).ok).toBe(true);
     const q2 = row(emptyQuery(), { property: status, op: "contains-any", values: [] });
-    expect(guard(q2)).toEqual({ ok: false, reason: "Add a tag, a filter or a content search." });
+    expect(guard(q2)).toEqual({ ok: false, reason: "Add a tag, a filter, a reference or a content search." });
   });
 });
 

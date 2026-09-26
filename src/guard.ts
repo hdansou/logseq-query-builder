@@ -1,4 +1,4 @@
-import type { FilterRow, OperatorId, Query, TagClause } from "./model";
+import type { FilterRow, OperatorId, Query, RefRow, TagClause } from "./model";
 import { arityOf } from "./operators";
 
 /**
@@ -19,18 +19,23 @@ export function rowComplete(r: FilterRow): boolean {
 
 export const rowPositive = (r: FilterRow): boolean => !r.not && !NEGATIVE_OPS.has(r.op as OperatorId);
 export const tagPositive = (t: TagClause): boolean => !t.not;
+/** A reference row takes part once it has a target; it binds ?b unless negated. */
+export const refComplete = (r: RefRow): boolean => r.target !== null;
+export const refPositive = (r: RefRow): boolean => !r.not;
 
-const EMPTY = "Add a tag, a filter or a content search.";
+const EMPTY = "Add a tag, a filter, a reference or a content search.";
 const POSITIVE = "A NOT clause needs a positive clause to narrow the results.";
 const OR = "A NOT clause can only be combined with AND.";
 
 export function guard(q: Query): GuardResult {
   const rows = q.rows.filter(rowComplete);
+  const refs = q.refs.filter(refComplete);
   const scoped = q.scope.kind !== "anywhere";
-  if (!scoped && q.tags.length === 0 && rows.length === 0 && !q.content) return { ok: false, reason: EMPTY };
+  if (!scoped && q.tags.length === 0 && rows.length === 0 && refs.length === 0 && !q.content) return { ok: false, reason: EMPTY };
 
   if (q.tags.slice(1).some((t) => t.join === "or" && !tagPositive(t))) return { ok: false, reason: OR };
   if (rows.slice(1).some((r) => r.join === "or" && !rowPositive(r))) return { ok: false, reason: OR };
-  const positive = scoped || q.tags.some(tagPositive) || q.content !== null || rows.some(rowPositive);
+  if (refs.slice(1).some((r) => r.join === "or" && !refPositive(r))) return { ok: false, reason: OR };
+  const positive = scoped || q.tags.some(tagPositive) || q.content !== null || rows.some(rowPositive) || refs.some(refPositive);
   return positive ? { ok: true } : { ok: false, reason: POSITIVE };
 }

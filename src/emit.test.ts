@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { RULES, emit } from "./emit";
-import { addRow, addTag, emptyQuery, setContent, setInherit, setJoin, setName, setRow, setScope, setTag, toggleNot, type PropertyRef, type Query, type TagRef, type Value } from "./model";
+import { addRef, addRow, addTag, emptyQuery, setContent, setInherit, setJoin, setName, setRef, setRow, setScope, setTag, toggleNot, type PropertyRef, type Query, type RefRow, type TagRef, type Value } from "./model";
 
 // Idents carry the graph's random suffixes; the emitter embeds whatever it is given.
 const task: TagRef = { ident: ":logseq.class/Task", title: "Task" };
@@ -199,10 +199,63 @@ describe("scopes", () => {
     expect(e.where).toEqual([`[?src :block/uuid #uuid "b00k"] [?b :block/page ?src]`]);
     expect(e.rules).toBe(false);
   });
-  it("library: pages under the built-in Library page or blocks on them, via the parent rule; the page branch binds ?b with identity, `(= ?b ?lp)` is an unbound predicate", () => {
+  it("library: everything under the built-in Library page via the parent rule (child pages and their blocks), property values excluded", () => {
     const e = emit(setScope(emptyQuery(), { kind: "library" }));
-    expect(e.where).toEqual([`[?lib :block/name "library"] [?lib :logseq.property/built-in? true] (parent ?lib ?lp) [?lp :block/tags :logseq.class/Page] (or [(identity ?lp) ?b] [?b :block/page ?lp])`]);
+    expect(e.where).toEqual([`[?lib :block/name "library"] [?lib :logseq.property/built-in? true] (parent ?lib ?b) (not [?b :logseq.property/created-from-property _])`]);
     expect(e.rules).toBe(true);
     expect(RULES).toContain("(parent ?p ?c)");
+  });
+});
+
+describe("reference rows (SPEC §10)", () => {
+  const withRef = (q: Query, patch: Partial<Omit<RefRow, "id">>) => {
+    const q2 = addRef(q);
+    return setRef(q2, q2.refs[q2.refs.length - 1].id, patch);
+  };
+  const iris = { kind: "node", uuid: "1r15", title: "Project Iris" } as const;
+  const NODE = `[?r1 :block/uuid #uuid "1r15"]`;
+  const TAG = `[?rtag1 :db/ident ${project.ident}] [?r1 :block/tags ?rtv1] (or [(= ?rtv1 ?rtag1)] (class-extends ?rtag1 ?rtv1))`;
+  const HIDDEN = `(not [?b :block/page ?hp1] [?hp1 :block/name ?hn1] [(clojure.string/starts-with? ?hn1 "$$$")])`;
+
+  it("links to a node: direct refs, the target's own objects and hidden view blocks excluded", () => {
+    const e = emit(withRef(emptyQuery(), { dir: "links-to", target: iris }));
+    expect(e.where).toEqual([`${NODE} [?b :block/refs ?r1] (not [?b :block/tags ?r1]) ${HIDDEN}`]);
+    expect(e.rules).toBe(false);
+  });
+  it("is linked from a node: the page and its blocks link to ?b; applied tags and property keys are not links", () => {
+    const e = emit(withRef(emptyQuery(), { dir: "linked-from", target: iris }));
+    expect(e.where).toEqual([`${NODE} (or [(identity ?r1) ?s1] [?s1 :block/page ?r1]) [?s1 :block/refs ?b] (not [?s1 :block/tags ?b]) (not [?b :block/tags :logseq.class/Property])`]);
+  });
+  it("ancestor links to: the node itself or any ancestor links, via the parent rule", () => {
+    const e = emit(withRef(emptyQuery(), { dir: "ancestor-links-to", target: iris }));
+    expect(e.where).toEqual([`${NODE} [?a1 :block/refs ?r1] (or-join [?a1 ?b] [(identity ?a1) ?b] (parent ?a1 ?b)) ${HIDDEN}`]);
+    expect(e.rules).toBe(true);
+  });
+  it("on page under: every descendant of the target in the parent tree, property values excluded", () => {
+    const e = emit(withRef(emptyQuery(), { dir: "under", target: iris }));
+    expect(e.where).toEqual([`${NODE} (parent ?r1 ?b) (not [?b :logseq.property/created-from-property _])`]);
+    expect(e.rules).toBe(true);
+  });
+  it("a tag target uses tag inheritance like the tag selector, and an optional name condition", () => {
+    const q = withRef(emptyQuery(), { dir: "links-to", target: { kind: "tag", tag: project, name: "" } });
+    expect(emit(q).where).toEqual([`${TAG} [?b :block/refs ?r1] (not [?b :block/tags ?r1]) ${HIDDEN}`]);
+    expect(emit(q).rules).toBe(true);
+    const named = withRef(emptyQuery(), { dir: "links-to", target: { kind: "tag", tag: project, name: "Iris" } });
+    expect(emit(named).where).toEqual([`${TAG} [?r1 :block/title ?rt1] [(clojure.string/lower-case ?rt1) ?rl1] [(clojure.string/includes? ?rl1 "iris")] [?b :block/refs ?r1] (not [?b :block/tags ?r1]) ${HIDDEN}`]);
+    const exact = setInherit(named, false);
+    expect(emit(exact).where[0]).toMatch(/^\[\?r1 :block\/tags :user\.class\/project-Kq9x2mzp\] \[\?r1 :block\/title/);
+  });
+  it("NOT wraps the whole row and orders it after the positive clauses; rows join AND/OR like filters", () => {
+    let q = addTag(emptyQuery(), task);
+    q = withRef(q, { dir: "links-to", target: iris, not: true });
+    const e = emit(q);
+    expect(e.where).toEqual([INHERIT(task), `(not ${NODE} [?b :block/refs ?r1] (not [?b :block/tags ?r1]) ${HIDDEN})`]);
+    let q2 = withRef(emptyQuery(), { dir: "links-to", target: iris });
+    q2 = withRef(q2, { dir: "under", target: { kind: "node", uuid: "acme", title: "Acme" }, join: "or" });
+    expect(emit(q2).where).toEqual([`(or-join [?b] (and ${NODE} [?b :block/refs ?r1] (not [?b :block/tags ?r1]) ${HIDDEN}) (and [?r2 :block/uuid #uuid "acme"] (parent ?r2 ?b) (not [?b :logseq.property/created-from-property _])))`]);
+  });
+  it("an incomplete row (no target) is skipped", () => {
+    const q = addRef(addTag(emptyQuery(), task));
+    expect(emit(q).where).toEqual([INHERIT(task)]);
   });
 });
