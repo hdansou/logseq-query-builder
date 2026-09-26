@@ -38,6 +38,8 @@ export interface PickerOpts<T> {
   /** Enter with no highlighted option; when absent, free text is ignored. */
   onFree?: (text: string) => void;
   initial?: string;
+  /** Show every option when focused, ignoring the current text until the user types. */
+  showAllOnFocus?: boolean;
   autoFocus?: boolean;
   width?: string;
 }
@@ -61,6 +63,7 @@ export function createPicker<T>(o: PickerOpts<T>): HTMLElement {
   let shown: Option<T>[] = [];
   let st: PickerState = { open: false, index: 0 };
   let searchTimer: ReturnType<typeof setTimeout> | null = null;
+  let typed = false;
 
   const paint = () => {
     list.hidden = !st.open;
@@ -86,15 +89,15 @@ export function createPicker<T>(o: PickerOpts<T>): HTMLElement {
       return;
     }
     if (!all.length && o.options) all = await o.options();
-    shown = filterOptions(all, input.value);
+    shown = filterOptions(all, o.showAllOnFocus && !typed ? "" : input.value);
     st = { ...st, index: Math.min(st.index, Math.max(shown.length - 1, 0)) };
     paint();
   };
 
   const pick = (opt: Option<T>) => { st = { open: false, index: 0 }; input.value = ""; paint(); o.onPick(opt); };
 
-  input.addEventListener("focus", () => { st = { ...st, open: true }; void refresh(); });
-  input.addEventListener("input", () => { st = { ...st, open: true, index: 0 }; void refresh(); });
+  input.addEventListener("focus", () => { typed = false; st = { ...st, open: true }; if (o.showAllOnFocus) input.select(); void refresh(); });
+  input.addEventListener("input", () => { typed = true; st = { ...st, open: true, index: 0 }; void refresh(); });
   input.addEventListener("blur", () => { st = { ...st, open: false }; paint(); });
   input.addEventListener("keydown", (e) => {
     const r = pickerKey(st, e.key, shown.length);

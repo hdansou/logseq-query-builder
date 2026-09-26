@@ -8,7 +8,7 @@ import { registerProbeCommands } from "./probes";
 import { registerDemo } from "./demo";
 import { renderContent } from "./ui/content";
 import { createRenderer } from "./ui/render";
-import { renderRows } from "./ui/rows";
+import { focusRow, renderRows } from "./ui/rows";
 import { Store, targetFromEvent } from "./ui/store";
 import { renderTags } from "./ui/tags";
 
@@ -38,6 +38,10 @@ function main() {
 
   // Esc closes the panel unless a picker consumed it (pickers stop propagation).
   document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+  // Shift+Enter adds a filter row from anywhere in the panel (capture: before any picker sees Enter).
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && e.shiftKey) { e.preventDefault(); e.stopPropagation(); focusRow(store.addRow()); }
+  }, true);
 
   if (import.meta.env.DEV) {
     registerProbeCommands();

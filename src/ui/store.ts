@@ -1,6 +1,6 @@
 import { emit } from "../emit";
 import { guard, type GuardResult } from "../guard";
-import { emptyQuery, type Query } from "../model";
+import { addRow, emptyQuery, type Query } from "../model";
 import type { ResultRow } from "../preview";
 import { readback } from "../readback";
 
@@ -81,6 +81,11 @@ export class Store {
   }
 
   toggleDsl() { this.state = { ...this.state, showDsl: !this.state.showDsl }; this.notify(); }
+  /** Adds a row and returns its id so the UI can focus it. */
+  addRow(): string {
+    this.update(addRow);
+    return this.state.q.rows[this.state.q.rows.length - 1].id;
+  }
   loadMore() { this.state = { ...this.state, pages: this.state.pages + 1 }; this.notify(); }
 
   /** A fresh query for a new session; the target is where Insert will write. */

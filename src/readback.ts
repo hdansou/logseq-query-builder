@@ -5,7 +5,7 @@ import type { ContentClause, FilterRow, OperatorId, Query, TagClause, Value } fr
 /** The plain-English line above the results, so a query can be checked without reading Datalog. */
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-function value(v: Value): string {
+export function valueText(v: Value): string {
   switch (v.kind) {
     case "text": return v.text;
     case "number": return String(v.n);
@@ -17,6 +17,7 @@ function value(v: Value): string {
   }
 }
 
+const value = valueText;
 const list = (vals: Value[]) => vals.map(value).join(", ");
 
 const PHRASE: Record<OperatorId, (vals: Value[]) => string> = {
