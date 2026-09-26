@@ -52,6 +52,15 @@ Single source of truth for work in this repo. Nothing gets implemented before it
 | FEAT-24 | feat | Insert from slash path: tag + query + state written into that block, name from the builder | Chrome 2026-09-26 (keyboard): `/Query Builder` → tag QBProject → name → ⌘↩; the block became "Live query (3)" with tag, `:logseq.property/query` and the state JSON. Name prefill from block text dropped: the slash text is the whole content |
 | FEAT-25 | feat | Round-trip: state JSON in `plugin.property.<id>/state`; reopen loads it | Chrome 2026-09-26: editing the inserted query block + ⌘⇧Q reopened with its name and QBProject chip; restore works from either entry point and then Insert rewrites that block |
 
+## Production-hardening pass (2026-09-26)
+
+Applied: A1 demo removed; A3 bundle checked free of dev code; C6 `CHANGELOG.md`; C7 README privacy
+section; C8 dev-only note in `INSTALL-DEV.md`; E11 `.gitignore`; E12 MIT `LICENSE` (Danzu); E13
+manifest fields (`author`, `license`, `repository`, `engines`, `packageManager`, `logseq.supportsDB`,
+`supportsDBOnly`, `minSDKVersion`, icon at repo root); E14 `ci.yml` + `publish.yml` (Node 22).
+Deferred: A2 `docs/probes.jsonl` (keep or ignore), B4 SDK typing wrapper, B5 `graph.ts` row types,
+D9–D10 dependency overrides / vite+vitest bump, E15 remote, E16 README screenshot, E17 handoff folder note.
+
 ## Now — daily use
 
 P5 and TASK-5 done 2026-09-26: every first-implementation item in the spec's scope table is built and live-verified on the scratch graph (104 unit tests, `docs/probes.md`). The next gate is the plan's own: use it on a real graph for a week before marketplace work; open items from that go here.

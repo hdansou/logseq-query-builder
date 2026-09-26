@@ -6,7 +6,8 @@ live query node. No Datalog written by hand.
 
 > **Status: first implementation complete, used on a scratch graph only.** State and next steps:
 > [`TASKS.md`](./TASKS.md). Loading it for testing: [`INSTALL-DEV.md`](./INSTALL-DEV.md).
-> Design: [`PLAN.md`](./PLAN.md) and the spec in `logseq-query-builder-handoff/`.
+> Design record: [`PLAN.md`](./PLAN.md), the spec and prototype in `logseq-query-builder-handoff/`,
+> live findings in [`docs/probes.md`](./docs/probes.md). Changes: [`CHANGELOG.md`](./CHANGELOG.md).
 
 ## Using it
 
@@ -35,6 +36,13 @@ footer shows what would be inserted.
 from the slash command, into that block. The node renders as a live query table like a hand-written
 one. Relative dates are stored as expressions, so the query stays current. Reopening the builder
 while editing that block brings its filters back.
+
+## Privacy
+
+The plugin reads your graph through the Logseq plugin API to fill its pickers and preview results.
+It writes only what you ask it to: the target block (tag, query text, title) and one hidden
+property on that block holding the builder state. Nothing is sent anywhere; there is no network
+access, telemetry or storage outside your graph.
 
 ## Limits (first implementation)
 

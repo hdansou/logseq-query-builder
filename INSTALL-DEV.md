@@ -68,6 +68,10 @@ After changing `node_modules` (e.g. an SDK upgrade) restart vite with `--force`.
 
 ## Probes (dev builds only)
 
+The probe palette commands and the `/__probe` result sink exist only when vite serves the source
+(`import.meta.env.DEV`). They are not part of `npm run build`; `grep -c probe dist/assets/*.js`
+should print 0.
+
 `Query Builder: probe <name>` palette commands run the P0 probes; results are POSTed to the dev
 server and appended to `docs/probes.jsonl`. `probe seed` builds the scratch page once per graph;
 `probe ALL` runs the read-only ones. Summarise with `python3 scripts/summarise_probes.py`.
