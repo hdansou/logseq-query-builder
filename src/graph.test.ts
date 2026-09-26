@@ -46,3 +46,35 @@ describe("Graph.tags (FEAT-11)", () => {
     ]);
   });
 });
+
+describe("Graph.properties (FEAT-12)", () => {
+  const table = {
+    ":logseq.property.class/properties": [
+      [":user.property/status-1", ":user.class/project-1"],
+      [":user.property/status-1", ":logseq.class/Task"],
+      [":user.property/deadline-1", ":logseq.class/Task"],
+    ],
+    ":block/tags :logseq.class/Property]": [
+      [":user.property/status-1", "status", "u-s", "default", ":db.cardinality/one"],
+      [":user.property/deadline-1", "deadline", "u-d", "datetime", ":db.cardinality/one"],
+      [":user.property/assignee-1", "assignee", "u-a", "node", ":db.cardinality/many"],
+      [":user.property/notes-1", "notes", "u-n", "default", ":db.cardinality/one"],
+      [":logseq.property/weird-1", "weird", "u-w", "keyword", ":db.cardinality/one"],
+    ],
+  };
+  it("returns type, cardinality and owner tags; drops types the builder has no control for", async () => {
+    const g = new Graph(fake(table));
+    const props = await g.properties();
+    expect(props.map((p) => p.title)).toEqual(["assignee", "deadline", "notes", "status"]);
+    expect(props.find((p) => p.title === "status")).toEqual({
+      ident: ":user.property/status-1", title: "status", uuid: "u-s", type: "default", cardinality: "one",
+      owners: [":user.class/project-1", ":logseq.class/Task"],
+    });
+    expect(props.find((p) => p.title === "assignee")?.cardinality).toBe("many");
+  });
+  it("orders the selected tags' own properties first, then the rest alphabetically", async () => {
+    const g = new Graph(fake(table));
+    const ordered = await g.properties([":logseq.class/Task"]);
+    expect(ordered.map((p) => p.title)).toEqual(["deadline", "status", "assignee", "notes"]);
+  });
+});
