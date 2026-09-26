@@ -1,0 +1,26 @@
+{
+  "name": "logseq-query-builder",
+  "version": "0.1.0",
+  "description": "Build Logseq DB queries visually",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vite --port 8291 --strictPort",
+    "build": "vite build",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "logseq": {
+    "id": "logseq-query-builder",
+    "title": "Query Builder",
+    "main": "index.html",
+    "icon": "./public/icon.svg"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vite": "^5.4.0",
+    "vitest": "^2.1.0"
+  },
+  "dependencies": {
+    "@logseq/libs": "^0.2.12"
+  }
+}

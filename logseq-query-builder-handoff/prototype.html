@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Logseq query builder — prototypes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#f7f6f2; --panel:#ffffff; --ink:#1f2328; --muted:#6b7280; --line:#d9d6cf; --line-soft:#ebe8e1;
+  --chip:#f1efe9; --chip-hover:#e6e3da; --accent:#2b6f8e; --accent-soft:#e3eef3; --accent-ink:#1d5570;
+  --warn:#b45309; --danger:#b91c1c; --shadow:0 8px 24px rgba(31,35,40,.10);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16181c; --panel:#1e2126; --ink:#e8e6e1; --muted:#9aa0a8; --line:#3a3f47; --line-soft:#2b3037;
+    --chip:#272b31; --chip-hover:#32373f; --accent:#6fb3d2; --accent-soft:#1f3540; --accent-ink:#a9d6ea;
+    --warn:#f59e0b; --danger:#f87171; --shadow:0 8px 24px rgba(0,0,0,.45);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16181c; --panel:#1e2126; --ink:#e8e6e1; --muted:#9aa0a8; --line:#3a3f47; --line-soft:#2b3037;
+  --chip:#272b31; --chip-hover:#32373f; --accent:#6fb3d2; --accent-soft:#1f3540; --accent-ink:#a9d6ea;
+  --warn:#f59e0b; --danger:#f87171; --shadow:0 8px 24px rgba(0,0,0,.45);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "IBM Plex Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input{font:inherit;color:inherit}
+code,.mono{font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+
+.wrap{max-width:820px;margin:0 auto;padding:20px 16px 64px}
+header h1{font-size:18px;font-weight:600;margin:0 0 4px}
+header p{margin:0 0 16px;color:var(--muted);max-width:60ch}
+.switch{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:20px}
+.switch button{padding:8px 14px;color:var(--muted)}
+.switch button[aria-pressed="true"]{background:var(--panel);color:var(--ink);font-weight:500;box-shadow:inset 0 0 0 1px var(--line)}
+
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.zone{padding:14px 16px;border-bottom:1px solid var(--line-soft)}
+.zone:last-child{border-bottom:0}
+.zone-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px}
+.zone-title{font-weight:500}
+.hint{color:var(--muted);font-size:12.5px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:6px}
+.row:last-child{margin-bottom:0}
+.join{color:var(--muted);font-size:12px;min-width:32px;text-align:right;padding-right:2px}
+.join button{font-size:12px;color:var(--accent-ink);padding:2px 4px;border-radius:4px}
+.join button:hover{background:var(--accent-soft)}
+
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:8px;background:var(--chip);border:1px solid transparent;max-width:100%}
+.chip:hover{background:var(--chip-hover)}
+.chip.empty{color:var(--muted);border-style:dashed;border-color:var(--line);background:transparent}
+.chip.tag::before{content:"#";color:var(--muted)}
+.chip.val{border-color:var(--line)}
+.chip .x{color:var(--muted);margin-left:2px;padding:0 2px;border-radius:4px}
+.chip .x:hover{color:var(--danger)}
+.chip.not{text-decoration:line-through;text-decoration-color:var(--warn)}
+.count{color:var(--muted);font-size:12px;margin-left:4px;white-space:nowrap}
+.add{color:var(--muted);padding:5px 8px;border-radius:8px}
+.add:hover{color:var(--ink);background:var(--chip)}
+.toggle{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);cursor:pointer}
+.toggle input{accent-color:var(--accent)}
+
+/* sentence variant */
+.sentence{padding:18px 16px;font-size:15.5px;line-height:2.1}
+.sentence .word{color:var(--muted)}
+.sentence .chip{vertical-align:middle;font-size:14.5px;padding:3px 9px}
+.sentence .and{display:inline-block;color:var(--accent-ink);font-size:13px;padding:0 4px;border-radius:4px}
+.sentence .and:hover{background:var(--accent-soft)}
+
+/* results */
+.results-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px}
+.results-head .n{font-weight:500}
+.list{list-style:none;margin:0;padding:0}
+.list li{padding:7px 0;border-top:1px solid var(--line-soft);display:flex;gap:10px;align-items:baseline}
+.list li:first-child{border-top:0}
+.list .dot{color:var(--muted)}
+.list .txt{flex:1;min-width:0}
+.list .meta{color:var(--muted);font-size:12px;white-space:nowrap}
+.list .props{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.list .props span{font-size:11.5px;color:var(--muted);background:var(--chip);padding:1px 6px;border-radius:5px}
+.more{color:var(--accent-ink);padding:8px 0 0;font-size:13px}
+.more:hover{text-decoration:underline}
+.empty-state{color:var(--muted);padding:12px 0}
+.insert{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--line-soft)}
+.insert input{flex:1;min-width:160px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.btn{padding:7px 12px;border-radius:8px;background:var(--accent);color:#fff;font-weight:500}
+.btn:disabled{opacity:.45;cursor:default}
+.toast{margin-top:10px;font-size:12.5px;color:var(--accent-ink);background:var(--accent-soft);padding:8px 10px;border-radius:8px}
+.toast code{font-size:12px}
+
+/* picker popover */
+.popover{position:absolute;z-index:20;min-width:240px;max-width:min(92vw,360px);background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:6px}
+.popover .search{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:var(--bg);margin-bottom:6px;outline:none}
+.popover .search:focus{border-color:var(--accent)}
+.popover .grp{font-size:11.5px;color:var(--muted);padding:6px 8px 2px}
+.popover .opt{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;padding:6px 8px;border-radius:6px}
+.popover .opt:hover,.popover .opt.focus{background:var(--chip)}
+.popover .opt .c{color:var(--muted);font-size:12px}
+.popover .opt .t{font-size:11.5px;color:var(--muted);margin-left:6px}
+.popover .opt.selected::after{content:"✓";color:var(--accent-ink)}
+.popover .foot{border-top:1px solid var(--line-soft);margin-top:6px;padding:6px 8px 2px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.popover .foot .btn{padding:5px 10px;font-size:13px}
+.popover .num{display:flex;gap:6px;align-items:center;padding:4px 8px}
+.popover .num input{width:90px;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:var(--bg)}
+.popover .dates{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px}
+.popover .dates button{padding:6px 8px;border-radius:6px;background:var(--chip);text-align:left;font-size:13px}
+.popover .dates button:hover{background:var(--chip-hover)}
+.popover .dates input{grid-column:1/-1;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:var(--bg)}
+.popover .note{font-size:12px;color:var(--muted);padding:6px 8px 4px}
+.popover .scroll{max-height:240px;overflow:auto}
+
+.kbd{display:inline-block;font:12px "IBM Plex Mono",monospace;padding:1px 6px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;background:var(--panel);margin:0 1px}
+.readback{padding:10px 16px;background:var(--bg);border-bottom:1px solid var(--line-soft);font-size:13.5px;line-height:1.7}
+.readback .w{color:var(--muted)}
+.readback b{font-weight:500}
+.readback .none{color:var(--muted);font-style:italic}
+.chip:focus-visible,.add:focus-visible,.x:focus-visible,.btn:focus-visible,.join button:focus-visible,.more:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.popover .opt.focus{background:var(--accent-soft)}
+.out{display:grid;gap:14px;margin-top:22px}
+.out pre{white-space:pre-wrap;margin:6px 0 0;color:var(--ink);font-size:12.5px;line-height:1.5;background:var(--panel);border:1px solid var(--line-soft);border-radius:8px;padding:10px 12px}
+@media (min-width:720px){.out{grid-template-columns:1fr 1fr}}
+.crit{margin-top:22px;color:var(--muted);font-size:13px;max-width:62ch}
+.crit b{color:var(--ink);font-weight:500}
+@media (max-width:520px){
+  .zone{padding:12px}
+  .sentence{font-size:14.5px}
+}
+@media (prefers-reduced-motion:no-preference){
+  .popover{animation:pop .12s ease-out}
+  @keyframes pop{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Query builder — stacked panel, keyboard pass</h1>
+    <p>Build the whole query without the mouse. <span class="kbd">Tab</span> moves between controls, <span class="kbd">Enter</span> opens a picker, <span class="kbd">↑</span><span class="kbd">↓</span> move through options, <span class="kbd">Enter</span> picks, <span class="kbd">Esc</span> closes. <span class="kbd">⌘/Ctrl</span>+<span class="kbd">Enter</span> adds a filter row, <span class="kbd">Backspace</span> on an empty picker removes the row.</p>
+  </header>
+
+  <div id="root"></div>
+
+  <div class="crit" id="crit"></div>
+</div>
+
+<script>
+/* ---------- fake graph ---------- */
+const PEOPLE = ['Maria','Tom','Priya','Hounsou','Lena','Sam'];
+const STATUS = ['TODO','DOING','DONE','WAITING'];
+const PRIORITY = ['urgent','high','normal','low'];
+const AREAS = ['engineering','sales','ops','finance','design'];
+const ASSETS = ['spec.pdf','mockup.png','budget.xlsx','notes.md','logo.svg'];
+const URLS = ['github.com/logseq','docs.logseq.com','notion.so','figma.com'];
+const PHRASES = ['send the invoice to finance','review pricing deck','fix sync bug on mobile','draft Q4 roadmap','chase invoice #4471','plan offsite agenda','write plugin README','migrate to DB graph','follow up with vendor','prepare board update','refactor query parser','book venue for launch'];
+
+// tag schema: which properties a tag defines; bug extends task
+const TAGS = {
+  task:    {props:['status','priority','assignee','scheduled','deadline','estimate','done','area']},
+  bug:     {props:['status','priority','assignee','deadline','severity'], extends:'task'},
+  project: {props:['status','assignee','deadline','area','attachments','link']},
+  person:  {props:['area']},
+  meeting: {props:['scheduled','assignee','attachments']},
+  page:    {props:[]},
+  journal: {props:[]},
+};
+const PROPS = {
+  status:      {type:'node', multi:true,  ref:null},
+  priority:    {type:'node', multi:true,  ref:null},
+  severity:    {type:'node', multi:true,  ref:null},
+  assignee:    {type:'node', multi:true,  ref:'person'},
+  scheduled:   {type:'date-time', multi:false},
+  deadline:    {type:'date-time', multi:false},
+  estimate:    {type:'number', multi:true},
+  done:        {type:'checkbox', multi:false},
+  area:        {type:'text', multi:true},
+  attachments: {type:'asset', multi:true},
+  link:        {type:'URL', multi:true},
+};
+const TYPE_OPS = {
+  text:      ['contains any','contains all','does not contain','is empty','is not empty'],
+  node:      ['contains any','contains all','does not contain','is empty','is not empty'],
+  URL:       ['contains any','contains all','does not contain','is empty','is not empty'],
+  asset:     ['contains any','contains all','is empty','is not empty'],
+  number:    ['contains any','greater than','less than','between','is empty','is not empty'],
+  date:      ['equals','before','on or before','after','on or after','between','is empty','is not empty'],
+  'date-time':['equals','before','on or before','after','on or after','between','is empty','is not empty'],
+  checkbox:  ['is true','is false'],
+};
+const NO_VALUE = new Set(['is empty','is not empty','is true','is false']);
+
+// deterministic PRNG
+let seed = 7;
+const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+const pick = a => a[Math.floor(rnd()*a.length)];
+const some = (a,max=2) => { const n = 1+Math.floor(rnd()*max); const s=new Set(); while(s.size<n) s.add(pick(a)); return [...s]; };
+const TODAY = new Date(2026,8,25);
+const dayOff = n => { const d=new Date(TODAY); d.setDate(d.getDate()+n); return d; };
+const iso = d => d.toISOString().slice(0,10);
+
+const NODES = [];
+let id = 1;
+function mk(tags, props, content, page){ NODES.push({id:id++, tags, props, content, page}); }
+// people
+PEOPLE.forEach(p => mk(['person'], {area:[pick(AREAS)]}, p, 'People'));
+// pages & journals
+for(let i=0;i<40;i++) mk(['page'], {}, 'Page '+(i+1), 'Page '+(i+1));
+for(let i=0;i<60;i++) mk(['journal'], {}, 'Journal '+iso(dayOff(-i)), iso(dayOff(-i)));
+// tasks
+for(let i=0;i<120;i++){
+  const p = {status:[pick(STATUS)], priority:[pick(PRIORITY)]};
+  if(rnd()<.8) p.assignee = some(PEOPLE,2);
+  if(rnd()<.6) p.scheduled = iso(dayOff(Math.floor(rnd()*30)-10));
+  if(rnd()<.7) p.deadline = iso(dayOff(Math.floor(rnd()*45)-5));
+  if(rnd()<.5) p.estimate = some([1,2,3,5,8,13],1);
+  p.done = p.status[0]==='DONE';
+  if(rnd()<.6) p.area = some(AREAS,2);
+  mk(['task'], p, pick(PHRASES), pick(['Journal '+iso(dayOff(-Math.floor(rnd()*20))),'Project notes','Backlog']));
+}
+// bugs (extend task)
+for(let i=0;i<14;i++){
+  mk(['bug'], {status:[pick(STATUS)], priority:[pick(PRIORITY)], assignee:some(PEOPLE,1), deadline:iso(dayOff(Math.floor(rnd()*20))), severity:[pick(['S1','S2','S3'])]}, 'Bug: '+pick(PHRASES), 'Bug tracker');
+}
+// projects
+for(let i=0;i<18;i++){
+  mk(['project'], {status:[pick(STATUS)], assignee:some(PEOPLE,3), deadline:iso(dayOff(Math.floor(rnd()*60)-10)), area:some(AREAS,2), attachments:rnd()<.6?some(ASSETS,2):undefined, link:rnd()<.5?some(URLS,1):undefined}, 'Project '+['Atlas','Beacon','Cobalt','Delta','Ember','Flux','Granite','Harbor','Iris','Juniper','Kestrel','Lumen','Meridian','Nova','Orbit','Pulse','Quill','Ridge'][i], 'Projects');
+}
+// meetings
+for(let i=0;i<41;i++){
+  mk(['meeting'], {scheduled:iso(dayOff(Math.floor(rnd()*20)-10)), assignee:some(PEOPLE,3), attachments:rnd()<.3?some(ASSETS,1):undefined}, pick(['Weekly sync','Design review','1:1','Vendor call','Planning']), 'Journal '+iso(dayOff(-i)));
+}
+// untagged nodes, some with a status applied directly
+for(let i=0;i<30;i++){
+  mk([], rnd()<.4?{status:[pick(STATUS)]}:{}, pick(PHRASES), 'Inbox');
+}
+
+/* ---------- relative dates ---------- */
+const REL = {
+  'today': ()=>[dayOff(0),dayOff(0)],
+  'tomorrow': ()=>[dayOff(1),dayOff(1)],
+  'yesterday': ()=>[dayOff(-1),dayOff(-1)],
+  'start of week': ()=>{const d=dayOff(-((TODAY.getDay()+6)%7));return [d,d]},
+  'end of week': ()=>{const d=dayOff(6-((TODAY.getDay()+6)%7));return [d,d]},
+  'start of month': ()=>{const d=new Date(TODAY.getFullYear(),TODAY.getMonth(),1);return [d,d]},
+  'end of month': ()=>{const d=new Date(TODAY.getFullYear(),TODAY.getMonth()+1,0);return [d,d]},
+};
+function resolveDate(v){ if(REL[v]) return iso(REL[v]()[0]); return v; }
+
+/* ---------- query engine ---------- */
+function tagMatches(node, tag, inherit){
+  if(node.tags.includes(tag)) return true;
+  if(!inherit) return false;
+  return node.tags.some(t => { let cur=t; while(TAGS[cur]&&TAGS[cur].extends){ cur=TAGS[cur].extends; if(cur===tag) return true; } return false; });
+}
+function evalTags(node, q){
+  if(!q.tags.length) return true;
+  // flat left to right: each item {tag, not, join}
+  let acc=null;
+  q.tags.forEach((t,i)=>{
+    let v = tagMatches(node,t.tag,q.inherit); if(t.not) v=!v;
+    if(acc===null) acc=v; else acc = (t.join==='or') ? (acc||v) : (acc&&v);
+  });
+  return acc;
+}
+function evalFilter(node, f){
+  if(!f.prop||!f.op) return true;
+  const def = PROPS[f.prop]; const raw = node.props[f.prop];
+  const has = raw!==undefined && raw!==null && !(Array.isArray(raw)&&!raw.length);
+  const arr = Array.isArray(raw)?raw:(has?[raw]:[]);
+  const vals = f.values||[];
+  let r;
+  switch(f.op){
+    case 'is empty': r=!has; break;
+    case 'is not empty': r=has; break;
+    case 'is true': r=raw===true; break;
+    case 'is false': r=has && raw===false; break;
+    case 'contains any': r = vals.length? vals.some(v=>arr.map(String).includes(String(v))) : true; break;
+    case 'contains all': r = vals.length? vals.every(v=>arr.map(String).includes(String(v))) : true; break;
+    case 'does not contain': r = !vals.some(v=>arr.map(String).includes(String(v))); break;
+    case 'greater than': r = has && vals[0]!==undefined && arr.some(v=>Number(v)>Number(vals[0])); break;
+    case 'less than': r = has && vals[0]!==undefined && arr.some(v=>Number(v)<Number(vals[0])); break;
+    case 'between': {
+      if(def.type==='number'){ r = has && vals[0]!==undefined && vals[1]!==undefined && arr.some(v=>Number(v)>=Number(vals[0])&&Number(v)<=Number(vals[1])); }
+      else { const a=vals[0]&&resolveDate(vals[0]), b=vals[1]&&resolveDate(vals[1]); r = has && a && b && raw>=a && raw<=b; }
+      break;
+    }
+    case 'equals': { const a=vals[0]&&resolveDate(vals[0]); r = has && a && raw===a; break; }
+    case 'before': { const a=vals[0]&&resolveDate(vals[0]); r = has && a && raw<a; break; }
+    case 'on or before': { const a=vals[0]&&resolveDate(vals[0]); r = has && a && raw<=a; break; }
+    case 'after': { const a=vals[0]&&resolveDate(vals[0]); r = has && a && raw>a; break; }
+    case 'on or after': { const a=vals[0]&&resolveDate(vals[0]); r = has && a && raw>=a; break; }
+    default: r=true;
+  }
+  return f.not ? !r : r;
+}
+function evalFilters(node,q){
+  if(!q.filters.length) return true;
+  let acc=null;
+  q.filters.forEach((f,i)=>{ const v=evalFilter(node,f); if(acc===null) acc=v; else acc=(f.join==='or')?(acc||v):(acc&&v); });
+  return acc;
+}
+function evalContent(node,q){
+  if(!q.content.value) return true;
+  const c=node.content.toLowerCase(), v=q.content.value.toLowerCase();
+  switch(q.content.op){
+    case 'contains': return c.includes(v);
+    case 'does not contain': return !c.includes(v);
+    case 'starts with': return c.startsWith(v);
+    case 'matches': try{ return new RegExp(q.content.value,'i').test(node.content);}catch(e){return false}
+  }
+  return true;
+}
+function run(q){ return NODES.filter(n=>evalTags(n,q)&&evalFilters(n,q)&&evalContent(n,q)); }
+
+/* assisted vocab: values with counts, scoped to what the tag zone leaves */
+function scopeNodes(q){ return NODES.filter(n=>evalTags(n,q)); }
+function tagCounts(q){
+  const m={}; NODES.forEach(n=>n.tags.forEach(t=>m[t]=(m[t]||0)+1));
+  return Object.keys(TAGS).map(t=>({v:t,c:m[t]||0})).sort((a,b)=>b.c-a.c);
+}
+function propCounts(q){
+  const scope=scopeNodes(q); const m={};
+  scope.forEach(n=>Object.keys(n.props).forEach(p=>{ if(n.props[p]!==undefined) m[p]=(m[p]||0)+1; }));
+  const own=new Set(); q.tags.filter(t=>!t.not).forEach(t=>(TAGS[t.tag]?.props||[]).forEach(p=>own.add(p)));
+  const all=Object.keys(PROPS).map(p=>({v:p,c:m[p]||0,own:own.has(p),type:PROPS[p].type}));
+  return { own: all.filter(x=>x.own).sort((a,b)=>b.c-a.c), rest: all.filter(x=>!x.own).sort((a,b)=>b.c-a.c) };
+}
+function valueCounts(q, prop, constrainTag){
+  const scope=scopeNodes(q); const m={};
+  scope.forEach(n=>{ const r=n.props[prop]; if(r===undefined) return; (Array.isArray(r)?r:[r]).forEach(v=>m[v]=(m[v]||0)+1); });
+  let list=Object.keys(m).map(v=>({v,c:m[v]}));
+  const def=PROPS[prop];
+  if(def.type==='node' && constrainTag){ const allowed=new Set(NODES.filter(n=>n.tags.includes(constrainTag)).map(n=>n.content)); list=list.filter(x=>allowed.has(x.v)); }
+  return list.sort((a,b)=>b.c-a.c);
+}
+
+/* ---------- state ---------- */
+const state = {
+  variant:'A',
+  q:{ tags:[{tag:'project',not:false,join:'and'}], inherit:true,
+      filters:[{prop:'status',op:'does not contain',values:['DONE'],not:false,join:'and'},{prop:'deadline',op:'on or before',values:['end of month'],not:false,join:'and'}],
+      content:{op:'contains',value:''}, children:true },
+  shown:10, name:'', toast:''
+};
+const $ = s=>document.querySelector(s);
+const root=$('#root');
+
+/* ---------- popover ---------- */
+let pop=null;
+function closePop(){ if(pop){pop.remove();pop=null;} }
+document.addEventListener('click',e=>{ if(pop && !pop.contains(e.target) && !e.target.closest('[data-pop]')) closePop(); });
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') closePop();
+  if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){ e.preventDefault(); const a=root.querySelector('[data-act="addfilter"]'); a&&a.click(); }
+});
+function openPop(anchor, build){
+  closePop();
+  pop=document.createElement('div'); pop.className='popover'; pop.setAttribute('role','dialog');
+  build(pop);
+  document.body.appendChild(pop);
+  const r=anchor.getBoundingClientRect(); const pw=pop.offsetWidth;
+  let left=r.left+window.scrollX; if(left+pw>window.innerWidth-8) left=window.innerWidth-pw-8;
+  pop.style.left=left+'px'; pop.style.top=(r.bottom+window.scrollY+4)+'px';
+  const s=pop.querySelector('.search, input'); if(s) s.focus();
+}
+function listPicker(anchor, {groups, selected=[], multi=false, onPick, onDone, freeText=false, note=null, footer=null}){
+  openPop(anchor, box=>{
+    const sel=new Set(selected.map(String));
+    box.innerHTML=`<input class="search" placeholder="Type to filter…">${note?`<div class="note">${note}</div>`:''}<div class="scroll"></div>`;
+    const search=box.querySelector('.search'), scroll=box.querySelector('.scroll');
+    const draw=()=>{
+      const term=search.value.trim().toLowerCase(); scroll.innerHTML='';
+      groups.forEach(g=>{
+        const items=g.items.filter(it=>String(it.v).toLowerCase().includes(term));
+        if(!items.length) return;
+        if(g.label) scroll.insertAdjacentHTML('beforeend',`<div class="grp">${g.label}</div>`);
+        items.forEach(it=>{
+          const b=document.createElement('button'); b.className='opt'+(sel.has(String(it.v))?' selected':''); b.type='button';
+          b.innerHTML=`<span>${it.v}${it.type?`<span class="t">${it.type}</span>`:''}</span><span class="c">${it.c!==undefined?it.c:''}</span>`;
+          b.onclick=()=>{ if(multi){ sel.has(String(it.v))?sel.delete(String(it.v)):sel.add(String(it.v)); onPick([...sel]); draw(); } else { onPick(it.v); closePop(); advance(); } };
+          scroll.appendChild(b);
+        });
+      });
+      if(freeText && term && ![...scroll.querySelectorAll('.opt')].some(o=>o.textContent.trim().startsWith(term))){
+        const b=document.createElement('button'); b.className='opt'; b.type='button'; b.innerHTML=`<span>Use “${search.value}”</span><span class="c">new</span>`;
+        b.onclick=()=>{ if(multi){sel.add(search.value);onPick([...sel]);draw();} else {onPick(search.value);closePop();} };
+        scroll.appendChild(b);
+      }
+      if(!scroll.children.length) scroll.innerHTML='<div class="note">Nothing in the graph matches.</div>';
+    };
+    search.oninput=draw; draw();
+    let fi=0;
+    const focusOpt=()=>{ const opts=[...scroll.querySelectorAll('.opt')]; opts.forEach(o=>o.classList.remove('focus')); if(!opts.length) return; fi=Math.max(0,Math.min(fi,opts.length-1)); opts[fi].classList.add('focus'); opts[fi].scrollIntoView({block:'nearest'}); };
+    search.onkeydown=e=>{
+      const opts=[...scroll.querySelectorAll('.opt')];
+      if(e.key==='ArrowDown'){ e.preventDefault(); fi++; focusOpt(); }
+      else if(e.key==='ArrowUp'){ e.preventDefault(); fi--; focusOpt(); }
+      else if(e.key==='Enter'){ e.preventDefault(); const f=opts[fi]||opts[0]; if(f) f.click(); }
+      else if(e.key==='Tab'){ if(multi){ e.preventDefault(); onDone&&onDone(); closePop(); advance(); } else { closePop(); } }
+      else if(e.key==='Backspace'&&!search.value&&pop._onEmptyBackspace){ e.preventDefault(); pop._onEmptyBackspace(); }
+    };
+    search.addEventListener('input',()=>{fi=0;focusOpt();});
+    setTimeout(focusOpt,0);
+    if(multi||footer){ const ft=document.createElement('div'); ft.className='foot'; ft.innerHTML=(footer||'')+`<button class="btn" type="button">Done</button>`; ft.querySelector('.btn').onclick=()=>{ onDone&&onDone(); closePop(); }; box.appendChild(ft); }
+  });
+}
+function numberPicker(anchor, f){
+  openPop(anchor, box=>{
+    const two=f.op==='between';
+    box.innerHTML=`<div class="num"><input type="number" placeholder="${two?'from':'value'}" value="${f.values[0]??''}">${two?'<span>to</span><input type="number" placeholder="to" value="'+(f.values[1]??'')+'">':''}</div><div class="note">Values in the graph: ${valueCounts(state.q,f.prop).map(x=>x.v).join(', ')||'none'}</div><div class="foot"><span></span><button class="btn" type="button">Done</button></div>`;
+    const ins=box.querySelectorAll('input'); ins.forEach((inp,i)=>inp.oninput=()=>{f.values[i]=inp.value; render(true);});
+    const i=state.q.filters.indexOf(f);
+    const done=()=>{ closePop(); nextFocus=['addfilter',undefined,false]; advance(); };
+    box.querySelector('.btn').onclick=done;
+    box.onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); done(); } };
+  });
+}
+function datePicker(anchor, f, idx){
+  openPop(anchor, box=>{
+    box.innerHTML=`<div class="dates">${Object.keys(REL).map(k=>`<button type="button" data-v="${k}">${k}</button>`).join('')}<input type="date" value="${(f.values[idx]&&!REL[f.values[idx]])?f.values[idx]:''}"></div><div class="note">Compared at day granularity. Relative values stay live when the query is saved.</div>`;
+    const i=state.q.filters.indexOf(f);
+    const after=()=>{ nextFocus = (f.op==='between'&&idx===0)?['val',i,true]:['addfilter',undefined,false]; };
+    box.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{ f.values[idx]=b.dataset.v; after(); closePop(); render(); advance(); });
+    box.querySelector('input').onchange=e=>{ f.values[idx]=e.target.value; after(); closePop(); render(); advance(); };
+    const btns=[...box.querySelectorAll('[data-v]')]; let k=0; btns[0].focus();
+    box.onkeydown=e=>{ if(e.target.tagName==='INPUT') return; if(e.key==='ArrowDown'||e.key==='ArrowRight'){e.preventDefault();k=Math.min(k+1,btns.length-1);btns[k].focus();} if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();k=Math.max(k-1,0);btns[k].focus();} };
+  });
+}
+
+/* keyboard: after a pick, focus the next control in the same row and open it if empty */
+let nextFocus=null;
+function advance(){ if(!nextFocus) return; const [act,i,openIt]=nextFocus; nextFocus=null; setTimeout(()=>{ const el=root.querySelector(i===undefined?`[data-act="${act}"]`:`[data-act="${act}"][data-i="${i}"]`); if(el){ el.focus(); if(openIt) el.click(); } },0); }
+/* ---------- pickers wired to state ---------- */
+function pickTag(anchor, t){
+  const groups=[{label:null,items:tagCounts(state.q).map(x=>({v:x.v,c:x.c}))}];
+  listPicker(anchor,{groups, onPick:v=>{ if(t){t.tag=v;} else {state.q.tags.push({tag:v,not:false,join:'and'});} render(); }});
+}
+function pickProp(anchor, f){
+  const pc=propCounts(state.q);
+  const groups=[]; if(pc.own.length) groups.push({label:'From selected tags',items:pc.own}); groups.push({label:pc.own.length?'All properties':null,items:pc.rest});
+  const i=state.q.filters.indexOf(f);
+  listPicker(anchor,{groups, onPick:v=>{ f.prop=v; f.op=TYPE_OPS[PROPS[v].type][0]; f.values=[]; f.constrain=null; nextFocus=['op',i,false]; render(); }});
+  if(pop&&!f.prop) pop._onEmptyBackspace=()=>{ state.q.filters.splice(i,1); closePop(); render(); const a=root.querySelector('[data-act="addfilter"]'); a&&a.focus(); };
+}
+function pickOp(anchor, f){
+  const t=PROPS[f.prop].type;
+  const i=state.q.filters.indexOf(f);
+  listPicker(anchor,{groups:[{label:`Operators for ${t}`,items:TYPE_OPS[t].map(o=>({v:o}))}], onPick:v=>{ f.op=v; if(NO_VALUE.has(v)) f.values=[]; nextFocus=NO_VALUE.has(v)?['addfilter',undefined,false]:['val',i,true]; render(); }});
+}
+function pickValue(anchor, f, idx=0){
+  const def=PROPS[f.prop]; const t=def.type;
+  if(t==='number' && f.op!=='contains any'){ return numberPicker(anchor,f); }
+  if(t==='date'||t==='date-time'){ return datePicker(anchor,f,idx); }
+  const multi=['contains any','contains all','does not contain'].includes(f.op);
+  const items=valueCounts(state.q,f.prop,f.constrain).map(x=>({v:x.v,c:x.c}));
+  let footer='';
+  if(t==='node'){ const tagsForRef=Object.keys(TAGS).filter(tag=>tag!=='page'&&tag!=='journal'); footer=`<label class="toggle">limit to tag <select data-con>${['<option value="">any node</option>',...tagsForRef.map(tag=>`<option value="${tag}" ${f.constrain===tag?'selected':''}>#${tag}</option>`)].join('')}</select></label>`; }
+  listPicker(anchor,{groups:[{label:null,items}], selected:f.values, multi, freeText:t==='text'||t==='URL',
+    note: items.length? null : 'No values yet on the nodes in scope.',
+    onPick:v=>{ f.values=multi?v:[v]; if(!multi) nextFocus=['addfilter',undefined,false]; render(true); }, onDone:()=>{ nextFocus=['addfilter',undefined,false]; }, footer});
+  const sel=pop&&pop.querySelector('[data-con]'); if(sel) sel.onchange=()=>{ f.constrain=sel.value||null; pickValue(anchor,f,idx); };
+}
+
+/* ---------- rendering ---------- */
+function chip(cls, text, attrs=''){ return `<button type="button" class="chip ${cls}" data-pop ${attrs}>${text}</button>`; }
+function valueLabel(f){
+  if(NO_VALUE.has(f.op)) return '';
+  const def=PROPS[f.prop];
+  if(f.op==='between'){ return `${chip('val'+(f.values[0]?'':' empty'), f.values[0]||'from', 'data-act="val" data-idx="0"')}<span class="word">and</span>${chip('val'+(f.values[1]?'':' empty'), f.values[1]||'to', 'data-act="val" data-idx="1"')}`; }
+  const v=f.values.filter(x=>x!==''&&x!==undefined);
+  const label = v.length? (v.length>2? `${v.slice(0,2).join(', ')} +${v.length-2}` : v.join(', ')) : 'pick value';
+  return chip('val'+(v.length?'':' empty'), label, 'data-act="val" data-idx="0"');
+}
+function filterRow(f,i, sentence){
+  const join = i===0 ? '' : (sentence ? `<button type="button" class="and" data-act="join" data-i="${i}">${f.join}</button>` : `<span class="join"><button type="button" data-act="join" data-i="${i}">${f.join}</button></span>`);
+  const c = f.prop ? run({...state.q, tags:state.q.tags, filters:[f], content:{op:'contains',value:''}}).length : null;
+  return `<div class="row ${sentence?'inl':''}" data-i="${i}">${join}
+    ${chip('prop'+(f.not?' not':'')+(f.prop?'':' empty'), f.prop||'pick property', `data-act="prop" data-i="${i}"`)}
+    ${f.prop? chip('op', f.op, `data-act="op" data-i="${i}"`) : ''}
+    ${f.prop? valueLabel(f).replaceAll('data-act="val"',`data-act="val" data-i="${i}"`) : ''}
+    ${f.prop&&!sentence? `<span class="count">${c} ${c===1?'node':'nodes'}</span>`:''}
+    <button type="button" class="x add" data-act="not" data-i="${i}" title="negate">${f.not?'not':'¬'}</button>
+    <button type="button" class="x add" data-act="rm" data-i="${i}" title="remove">×</button>
+  </div>`;
+}
+function tagChips(sentence){
+  return state.q.tags.map((t,i)=>`${i? (sentence?`<button type="button" class="and" data-act="tjoin" data-i="${i}">${t.join}</button>`:`<span class="join"><button type="button" data-act="tjoin" data-i="${i}">${t.join}</button></span>`):''}
+    ${chip('tag'+(t.not?' not':''), t.tag, `data-act="tag" data-i="${i}"`)}<button type="button" class="x add" data-act="tnot" data-i="${i}" title="negate">${t.not?'not':'¬'}</button><button type="button" class="x add" data-act="trm" data-i="${i}">×</button>`).join(' ');
+}
+function resultsBlock(res){
+  const shown=res.slice(0,state.shown);
+  const items=shown.map(n=>`<li><span class="dot">•</span><div class="txt">${n.tags.map(t=>'#'+t).join(' ')} ${n.content}<div class="props">${Object.entries(n.props).filter(([k,v])=>v!==undefined&&v!==false&&v!==null).slice(0,4).map(([k,v])=>`<span>${k}: ${Array.isArray(v)?v.join(', '):v===true?'✓':v}</span>`).join('')}</div></div><span class="meta">${n.page}</span></li>`).join('');
+  const insertable = state.q.tags.length||state.q.filters.some(f=>f.prop)||state.q.content.value;
+  return `<div class="zone results">
+    <div class="results-head"><span class="n">${res.length} ${res.length===1?'node':'nodes'} match${res.length>state.shown?` · showing ${state.shown}`:''}</span><span class="hint">list view · table view later</span></div>
+    ${res.length? `<ul class="list">${items}</ul>` : `<div class="empty-state">Nothing matches yet. Loosen a filter or pick a value the graph actually holds.</div>`}
+    ${res.length>state.shown? `<button type="button" class="more" data-act="more">Show 10 more</button>`:''}
+    <div class="insert"><input placeholder="Query name (required to insert)" value="${state.name}" data-act="name"><button type="button" class="btn" data-act="insert" ${insertable&&state.name.trim()?'':'disabled'}>Insert as query node</button></div>
+    ${state.toast?`<div class="toast">${state.toast}</div>`:''}
+  </div>`;
+}
+function pseudo(){
+  const q=state.q; const parts=[];
+  if(q.tags.length) parts.push('tag '+q.tags.map((t,i)=>(i?t.join+' ':'')+(t.not?'not ':'')+'#'+t.tag).join(' ')+(q.inherit?' (incl. extending)':''));
+  q.filters.filter(f=>f.prop).forEach((f,i)=>parts.push((i||q.tags.length?f.join+' ':'')+(f.not?'not ':'')+f.prop+' '+f.op+(NO_VALUE.has(f.op)?'':' ['+f.values.join(', ')+']')));
+  if(q.content.value) parts.push('and content '+q.content.op+' "'+q.content.value+'"'+(q.children?' (incl. children)':''));
+  return 'nodes where '+(parts.join('\n  ')||'(anything)');
+}
+
+function readback(){
+  const q=state.q; let s='<span class="w">nodes</span>';
+  if(q.tags.length) s+=' <span class="w">tagged</span> '+q.tags.map((t,i)=>(i?`<span class="w">${t.join}</span> `:'')+(t.not?'<span class="w">not</span> ':'')+`<b>#${t.tag}</b>`).join(' ')+(q.inherit?'':' <span class="w">(exact)</span>');
+  const fs=q.filters.filter(f=>f.prop);
+  if(fs.length) s+=' <span class="w">where</span> '+fs.map((f,i)=>(i?`<span class="w">${f.join}</span> `:'')+(f.not?'<span class="w">not</span> ':'')+`<b>${f.prop}</b> <span class="w">${f.op}</span>`+(NO_VALUE.has(f.op)?'':' <b>'+(f.values.filter(Boolean).join(f.op==='between'?' and ':', ')||'…')+'</b>')).join(' ');
+  if(q.content.value) s+=` <span class="w">and text ${q.content.op}</span> <b>“${q.content.value}”</b>`+(q.children?' <span class="w">incl. children</span>':'');
+  if(!q.tags.length&&!fs.length&&!q.content.value) return '<span class="none">Everything in the graph — add a tag or a filter to narrow it.</span>';
+  return s;
+}
+function datalog(){
+  const q=state.q, where=[], ins=[];
+  let v=0; const sym=()=>'?v'+(++v);
+  const tagClause=t=>{ const s=sym(); return `[?b :block/tags ${s}] [${s} :block/title "${t.tag}"]`+(q.inherit?`  ; or a tag extending ${t.tag}`:''); };
+  if(q.tags.length){
+    const parts=q.tags.map(t=>t.not?`(not ${tagClause(t)})`:tagClause(t));
+    if(q.tags.some((t,i)=>i&&t.join==='or')) where.push(`(or ${parts.join('\n      ')})`); else where.push(...parts);
+  }
+  q.filters.filter(f=>f.prop).forEach(f=>{
+    const s=sym(); const def=PROPS[f.prop]; let c;
+    switch(f.op){
+      case 'is empty': c=`(not [?b :user.property/${f.prop} _])`; break;
+      case 'is not empty': c=`[?b :user.property/${f.prop} _]`; break;
+      case 'is true': c=`[?b :user.property/${f.prop} true]`; break;
+      case 'is false': c=`[?b :user.property/${f.prop} false]`; break;
+      case 'contains any': c=`[?b :user.property/${f.prop} ${s}]\n    [(contains? #{${f.values.map(x=>def.type==='number'?x:'"'+x+'"').join(' ')}} ${s})]`; break;
+      case 'contains all': c=f.values.map(x=>`[?b :user.property/${f.prop} ${def.type==='number'?x:'"'+x+'"'}]`).join('\n    '); break;
+      case 'does not contain': c=`(not [?b :user.property/${f.prop} ${s}]\n         [(contains? #{${f.values.map(x=>'"'+x+'"').join(' ')}} ${s})])`; break;
+      case 'greater than': c=`[?b :user.property/${f.prop} ${s}] [(> ${s} ${f.values[0]||'_'})]`; break;
+      case 'less than': c=`[?b :user.property/${f.prop} ${s}] [(< ${s} ${f.values[0]||'_'})]`; break;
+      case 'between': c=def.type==='number'?`[?b :user.property/${f.prop} ${s}] [(>= ${s} ${f.values[0]||'_'})] [(<= ${s} ${f.values[1]||'_'})]`:`[?b :user.property/${f.prop} ${s}] [(>= ${s} ${dl(f.values[0])})] [(<= ${s} ${dl(f.values[1])})]`; break;
+      case 'equals': c=`[?b :user.property/${f.prop} ${s}] [(= ${s} ${dl(f.values[0])})]`; break;
+      case 'before': c=`[?b :user.property/${f.prop} ${s}] [(< ${s} ${dl(f.values[0])})]`; break;
+      case 'on or before': c=`[?b :user.property/${f.prop} ${s}] [(<= ${s} ${dl(f.values[0])})]`; break;
+      case 'after': c=`[?b :user.property/${f.prop} ${s}] [(> ${s} ${dl(f.values[0])})]`; break;
+      case 'on or after': c=`[?b :user.property/${f.prop} ${s}] [(>= ${s} ${dl(f.values[0])})]`; break;
+    }
+    where.push(f.not?`(not ${c})`:c);
+  });
+  if(q.content.value){ const s=sym(); const m=q.content.op==='matches'?`[(re-find #"${q.content.value}" ${s})]`:q.content.op==='starts with'?`[(clojure.string/starts-with? ${s} "${q.content.value}")]`:`[(clojure.string/includes? ${s} "${q.content.value}")]`; where.push(`[?b :block/title ${s}]\n    ${q.content.op==='does not contain'?`(not ${m})`:m}`+(q.children?'\n    ; TODO: also match descendants via :block/parent':'')); }
+  const hasOr=q.filters.some((f,i)=>i&&f.join==='or');
+  return `{:title "${state.name.trim()||'untitled'}"\n :query [:find (pull ?b [*])\n  :in $ ?today\n  :where\n    ${where.length?where.join('\n    '):'[?b :block/uuid _]'}${hasOr?'\n    ; note: or-joins across rows emitted as (or …) once grouping lands':''}]\n :inputs [:today]}`;
+}
+function dl(v){ if(!v) return '_'; if(REL[v]) return { 'today':'?today','tomorrow':'(+ ?today 1)','yesterday':'(- ?today 1)','start of week':':start-of-week','end of week':':end-of-week','start of month':':start-of-month','end of month':':end-of-month' }[v]; return v.replace(/-/g,''); }
+function renderA(res){
+  return `<div class="panel">
+    <div class="zone"><div class="zone-head"><span class="zone-title">Tags</span><label class="toggle"><input type="checkbox" data-act="inherit" ${state.q.inherit?'checked':''}> include extending tags</label></div>
+      <div class="row">${tagChips(false)} <button type="button" class="add" data-act="addtag" data-pop>+ add tag</button></div>
+      ${state.q.tags.length? '' : '<div class="hint">No tag chosen — every node is in scope, tagged or not.</div>'}
+    </div>
+    <div class="zone"><div class="zone-head"><span class="zone-title">Filters</span><span class="hint">and / or, left to right</span></div>
+      ${state.q.filters.map((f,i)=>filterRow(f,i,false)).join('')}
+      <div class="row"><button type="button" class="add" data-act="addfilter" data-pop>+ add filter</button></div>
+    </div>
+    <div class="readback" aria-live="polite">${readback()}</div>
+    <div class="zone"><div class="zone-head"><span class="zone-title">Content</span><label class="toggle"><input type="checkbox" data-act="children" ${state.q.children?'checked':''}> search nested children</label></div>
+      <div class="row">${chip('op',state.q.content.op,'data-act="cop"')}<input class="chip val" style="min-width:180px" placeholder="text in the node…" value="${state.q.content.value}" data-act="ctext"></div>
+    </div>
+    ${resultsBlock(res)}
+  </div>`;
+}
+function renderB(res){
+  const q=state.q;
+  return `<div class="panel">
+    <div class="sentence">
+      <span class="word">Show</span> ${q.tags.length? `<span class="word">nodes tagged</span> ${tagChips(true)}` : `<span class="word">all nodes</span>`} <button type="button" class="add" data-act="addtag" data-pop>+ tag</button>
+      ${q.filters.length? `<span class="word">where</span>`:''}
+      ${q.filters.map((f,i)=>filterRow(f,i,true)).join(' ')}
+      <button type="button" class="add" data-act="addfilter" data-pop>+ where…</button>
+      <span class="word">${q.content.value?'and whose text':'and whose text'}</span> ${chip('op',q.content.op,'data-act="cop"')} <input class="chip val" style="min-width:140px" placeholder="anything" value="${q.content.value}" data-act="ctext">
+      <span class="hint" style="display:block;margin-top:6px">${q.inherit?'Extending tags included':'Exact tags only'} · <button type="button" class="and" data-act="inherit-toggle">${q.inherit?'switch to exact':'include extending'}</button></span>
+    </div>
+    ${resultsBlock(res)}
+  </div>`;
+}
+function render(keepPop=false){
+  const res=run(state.q);
+  root.innerHTML = renderA(res);
+  $('#crit').innerHTML = `<div class="out"><div><b>Pseudocode</b> <span class="hint">readable form, for review</span><pre class="mono">${pseudo()}</pre></div><div><b>Datalog</b> <span class="hint">what gets inserted — sketch, schema unverified</span><pre class="mono">${datalog()}</pre></div></div>`;
+  if(!keepPop) closePop();
+}
+
+/* ---------- events ---------- */
+root.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]'); if(!el) return;
+  const act=el.dataset.act, i=+el.dataset.i, q=state.q;
+  switch(act){
+    case 'addtag': return pickTag(el,null);
+    case 'tag': return pickTag(el,q.tags[i]);
+    case 'tnot': q.tags[i].not=!q.tags[i].not; return render();
+    case 'trm': q.tags.splice(i,1); return render();
+    case 'tjoin': q.tags[i].join=q.tags[i].join==='and'?'or':'and'; return render();
+    case 'addfilter': { const f={prop:null,op:null,values:[],not:false,join:'and'}; q.filters.push(f); render(); const btn=root.querySelector(`[data-act="prop"][data-i="${q.filters.length-1}"]`); return pickProp(btn,f); }
+    case 'prop': return pickProp(el,q.filters[i]);
+    case 'op': return pickOp(el,q.filters[i]);
+    case 'val': return pickValue(el,q.filters[i],+el.dataset.idx||0);
+    case 'not': q.filters[i].not=!q.filters[i].not; return render();
+    case 'rm': q.filters.splice(i,1); return render();
+    case 'join': q.filters[i].join=q.filters[i].join==='and'?'or':'and'; return render();
+    case 'cop': return listPicker(el,{groups:[{items:['contains','does not contain','starts with','matches'].map(v=>({v}))}], onPick:v=>{q.content.op=v;render();}});
+    case 'more': state.shown+=10; return render();
+    case 'insert': state.toast=`Created node · applied #query · name “${state.name.trim()}” · Datalog written (see below)`; return render();
+    case 'inherit-toggle': q.inherit=!q.inherit; return render();
+  }
+});
+root.addEventListener('input',e=>{
+  const el=e.target.closest('[data-act]'); if(!el) return;
+  if(el.dataset.act==='ctext'){ state.q.content.value=el.value; const pos=el.selectionStart; render(); const n=root.querySelector('[data-act="ctext"]'); n.focus(); n.setSelectionRange(pos,pos); }
+  if(el.dataset.act==='name'){ state.name=el.value; const pos=el.selectionStart; state.toast=''; render(); const n=root.querySelector('[data-act="name"]'); n.focus(); n.setSelectionRange(pos,pos); }
+});
+root.addEventListener('change',e=>{
+  const el=e.target.closest('[data-act]'); if(!el) return;
+  if(el.dataset.act==='inherit'){ state.q.inherit=el.checked; render(); }
+  if(el.dataset.act==='children'){ state.q.children=el.checked; render(); }
+});
+render();
+</script>
+</body>
+</html>

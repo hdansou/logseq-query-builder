@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Query Builder</title>
+<style>
+  :root {
+    --bg: #1f1f22; --border: #34343c; --line: #2a2a31; --fg: #e8e6e3;
+    --dim: #cdcbc7; --mut: #9b9a97; --faint: #6e6e76; --accent: #4a63c8;
+    --mono: ui-monospace, 'IBM Plex Mono', Menlo, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: transparent; }
+  body { font-family: system-ui, sans-serif; color: var(--fg); }
+  #backdrop {
+    position: fixed; inset: 0; display: flex; align-items: flex-start;
+    justify-content: center; padding-top: 12vh; background: rgba(0,0,0,.45);
+  }
+  #panel {
+    width: min(720px, 92vw); max-height: 76vh; display: flex; flex-direction: column;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 14px;
+    overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.55);
+  }
+  #panel header { padding: 14px 20px; border-bottom: 1px solid var(--line); font-weight: 600; }
+  #panel main { padding: 20px; font-size: 13.5px; color: var(--dim); }
+  #panel footer {
+    display: flex; gap: 14px; padding: 10px 20px; border-top: 1px solid var(--line);
+    background: #1a1a1d; font-size: 11px; color: var(--mut);
+  }
+</style>
+</head>
+<body>
+  <div id="backdrop">
+    <div id="panel" role="dialog" aria-label="Query Builder">
+      <header>Query Builder</header>
+      <main id="content">Scaffold only. The UI is defined by the scoping doc and mockup in <code>docs/</code>.</main>
+      <footer><span>Esc Close</span></footer>
+    </div>
+  </div>
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>
