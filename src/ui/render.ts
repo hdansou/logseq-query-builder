@@ -54,7 +54,12 @@ export function createRenderer(root: HTMLElement, ctx: Ctx, zones: { scope: Zone
     // Everything above the footer scrolls as one; the footer stays put however small the panel is.
     const body = el("div"); body.id = "body"; root.appendChild(body);
 
-    const head = el("div", "zone flex");
+    const head = el("div", "zone flex head");
+    // A magnifier marks the row as the query's name (inline SVG: the plugin frame has no icon font).
+    const glass = el("span", "glass");
+    glass.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>`;
+    glass.title = "Query";
+    head.appendChild(glass);
     // Prefilled with the read-back sentence until the user types their own name (or clears it).
     // A textarea that grows with its text, so a long sentence wraps instead of being cut off.
     const name = el("textarea", "name") as HTMLTextAreaElement;

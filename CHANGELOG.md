@@ -26,6 +26,7 @@ All notable changes to this plugin are recorded here. The format follows
 - Text typed into a picker is no longer lost when live results arrive and the panel re-renders; only text being composed is carried over, so a freshly picked property keeps its label.
 - In the reference target search, pages come before blocks.
 - A newcomer cheatsheet, `docs/cheatsheet.md`, linked from the README.
+- A magnifier icon marks the query name row.
 - The footer stays visible when the panel is resized small: everything above it scrolls as one.
 - A long query name wraps onto more lines instead of being cut off at the right, and spaces typed into it are no longer swallowed.
 - Result rows and node search show `[[Project Iris]]` instead of `[[<uuid>]]`: links in a block's title are resolved through its pulled references.
