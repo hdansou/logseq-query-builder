@@ -55,6 +55,12 @@ describe("Store", () => {
     vi.useRealTimers();
   });
 
+  it("setName keeps the text as typed, including a trailing space mid-word", () => {
+    const s = new Store({ preview: async () => [] });
+    s.setName("Open ");
+    expect(s.state.q.name).toBe("Open ");
+  });
+
   it("resets pages to 1 on change and loadMore increments", () => {
     const s = new Store({ preview: async () => [] });
     s.loadMore(); s.loadMore();

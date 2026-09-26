@@ -48,6 +48,12 @@ export class Store {
   subscribe(fn: (s: State) => void) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
   private notify() { for (const fn of this.listeners) fn(this.state); }
 
+  /** Raw text as typed (trimmed only when used), so a trailing space survives the re-render. */
+  setName(name: string) {
+    this.state = this.derive({ ...this.state.q, name }, this.state);
+    this.notify();
+  }
+
   /** Change the query; resets paging and schedules a preview. */
   update(f: (q: Query) => Query) {
     const q = f(this.state.q);
@@ -88,10 +94,11 @@ export class Store {
   }
   loadMore() { this.state = { ...this.state, pages: this.state.pages + 1 }; this.notify(); }
 
-  /** A fresh query for a new session; the target is where Insert will write. */
-  open(target: Target | null) {
-    this.state = this.derive(emptyQuery(), { ...this.state, target, results: [], pages: 1, error: null });
+  /** A fresh query for a new session, or a restored one; the target is where Insert will write. */
+  open(target: Target | null, q: Query = emptyQuery()) {
+    this.state = this.derive(q, { ...this.state, target, results: [], pages: 1, error: null });
     this.notify();
+    this.schedulePreview();
   }
   close() { this.notify(); }
 

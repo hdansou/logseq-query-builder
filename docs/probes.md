@@ -155,3 +155,27 @@ result: Alpha plan. Findings on the way:
   panel rendered in the graph's dark teal palette without any per-theme CSS.
 - The scaffold's backdrop click-to-close was removed earlier; a wide dropdown also scrolled the
   frame horizontally until `body { overflow: hidden }`.
+
+## P4 insert and round trip (2026-09-26)
+
+- **Slash path:** `/Query Builder` in an empty block → tag QBProject → name → `⌘↩`. The block was
+  renamed, tagged `#Query`, given `:logseq.property/query` and the state JSON, and rendered
+  "Live query (3)". The host restored the editor caret into the block afterwards.
+- **Shortcut path:** editing "Epsilon" → `⌘⇧Q` → name → tag → `⌘↩` created "Projects after
+  Epsilon" as Epsilon's sibling (same parent), rendered "Live query (3)".
+- **Round trip:** editing the inserted query block → `⌘⇧Q` reopened the builder with its name and
+  chip; restore now applies from either entry point, and Insert then rewrites that block.
+- The state property `plugin.property.<id>/state` is a hidden `:string` created once with
+  `upsertProperty`; it never shows on the block.
+
+Findings on the way:
+
+- After the frame is shown from a slash command, the host editor takes top-level focus back;
+  the frame reclaims it with `window.focus()` in the forced-focus retries.
+- Three "empty panel" runs were a test-sequence error, not a defect: after a pick, shift+Tab
+  lands on the chip's remove button (it precedes the picker in tab order) and the space in the
+  name pressed it, removing the tag. Diagnosed with a temporary keydown logger.
+- The name was trimmed on every keystroke and re-rendered, which ate the space in "Open
+  projects"; the store now keeps the raw text and trims at use.
+- A "/" typed directly after a word does not open the slash menu, so `/Query Builder` appended
+  to a query title once; repaired with `update_block`.

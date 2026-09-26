@@ -1,4 +1,5 @@
 import type { Graph } from "../graph";
+import { canInsert } from "../insert";
 import { navigateTo } from "../nav";
 import { page } from "../preview";
 import type { State, Store } from "./store";
@@ -7,7 +8,7 @@ import type { State, Store } from "./store";
  * Renders the whole panel from state on every change. Zones are filled in by their own modules
  * (tags.ts, rows.ts, content.ts); this file owns the frame, read-back, guard bar, results, footer.
  */
-export interface Ctx { store: Store; graph: Graph }
+export interface Ctx { store: Store; graph: Graph; insert: () => Promise<void> }
 export type ZoneRenderer = (root: HTMLElement, s: State, ctx: Ctx) => void;
 
 const el = (tag: string, cls?: string, text?: string) => {
@@ -42,7 +43,8 @@ export function createRenderer(root: HTMLElement, ctx: Ctx, zones: { tags: ZoneR
     name.placeholder = "Query name (needed to insert)";
     name.value = s.q.name;
     name.dataset.fid = "name";
-    name.addEventListener("change", () => store.update((q) => ({ ...q, name: name.value.trim() })));
+    // Commit on every keystroke: a blur-time change would re-render mid Tab and lose the focus move.
+    name.addEventListener("input", () => store.setName(name.value));
     head.appendChild(name);
     root.appendChild(head);
 
@@ -84,13 +86,20 @@ export function createRenderer(root: HTMLElement, ctx: Ctx, zones: { tags: ZoneR
     const dsl = el("pre", "", store.emitted()?.block ?? ""); dsl.id = "dsl"; if (s.showDsl) dsl.classList.add("on"); root.appendChild(dsl);
 
     const foot = el("div"); foot.id = "footer";
-    foot.appendChild(el("span", "", s.target ? `Insert target: ${s.target.mode === "slash" ? "this block" : "block being edited"}` : "No target block: Insert is off, results still open on click"));
+    const can = canInsert({ guard: s.guard, name: s.q.name, target: s.target });
+    const insertBtn = el("button", "btn primary", s.target?.mode === "slash" ? "Write into this block" : "Insert as query block") as HTMLButtonElement;
+    insertBtn.dataset.fid = "insert";
+    insertBtn.disabled = !can.ok;
+    insertBtn.title = can.ok ? "⌘↩" : can.reason;
+    insertBtn.addEventListener("click", () => void ctx.insert());
+    foot.appendChild(insertBtn);
+    foot.appendChild(el("span", "", can.ok ? "" : can.reason));
     const showDsl = el("button", "tog" + (s.showDsl ? " on" : ""), "datalog");
     showDsl.dataset.fid = "showdsl";
     showDsl.addEventListener("click", () => store.toggleDsl());
     foot.appendChild(showDsl);
     const keys = el("span", "keys");
-    for (const k of ["↩ pick", "Tab next", "⇧↩ add filter", "Esc close"]) keys.appendChild(el("span", "", k));
+    for (const k of ["↩ pick", "Tab next", "⇧↩ add filter", "⌘↩ insert", "Esc close"]) keys.appendChild(el("span", "", k));
     foot.appendChild(keys);
     root.appendChild(foot);
 

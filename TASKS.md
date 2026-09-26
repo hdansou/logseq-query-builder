@@ -48,18 +48,13 @@ Single source of truth for work in this repo. Nothing gets implemented before it
 | FEAT-20 | feat | Content search row | Chrome 2026-09-26: `contains "alp"` narrowed the results and appeared in the read-back; the four operators map to the emitter's verified forms |
 | FEAT-21 | feat | Keyboard-only path: typed filtering, arrows, Enter, Tab, add-row shortcut, Esc | Chrome 2026-09-26, keyboard only: tag → ⇧↩ → property → operator (typed "does") → node search "mar" → ⇧↩ → … → date "+30d"; read-back matched the spec sentence, result Alpha plan. Operator is a picker, joins are toggle buttons |
 | FEAT-22 | feat | Theme: copy host tokens into `:root`; refresh on theme change | Chrome 2026-09-26: panel took the host's teal dark palette after `resolveThemeCssPropsVals`; mode/theme change handlers re-apply (light-mode switch not yet exercised live) |
+| FEAT-23 | feat | Insert from shortcut path: new sibling of the captured block; disabled with hint when none | Chrome 2026-09-26 (keyboard): editing Epsilon → ⌘⇧Q → name → tag → ⌘↩ created "Projects after Epsilon" as Epsilon's sibling, rendered "Live query (3)"; with no target the button is disabled with the reason in the footer |
+| FEAT-24 | feat | Insert from slash path: tag + query + state written into that block, name from the builder | Chrome 2026-09-26 (keyboard): `/Query Builder` → tag QBProject → name → ⌘↩; the block became "Live query (3)" with tag, `:logseq.property/query` and the state JSON. Name prefill from block text dropped: the slash text is the whole content |
+| FEAT-25 | feat | Round-trip: state JSON in `plugin.property.<id>/state`; reopen loads it | Chrome 2026-09-26: editing the inserted query block + ⌘⇧Q reopened with its name and QBProject chip; restore works from either entry point and then Insert rewrites that block |
 
-## Now — P4, insert and round-trip
+## Now — P5, polish
 
-P3 exit met 2026-09-26: spec scenario 2 built without a mouse; panel follows the host theme tokens. 95 unit tests.
-
-| ID | Type | Title | Status | Acceptance test |
-|---|---|---|---|---|
-| FEAT-23 | feat | Insert from shortcut path: new sibling of the captured block; disabled with hint when none | todo | Chrome: block renders a live table; no target → button disabled |
-| FEAT-24 | feat | Insert from slash path: name = block text (prefilled), tag + property written into that block | todo | Chrome: the slash block becomes the query, name kept |
-| FEAT-25 | feat | Round-trip: state JSON in `plugin.property.logseq-query-builder/state`; reopen loads it | todo | Chrome: reopen on the inserted block shows the same chips; Datalog is never parsed |
-
-## Later — P5, polish
+P4 exit met 2026-09-26: both insert paths render live tables; reopening a query block restores its chips from the state property. 101 unit tests.
 
 | ID | Type | Title | Status | Notes |
 |---|---|---|---|---|
