@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  addRow, addTag, emptyQuery, removeRow, removeTag, setContent, setInherit, setJoin, setName,
-  setRow, setScope, toggleNot, type PropertyRef, type Query, type TagRef,
+  addRef, addRow, addTag, emptyQuery, removeRef, removeRow, removeTag, setContent, setInherit, setJoin, setName,
+  setRef, setRow, setScope, toggleNot, type PropertyRef, type Query, type TagRef,
 } from "./model";
 
 const project: TagRef = { ident: ":user.class/project-Kq9x2mzp", title: "project" };
@@ -9,7 +9,7 @@ const status: PropertyRef = { ident: ":user.property/status-Xab12cde", title: "s
 
 describe("emptyQuery", () => {
   it("has no name, no tags, no rows, no content, inheritance on", () => {
-    expect(emptyQuery()).toEqual({ name: "", scope: { kind: "anywhere" }, tags: [], inherit: true, rows: [], content: null });
+    expect(emptyQuery()).toEqual({ name: "", scope: { kind: "anywhere" }, tags: [], inherit: true, rows: [], content: null, refs: [] });
   });
 });
 
@@ -87,5 +87,28 @@ describe("scope", () => {
     const q = setScope(emptyQuery(), { kind: "referenced-in", page: { uuid: "u", title: "Book" } });
     expect(q.scope).toEqual({ kind: "referenced-in", page: { uuid: "u", title: "Book" } });
     expect(setScope(q, { kind: "library" }).scope).toEqual({ kind: "library" });
+  });
+});
+
+describe("reference rows", () => {
+  it("addRef appends a row that links to nothing yet, AND, not negated", () => {
+    const q = addRef(emptyQuery());
+    expect(q.refs).toHaveLength(1);
+    expect(q.refs[0]).toMatchObject({ dir: "links-to", target: null, not: false, join: "and" });
+    expect(q.refs[0].id).toMatch(/^ref\d+$/);
+  });
+  it("setRef patches one row by id; removeRef drops it; both leave the input untouched", () => {
+    const q1 = addRef(addRef(emptyQuery()));
+    const [a, b] = q1.refs.map((r) => r.id);
+    const q2 = setRef(q1, b, { dir: "ancestor-links-to", target: { kind: "tag", tag: project, name: "iris" }, not: true, join: "or" });
+    expect(q2.refs[0]).toEqual(q1.refs[0]);
+    expect(q2.refs[1]).toEqual({ id: b, dir: "ancestor-links-to", target: { kind: "tag", tag: project, name: "iris" }, not: true, join: "or" });
+    expect(q1.refs[1].target).toBeNull();
+    expect(removeRef(q2, a).refs.map((r) => r.id)).toEqual([b]);
+  });
+  it("a node target carries the node's uuid and title", () => {
+    const q = addRef(emptyQuery());
+    const q2 = setRef(q, q.refs[0].id, { target: { kind: "node", uuid: "u1", title: "Project Iris" } });
+    expect(q2.refs[0].target).toEqual({ kind: "node", uuid: "u1", title: "Project Iris" });
   });
 });

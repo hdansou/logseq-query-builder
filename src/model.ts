@@ -52,6 +52,17 @@ export type Scope =
   | { kind: "referenced-in"; page: PageRef }
   | { kind: "library" };
 
+/**
+ * Reference rows (spec § Reference querying). Direction is the operator; the target is one node,
+ * or every node carrying a tag (with inheritance, optionally narrowed by a name fragment). One hop.
+ * `under`: the node lives on the target page or on a page beneath it in the page tree.
+ */
+export type RefDirection = "links-to" | "linked-from" | "ancestor-links-to" | "under";
+export type RefTarget =
+  | { kind: "node"; uuid: string; title: string }
+  | { kind: "tag"; tag: TagRef; name: string };   // name "" = no condition
+export interface RefRow { id: string; dir: RefDirection; target: RefTarget | null; not: boolean; join: Join }
+
 export interface Query {
   name: string;
   scope: Scope;
@@ -59,13 +70,22 @@ export interface Query {
   inherit: boolean;
   rows: FilterRow[];
   content: ContentClause | null;
+  refs: RefRow[];
 }
 
-export const emptyQuery = (): Query => ({ name: "", scope: { kind: "anywhere" }, tags: [], inherit: true, rows: [], content: null });
+export const emptyQuery = (): Query => ({ name: "", scope: { kind: "anywhere" }, tags: [], inherit: true, rows: [], content: null, refs: [] });
 export const setScope = (q: Query, scope: Scope): Query => ({ ...q, scope });
 
 let nextId = 0;
 const newId = () => `row${++nextId}`;
+let nextRefId = 0;
+const newRefId = () => `ref${++nextRefId}`;
+
+export const addRef = (q: Query): Query =>
+  ({ ...q, refs: [...q.refs, { id: newRefId(), dir: "links-to", target: null, not: false, join: "and" }] });
+export const removeRef = (q: Query, id: string): Query => ({ ...q, refs: q.refs.filter((r) => r.id !== id) });
+export const setRef = (q: Query, id: string, patch: Partial<Omit<RefRow, "id">>): Query =>
+  ({ ...q, refs: q.refs.map((r) => (r.id === id ? { ...r, ...patch } : r)) });
 
 export const addTag = (q: Query, tag: TagRef | null): Query =>
   ({ ...q, tags: [...q.tags, { tag, not: false, join: "and" }] });
