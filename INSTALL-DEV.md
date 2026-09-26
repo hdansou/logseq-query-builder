@@ -82,3 +82,14 @@ const f = document.querySelector("iframe.lsp-iframe-sandbox"); f.focus(); f.cont
 ```
 
 then Tab / Enter / Escape. Manual mouse use in a real browser is unaffected.
+
+## Checking the production build
+
+```bash
+npm run build          # dist/
+npm run preview        # serves dist/ on :8292
+```
+
+Register it exactly like the dev server, with `url: "http://localhost:8292"` and
+`installedFromUserWebUrl: "http://localhost:8292"`; `main` stays `index.html` because the preview
+server's root *is* `dist/`.

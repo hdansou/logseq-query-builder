@@ -52,9 +52,9 @@ Single source of truth for work in this repo. Nothing gets implemented before it
 | FEAT-24 | feat | Insert from slash path: tag + query + state written into that block, name from the builder | Chrome 2026-09-26 (keyboard): `/Query Builder` → tag QBProject → name → ⌘↩; the block became "Live query (3)" with tag, `:logseq.property/query` and the state JSON. Name prefill from block text dropped: the slash text is the whole content |
 | FEAT-25 | feat | Round-trip: state JSON in `plugin.property.<id>/state`; reopen loads it | Chrome 2026-09-26: editing the inserted query block + ⌘⇧Q reopened with its name and QBProject chip; restore works from either entry point and then Insert rewrites that block |
 
-## Now — P5, polish
+## Now — daily use
 
-P4 exit met 2026-09-26: both insert paths render live tables; reopening a query block restores its chips from the state property. 101 unit tests.
+P5 and TASK-5 done 2026-09-26: every first-implementation item in the spec's scope table is built and live-verified on the scratch graph (104 unit tests, `docs/probes.md`). The next gate is the plan's own: use it on a real graph for a week before marketplace work; open items from that go here.
 
 | ID | Type | Title | Status | Notes |
 |---|---|---|---|---|
@@ -63,7 +63,7 @@ P4 exit met 2026-09-26: both insert paths render live tables; reopening a query 
 | FEAT-29 | feat | Layout: filter rows wrap onto two lines when a value picker is present; results zone gets squeezed at the default panel height | done | Default panel 780×620, narrower pickers, remove button no longer pushed right, results min-height 120; the host keeps a user's own size once dragged |
 | FEAT-30 | feat | Verify light-mode token refresh live | done | Live: `set_theme_mode('light')` → panel white with dark text and host link colours; guard bar colours now derive from the host background |
 | FEAT-28 | feat | Hide settings-like built-in properties from the property picker | done | Built-ins with a `:logseq.property/view-context` (property/class/page/never) are dropped; node-level ones (Status, Deadline, Assignee…) have none. Live: typing `ena` finds nothing |
-| TASK-5 | task | Production build, real `manifest.json`, icon, README for users | todo | |
+| TASK-5 | task | Production build, manifest, icon, README for users | done | `package.json` is the manifest (`main: dist/index.html`, icon in `dist/`); `npm run build` → 148 kB bundle; loaded from `vite preview` on :8292 in the web app and built a query live. Position memory across reload still needs a stable id, i.e. a real install; see `docs/probes.md` |
 
 ## Bugs
 

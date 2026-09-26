@@ -193,3 +193,12 @@ Findings on the way:
 - Light mode: after `set_theme_mode('light')` the panel re-rendered white with dark text through
   the same token copy. Saving a source file while the panel is open makes vite reload the frame
   and breaks the plugin bridge (black panel) — reload the plugin, do not trust that screenshot.
+
+## Production build (2026-09-26)
+
+`npm run build` produced `dist/` (148 kB JS, 6.9 kB HTML, icon). Served by `vite preview` on
+:8292 and registered in the web app the same way as the dev server, the bundle loaded, opened on
+`⌘⇧Q`, listed the tags with counts and returned the three QBProject nodes. Dev-only commands
+(probes, demo) are absent from the bundle as intended. Position memory across a page reload is
+still unverified: console registration assigns a fresh plugin id every time and the host keys the
+remembered layout by it, so this needs a real install.
