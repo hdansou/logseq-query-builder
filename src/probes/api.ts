@@ -84,10 +84,4 @@ export async function journalEid(d: Date): Promise<number> {
   return Number(again[0][0]);
 }
 
-/**
- * Passed as a string input; the host reads string inputs as EDN. It must NOT start with `[[`,
- * because the host first checks string inputs for the page-ref shape `[[…]]` and would try to
- * resolve a page name (observed: "Cannot read properties of null (reading 'toLowerCase')").
- */
-export const RULES = ` [[(class-extends ?p ?c) [?c :logseq.property.class/extends ?p]]
- [(class-extends ?p ?c) [?t :logseq.property.class/extends ?p] (class-extends ?t ?c)]] `;
+export { RULES } from "../emit";
