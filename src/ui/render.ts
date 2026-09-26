@@ -3,7 +3,7 @@ import { formatContext } from "../context";
 import { canInsert } from "../insert";
 import { navigateTo } from "../nav";
 import { page } from "../preview";
-import type { State, Store } from "./store";
+import { nameFor, type State, type Store } from "./store";
 
 /**
  * Renders the whole panel from state on every change. Zones are filled in by their own modules
@@ -40,9 +40,11 @@ export function createRenderer(root: HTMLElement, ctx: Ctx, zones: { tags: ZoneR
     root.innerHTML = "";
 
     const head = el("div", "zone flex");
+    // Prefilled with the read-back sentence until the user types their own name (or clears it).
     const name = el("input", "name") as HTMLInputElement;
-    name.placeholder = "Query name (needed to insert)";
-    name.value = s.q.name;
+    name.placeholder = "Query name";
+    name.value = nameFor(s);
+    name.title = s.q.name.trim() ? "Your name for this query" : "Suggested from the filters; edit or replace it";
     name.dataset.fid = "name";
     // Commit on every keystroke: a blur-time change would re-render mid Tab and lose the focus move.
     name.addEventListener("input", () => store.setName(name.value));
@@ -56,8 +58,6 @@ export function createRenderer(root: HTMLElement, ctx: Ctx, zones: { tags: ZoneR
     const g = el("div", "guard"); g.id = "guard";
     if (!s.guard.ok) { g.classList.add("on"); g.textContent = s.guard.reason; }
     root.appendChild(g);
-
-    const rb = el("div", "", s.readback); rb.id = "readback"; root.appendChild(rb);
 
     const results = el("div"); results.id = "results";
     if (s.error) results.appendChild(el("div", "empty-results", `Query failed: ${s.error}`));
@@ -89,7 +89,7 @@ export function createRenderer(root: HTMLElement, ctx: Ctx, zones: { tags: ZoneR
     const dsl = el("pre", "", store.emitted()?.block ?? ""); dsl.id = "dsl"; if (s.showDsl) dsl.classList.add("on"); root.appendChild(dsl);
 
     const foot = el("div"); foot.id = "footer";
-    const can = canInsert({ guard: s.guard, name: s.q.name, target: s.target });
+    const can = canInsert({ guard: s.guard, name: nameFor(s), target: s.target });
     const insertBtn = el("button", "btn primary", s.target?.mode === "slash" ? "Write into this block" : "Insert as query block") as HTMLButtonElement;
     insertBtn.dataset.fid = "insert";
     insertBtn.disabled = !can.ok;

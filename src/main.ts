@@ -9,7 +9,7 @@ import { registerProbeCommands } from "./probes";
 import { renderContent } from "./ui/content";
 import { createRenderer } from "./ui/render";
 import { focusRow, renderRows } from "./ui/rows";
-import { Store, targetFromEvent } from "./ui/store";
+import { Store, nameFor, targetFromEvent } from "./ui/store";
 import { upsertProperty } from "./sdk";
 import { watchTheme } from "./theme";
 import { renderTags } from "./ui/tags";
@@ -26,9 +26,10 @@ function main() {
 
   const insert = async () => {
     const s = store.state;
-    const can = canInsert({ guard: s.guard, name: s.q.name, target: s.target });
+    const name = nameFor(s);
+    const can = canInsert({ guard: s.guard, name, target: s.target });
     if (!can.ok || !s.target) return;
-    const plan = planInsert(s.target, s.q.name.trim(), emit(s.q).block, serializeState(s.q));
+    const plan = planInsert(s.target, name, emit(s.q).block, serializeState({ ...s.q, name }));
     console.info("[qb insert]", s.target, plan.map((p) => p.op));
     try {
       await runInsert({
@@ -38,7 +39,7 @@ function main() {
         upsertBlockProperty: (uuid, key, value) => logseq.Editor.upsertBlockProperty(uuid, key, value),
       }, plan);
       console.info("[qb insert] done");
-      void logseq.UI.showMsg(`Query "${s.q.name}" inserted`, "success");
+      void logseq.UI.showMsg(`Query "${name}" inserted`, "success");
       close();
     } catch (e) {
       console.error("[qb insert] failed", e);

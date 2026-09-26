@@ -28,6 +28,13 @@ export interface State {
   showDsl: boolean;
 }
 
+/**
+ * The query's name: what the user typed, or, until they type, the plain-English read-back of the
+ * query. An empty or unrunnable query suggests nothing.
+ */
+export const nameFor = (s: Pick<State, "q" | "guard" | "readback">): string =>
+  s.q.name.trim() || (s.guard.ok ? s.readback : "");
+
 export interface StoreDeps { preview: (q: Query) => Promise<ResultRow[]>; debounceMs?: number }
 
 export class Store {

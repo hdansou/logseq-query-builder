@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { Store, targetFromEvent } from "./store";
+import { Store, nameFor, targetFromEvent } from "./store";
 import type { PropertyRef, TagRef } from "../model";
 
 const project: TagRef = { ident: ":user.class/project-1", title: "project" };
@@ -78,5 +78,18 @@ describe("Store", () => {
     s.update((q) => ({ ...q, rows: [{ id: "r", property: status, op: "empty", values: [], not: false, join: "and" }] }));
     s.close();
     expect(s.state.q.rows).toHaveLength(1);
+  });
+});
+
+describe("nameFor", () => {
+  it("suggests the read-back until the user types, and nothing for a query that cannot run", () => {
+    const s = new Store({ preview: async () => [] });
+    expect(nameFor(s.state)).toBe("");
+    s.update((q) => ({ ...q, tags: [{ tag: project, not: false, join: "and" }] }));
+    expect(nameFor(s.state)).toBe("project nodes");
+    s.setName("Mine");
+    expect(nameFor(s.state)).toBe("Mine");
+    s.setName("   ");
+    expect(nameFor(s.state)).toBe("project nodes");
   });
 });
