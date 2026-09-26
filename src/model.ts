@@ -41,13 +41,15 @@ export type ContentOp = "contains" | "not-contains" | "starts-with" | "matches";
 export interface ContentClause { op: ContentOp; value: string }
 
 /**
- * Where to look. `referenced-in`: nodes referenced from the blocks of one page (the "artists
- * mentioned in my #book page" case). `library`: pages inside the built-in Library and the blocks
- * on them (Library membership is the :block/parent tree under that page).
+ * Where to look. `on-page`: the blocks that live on one page. `referenced-in`: nodes referenced
+ * from the blocks of one page (the "artists mentioned in my #book page" case). `library`: pages
+ * inside the built-in Library and the blocks on them (membership is the :block/parent tree).
  */
+export type PageRef = { uuid: string; title: string };
 export type Scope =
   | { kind: "anywhere" }
-  | { kind: "referenced-in"; page: { uuid: string; title: string } }
+  | { kind: "on-page"; page: PageRef }
+  | { kind: "referenced-in"; page: PageRef }
   | { kind: "library" };
 
 export interface Query {

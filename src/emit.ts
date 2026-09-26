@@ -127,13 +127,16 @@ function dateClause(r: FilterRow, n: number, ctx: Ctx): string {
 }
 
 /**
- * Scope clauses bind ?b, so they are positive. `referenced-in`: blocks of the page reference ?b.
+ * Scope clauses bind ?b, so they are positive. `on-page`: ?b lives on the page. `referenced-in`:
+ * blocks of the page reference ?b.
  * `library`: ?b is a page under the built-in Library (the :block/parent tree, host `parent` rule)
  * or a block on such a page.
  */
 function scopeClause(scope: Scope, ctx: Ctx): Clause | null {
   switch (scope.kind) {
     case "anywhere": return null;
+    case "on-page":
+      return { text: `[?src :block/uuid #uuid "${scope.page.uuid}"] [?b :block/page ?src]`, positive: true, join: "and" };
     case "referenced-in":
       return { text: `[?src :block/uuid #uuid "${scope.page.uuid}"] [?sb :block/page ?src] [?sb :block/refs ?b]`, positive: true, join: "and" };
     case "library":

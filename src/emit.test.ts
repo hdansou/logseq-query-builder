@@ -194,6 +194,11 @@ describe("scopes", () => {
     expect(e.where[0]).toBe(`[?src :block/uuid #uuid "b00k"] [?sb :block/page ?src] [?sb :block/refs ?b]`);
     expect(e.where[1]).toBe(INHERIT(artist));
   });
+  it("on-page: the blocks that live on the page", () => {
+    const e = emit(setScope(emptyQuery(), { kind: "on-page", page: { uuid: "b00k", title: "Book" } }));
+    expect(e.where).toEqual([`[?src :block/uuid #uuid "b00k"] [?b :block/page ?src]`]);
+    expect(e.rules).toBe(false);
+  });
   it("library: pages under the built-in Library page or blocks on them, via the parent rule", () => {
     const e = emit(setScope(emptyQuery(), { kind: "library" }));
     expect(e.where).toEqual([`[?lib :block/name "library"] [?lib :logseq.property/built-in? true] (parent ?lib ?lp) [?lp :block/tags :logseq.class/Page] (or [(= ?b ?lp)] [?b :block/page ?lp])`]);

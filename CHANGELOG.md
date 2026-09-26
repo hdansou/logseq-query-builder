@@ -33,6 +33,7 @@ All notable changes to this plugin are recorded here. The format follows
 - **Scope** zone above the tags, choosing where the query looks:
   - *anywhere* (default);
   - *in the Library*: pages inside Logseq's built-in Library page, at any depth, and the blocks on them;
+  - *on page…*: the blocks that live on a page picked by title;
   - *referenced in page…*: nodes referenced from the blocks of a page picked by title, e.g. every `artist` mentioned in a `Book` page. Properties and tags a block uses count as references, so add a tag or filter to narrow.
   A scope counts as a positive clause, so a scope with only NOT filters can run. The read-back says "referenced in X" or "in the Library"; queries saved before scopes existed reopen as *anywhere*.
 - `Page` is offered in the tag selector, so "all pages" and "pages tagged X" can be built.
