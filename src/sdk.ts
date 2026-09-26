@@ -1,4 +1,4 @@
-import "@logseq/libs";
+// No SDK import: the `logseq` global comes from main.ts; importing the SDK here breaks unit tests.
 
 /**
  * The few SDK calls whose published typings are narrower than the host actually accepts. Each
