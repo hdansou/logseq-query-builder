@@ -6,7 +6,7 @@ import "@logseq/libs";
  */
 export interface MainUIAttrs { draggable?: boolean; resizable?: boolean }
 export interface MainUIStyle { width?: string; height?: string; top?: string; left?: string; zIndex?: number }
-export interface PropertySchema { type: "default" | "number" | "date" | "datetime" | "checkbox" | "url" | "node" | "asset" | "json" | "string"; cardinality?: "one" | "many"; hide?: boolean; public?: boolean }
+export interface PropertySchema { type?: "default" | "number" | "date" | "datetime" | "checkbox" | "url" | "node" | "asset" | "json" | "string"; cardinality?: "one" | "many"; hide?: boolean; public?: boolean }
 
 /** Host: LSPlugin.core.ts `setMainUIAttrs` reads `draggable` and `resizable` (verified live). */
 export const setMainUIAttrs = (attrs: MainUIAttrs) => logseq.setMainUIAttrs(attrs as never);

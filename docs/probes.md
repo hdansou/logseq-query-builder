@@ -202,3 +202,14 @@ Findings on the way:
 (probes, demo) are absent from the bundle as intended. Position memory across a page reload is
 still unverified: console registration assigns a fresh plugin id every time and the host keys the
 remembered layout by it, so this needs a real install.
+
+## Real-graph finding (2026-09-26, user's `demolocal2`)
+
+One inserted query block showed a visible `state` property with the JSON in it. The graph held
+three `state` properties, one per plugin id that had run: two `string`/hidden (dev instances),
+one `default`/unset from the production-bundle instance, i.e. created implicitly by the state write
+before the startup `upsertProperty` had taken effect. Fix: `stateSchemaFor` + `ensureStateProperty`
+before every write, hiding an existing property without changing its type. The stray one was
+repaired in place with `upsert_block_property(<property uuid>, "logseq.property/hide?", true)`.
+Each console registration gets a fresh id and therefore its own property; a real install has the
+stable id `logseq-query-builder`.

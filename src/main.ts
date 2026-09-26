@@ -1,6 +1,6 @@
 import "@logseq/libs";
 import { emit } from "./emit";
-import { STATE_KEY, canInsert, deserializeState, planInsert, runInsert, serializeState } from "./insert";
+import { STATE_KEY, canInsert, deserializeState, planInsert, runInsert, serializeState, stateSchemaFor } from "./insert";
 import { Graph } from "./graph";
 import { manifest } from "./manifest";
 import { hidePanel, showPanel } from "./panel";
@@ -32,6 +32,7 @@ function main() {
     const plan = planInsert(s.target, name, emit(s.q).block, serializeState({ ...s.q, name }));
     console.info("[qb insert]", s.target, plan.map((p) => p.op));
     try {
+      await ensureStateProperty();
       await runInsert({
         insertBlock: (after, content, opts) => logseq.Editor.insertBlock(after, content, opts) as Promise<{ uuid: string } | null>,
         updateBlock: (uuid, content) => logseq.Editor.updateBlock(uuid, content),
@@ -47,8 +48,13 @@ function main() {
     }
   };
   store.subscribe(createRenderer(root, { store, graph, insert }, { tags: renderTags, rows: renderRows, content: renderContent }));
-  // The round-trip property: a hidden string on each inserted block, created once in our namespace.
-  void upsertProperty(STATE_KEY, { type: "string", hide: true }).catch((e) => console.warn("[qb] state property", e));
+  /** The round-trip property: a hidden string in our namespace. Ensured at start and again before every write. */
+  const ensureStateProperty = async () => {
+    const existing = (await logseq.Editor.getProperty(STATE_KEY).catch(() => null)) as { type?: string; hide?: boolean } | null;
+    const schema = stateSchemaFor(existing ? { type: existing.type, hide: (existing as Record<string, unknown>)["hide?"] === true || existing.hide === true } : null);
+    if (schema) await upsertProperty(STATE_KEY, schema);
+  };
+  void ensureStateProperty().catch((e) => console.warn("[qb] state property", e));
 
   const focusFirst = (force = false) => {
     const active = document.activeElement as HTMLElement | null;

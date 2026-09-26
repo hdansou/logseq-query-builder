@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { STATE_KEY, canInsert, deserializeState, planInsert, serializeState } from "./insert";
+import { STATE_KEY, canInsert, deserializeState, planInsert, serializeState, stateSchemaFor } from "./insert";
 import { addRow, addTag, emptyQuery, setName, setRow, type PropertyRef, type Query, type TagRef } from "./model";
 
 const project: TagRef = { ident: ":user.class/project-1", title: "project" };
@@ -46,5 +46,13 @@ describe("state round trip", () => {
     expect(deserializeState(JSON.stringify({ v: 2, query: {} }))).toBeNull();
     expect(deserializeState(JSON.stringify({ v: 1, query: { name: "x" } }))).toBeNull();
     expect(deserializeState("")).toBeNull();
+  });
+});
+
+describe("stateSchemaFor", () => {
+  it("creates hidden, hides an existing visible one without touching its type, leaves a hidden one alone", () => {
+    expect(stateSchemaFor(null)).toEqual({ type: "string", hide: true });
+    expect(stateSchemaFor({ type: "default" })).toEqual({ hide: true });
+    expect(stateSchemaFor({ type: "string", hide: true })).toBeNull();
   });
 });

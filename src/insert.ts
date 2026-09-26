@@ -74,3 +74,13 @@ export function deserializeState(text: string): Query | null {
     return null;
   }
 }
+
+/**
+ * Schema to apply to the state property before writing it: create it hidden when missing, only
+ * hide it when it already exists (never change an existing type), nothing when already hidden.
+ * Guards against a write racing the startup call, which left one graph with a visible property.
+ */
+export function stateSchemaFor(existing: { type?: string; hide?: boolean } | null): { type?: "string"; hide: true } | null {
+  if (!existing) return { type: "string", hide: true };
+  return existing.hide ? null : { hide: true };
+}
