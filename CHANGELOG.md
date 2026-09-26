@@ -6,7 +6,7 @@ All notable changes to this plugin are recorded here. The format follows
 ## [Unreleased]
 
 ### Added
-- Floating, draggable, resizable builder panel opened with `⌘⇧U`, from the command palette, or with the `/Query Builder` slash command.
+- Floating, draggable, resizable builder panel opened with `⌘⇧F`, from the command palette, or with the `/Query Builder` slash command.
 - Tag selector with autocomplete over the graph's tags (most-used first), AND / OR / NOT, an "any tag" presence test, and sub-tag inheritance on by default.
 - Filter rows (`property · operator · value`) for the eight DB property types, with operators taken from the type, values picked from the graph with usage counts, free entry for text and numbers, node search, and a date control that accepts `today`, `tomorrow`, `yesterday`, `±Nd/w/m/y` or `YYYY-MM-DD`.
 - Content search on the node's own text: contains, does not contain, starts with, regular expression.
