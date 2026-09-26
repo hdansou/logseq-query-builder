@@ -1,5 +1,6 @@
 import { absoluteLiteral, bounds, relativeInput, type Boundary } from "./dates";
 import { guard, rowComplete, rowPositive, tagPositive } from "./guard";
+import { str } from "./edn";
 import type { ContentClause, DateValue, FilterRow, Join, PropertyRef, Query, TagClause, Value } from "./model";
 
 /**
@@ -41,8 +42,6 @@ class Ctx {
 }
 
 interface Clause { text: string; positive: boolean; join: Join }
-
-const str = (s: string) => `"${s.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
 
 /** Which attribute on a ref value entity carries the comparable scalar. */
 function valueAttr(p: PropertyRef): string {
