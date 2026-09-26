@@ -1,3 +1,4 @@
+import type { Graph } from "../graph";
 import { navigateTo } from "../nav";
 import { page } from "../preview";
 import type { State, Store } from "./store";
@@ -6,7 +7,8 @@ import type { State, Store } from "./store";
  * Renders the whole panel from state on every change. Zones are filled in by their own modules
  * (tags.ts, rows.ts, content.ts); this file owns the frame, read-back, guard bar, results, footer.
  */
-export type ZoneRenderer = (root: HTMLElement, s: State, store: Store) => void;
+export interface Ctx { store: Store; graph: Graph }
+export type ZoneRenderer = (root: HTMLElement, s: State, ctx: Ctx) => void;
 
 const el = (tag: string, cls?: string, text?: string) => {
   const n = document.createElement(tag);
@@ -29,7 +31,8 @@ function captureFocus() {
   };
 }
 
-export function createRenderer(root: HTMLElement, store: Store, zones: { tags: ZoneRenderer; rows: ZoneRenderer; content: ZoneRenderer }, onClose: () => void) {
+export function createRenderer(root: HTMLElement, ctx: Ctx, zones: { tags: ZoneRenderer; rows: ZoneRenderer; content: ZoneRenderer }) {
+  const { store } = ctx;
   return (s: State) => {
     const restore = captureFocus();
     root.innerHTML = "";
@@ -43,9 +46,9 @@ export function createRenderer(root: HTMLElement, store: Store, zones: { tags: Z
     head.appendChild(name);
     root.appendChild(head);
 
-    const tags = el("div", "zone"); zones.tags(tags, s, store); root.appendChild(tags);
-    const rows = el("div", "zone"); zones.rows(rows, s, store); root.appendChild(rows);
-    const content = el("div", "zone"); zones.content(content, s, store); root.appendChild(content);
+    const tags = el("div", "zone"); zones.tags(tags, s, ctx); root.appendChild(tags);
+    const rows = el("div", "zone"); zones.rows(rows, s, ctx); root.appendChild(rows);
+    const content = el("div", "zone"); zones.content(content, s, ctx); root.appendChild(content);
 
     const g = el("div", "guard"); g.id = "guard";
     if (!s.guard.ok) { g.classList.add("on"); g.textContent = s.guard.reason; }
@@ -92,6 +95,5 @@ export function createRenderer(root: HTMLElement, store: Store, zones: { tags: Z
     root.appendChild(foot);
 
     restore();
-    void onClose;
   };
 }

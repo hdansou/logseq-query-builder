@@ -1,5 +1,6 @@
 import "@logseq/libs";
 import { emit } from "./emit";
+import { Graph } from "./graph";
 import { manifest } from "./manifest";
 import { hidePanel, showPanel } from "./panel";
 import { runPreview } from "./preview";
@@ -15,11 +16,19 @@ const dq = (q: string, ...ins: unknown[]) => logseq.DB.datascriptQuery(q, ...ins
 
 function main() {
   const store = new Store({ preview: (q) => runPreview(emit(q), dq) });
+  const graph = new Graph(dq);
+  logseq.DB.onChanged(() => graph.invalidate());
   const root = document.getElementById("root")!;
   const close = () => { store.close(); hidePanel(); };
-  store.subscribe(createRenderer(root, store, { tags: renderTags, rows: renderRows, content: renderContent }, close));
+  store.subscribe(createRenderer(root, { store, graph }, { tags: renderTags, rows: renderRows, content: renderContent }));
 
-  const open = (target: ReturnType<typeof targetFromEvent>) => { store.open(target); showPanel(); };
+  const focusFirst = () => {
+    if (document.activeElement && document.activeElement !== document.body) return;
+    (root.querySelector<HTMLElement>("[data-fid=tag-picker]") ?? root.querySelector<HTMLElement>("[data-fid]"))?.focus();
+  };
+  // The host focuses the iframe window when it shows the panel; focus must be placed after that.
+  window.addEventListener("focus", () => setTimeout(focusFirst, 0));
+  const open = (target: ReturnType<typeof targetFromEvent>) => { store.open(target); showPanel(); setTimeout(focusFirst, 50); };
 
   logseq.App.registerCommandPalette(
     { key: "query-builder-open", label: "Query Builder: open", keybinding: { binding: "mod+shift+q", mode: "global" } },

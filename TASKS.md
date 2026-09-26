@@ -48,9 +48,9 @@ P2 exit met 2026-09-26: the dev-only `Query Builder: demo (P2)` palette command 
 
 | ID | Type | Title | Status | Acceptance test |
 |---|---|---|---|---|
-| FEAT-16 | feat | Floating panel: draggable, resizable, container sized to panel, close button | todo | Chrome: drag, resize, click the graph beside it, reload keeps position |
-| FEAT-17 | feat | Entry points: `⌘⇧Q` + palette entry (captures editing block uuid if any); slash command "Query Builder" (targets its block) | todo | Chrome: both open the panel; the target block is shown in the footer or "no target" |
-| FEAT-18 | feat | Tag selector: autocomplete, AND/OR/NOT, inherit toggle | todo | Chrome: pick `project`, toggle inherit, readback and preview change |
+| FEAT-16 | feat | Floating panel: draggable, resizable, container sized to panel, close button | done | Chrome: drag, resize, click the graph beside it, reload keeps position |
+| FEAT-17 | feat | Entry points: `⌘⇧Q` + palette entry (captures editing block uuid if any); slash command "Query Builder" (targets its block) | done | Chrome 2026-09-26: ⌘⇧Q → footer "No target block"; `/Query Builder` in a block → footer "Insert target: this block" |
+| FEAT-18 | feat | Tag selector: autocomplete, AND/OR/NOT, inherit toggle | done | Chrome 2026-09-26 (keyboard): typed `qbp` filtered to QBPerson/QBProject with counts; ArrowDown+Enter added the chip, read-back "QBProject nodes", 3 results incl. the sub-tag |
 | FEAT-19 | feat | Property rows: property → operator → value control per type; per-row join and NOT | todo | Chrome: each of the eight types shows its control; `between` shows two inputs |
 | FEAT-20 | feat | Content search row | todo | Chrome: contains / does not contain / starts with / matches; regex emitted via `re-pattern` |
 | FEAT-21 | feat | Keyboard-only path: typed filtering, arrows, Enter, Tab, add-row shortcut, Esc | todo | Chrome (keyboard only): scenario 2 built without a mouse |
