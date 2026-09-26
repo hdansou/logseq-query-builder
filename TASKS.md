@@ -23,13 +23,13 @@ Single source of truth for work in this repo. Nothing gets implemented before it
 | ID | Type | Title | Acceptance |
 |---|---|---|---|
 | TASK-1 | task | Scaffold: TS + vite + vitest, manifest-shaped `package.json`, empty modal on `⌘⇧Q` | `npx vitest run` green; `npx vite build` produces `dist/`; `npx tsc --noEmit` clean |
+| TASK-2 | task | Ground `SPEC.md` against the Logseq source | All seven items answered with `path:line` evidence in `SPEC.md` § Grounding; Datalog sketch rewritten; three decisions flagged for sign-off (relative-date set, round-trip state property, iframe theming by token copy) |
 
 ## Now
 
 | ID | Type | Title | Status | Acceptance test |
 |---|---|---|---|---|
-| TASK-2 | task | Ground `SPEC.md` against the Logseq source: replace assumed identifiers, record contradictions | doing | Every item under "Grounding this document against the source" in `SPEC.md` is answered with `path:line` evidence; the emitted-Datalog sketch is rewritten with verified attributes |
-| TASK-3 | task | Derive `PLAN.md` from the grounded spec; break the first implementation into FEAT items here | todo | `PLAN.md` exists with phases, risks, verified-API list; every FEAT item has an acceptance test named |
+| TASK-3 | task | Derive `PLAN.md` from the grounded spec; break the first implementation into FEAT items here | todo (blocked on the three sign-offs in `SPEC.md` § Grounding 2, 6, 7) | `PLAN.md` exists with phases, risks, verified-API list; every FEAT item has an acceptance test named |
 
 ## Next
 

@@ -6,10 +6,11 @@ property filters, optionally search node content — then either jump to a resul
 insert the query into a page as a named, live `query` node.
 
 ## Files in this bundle
-- `SPEC.md` — **NOT YET IN THIS BUNDLE.** Export it from the Claude Doc
-  (https://claude.ai/code/artifact/ef12ac42-a69e-446c-942e-0def5c78f5ca) as markdown and
-  save it here as `SPEC.md` before starting. It is the requirement — intent and
-  behaviour, not implementation — and the source of truth for *what* to build.
+- `SPEC.md` — exported 2026-09-25 from the Claude Doc
+  (https://claude.ai/code/artifact/ef12ac42-a69e-446c-942e-0def5c78f5ca, rev 33) and
+  grounded against the Logseq source the same day (see its final **Grounding** section).
+  It is the requirement — intent and behaviour, not implementation — and the source of
+  truth for *what* to build. The Claude Doc is now behind this file.
 - `prototype.html` — a working, self-contained prototype. Open it in a browser, or read
   the source. It contains a fake graph of ~330 nodes, a query engine implementing the
   real operator semantics, relative-date resolution, the keyboard flow, and a Datalog
