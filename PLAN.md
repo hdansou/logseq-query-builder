@@ -85,7 +85,7 @@ navigation.
 state, before any panel chrome exists.
 
 ### P3 — Panel, entry points, keyboard, theme
-Floating panel, `⌘⇧U`, palette entry, slash command, progressive disclosure, keyboard-only path,
+Floating panel, `⌘⇧F`, palette entry, slash command, progressive disclosure, keyboard-only path,
 token theming.
 
 **Exit:** the spec's "keyboard first" paragraph can be performed end to end without a mouse, and

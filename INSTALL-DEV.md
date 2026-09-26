@@ -53,7 +53,7 @@ keyed by it, so neither survives re-registration.
 
 ## 3. Use it
 
-Press **⌘⇧U**, or run *"Query Builder: open"* from the command palette. **Esc** or a click on
+Press **⌘⇧F**, or run *"Query Builder: open"* from the command palette. **Esc** or a click on
 the backdrop closes it.
 
 ## Iterating

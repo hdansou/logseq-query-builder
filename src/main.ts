@@ -87,7 +87,7 @@ function main() {
   };
 
   logseq.App.registerCommandPalette(
-    { key: "query-builder-open", label: "Query Builder: open", keybinding: { binding: "mod+shift+u", mode: "global" } },
+    { key: "query-builder-open", label: "Query Builder: open", keybinding: { binding: "mod+shift+f", mode: "global" } },
     (e) => void open(targetFromEvent("shortcut", e as { uuid?: string })),
   );
   logseq.Editor.registerSlashCommand("Query Builder", async (e) => open(targetFromEvent("slash", e as { uuid?: string })));

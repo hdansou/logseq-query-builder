@@ -14,14 +14,14 @@ All notable changes to this plugin are recorded here. The format follows
 - Live results (first 10, load more) with the values of the filtered properties and the page each node lives on; selecting a result jumps to it and keeps the builder open.
 - Insert as a named, live `#Query` node: a new sibling from the shortcut path, or into the current block from the slash path. Relative dates are stored as native query inputs so inserted queries stay current.
 - Reopening the builder on an inserted query block restores its filters from a hidden state property.
-- Keyboard-only path: `↩` pick, `Tab` next, `⇧↩` add filter, `⌘↩` insert, `Esc` close.
+- Keyboard-only path: `⌘⇧F` open, `↩` pick, `Tab` next, `⇧↩` add filter, `⌘↩` insert, `Esc` close.
 - Host theme tokens copied into the panel, refreshed on theme change (light and dark verified).
 
 ### Security
 - Cleared all eight `npm audit` advisories: `dompurify` and `lodash-es` (transitive through `@logseq/libs`) are pinned to patched versions with `overrides`; `esbuild` and `vite-node` are cleared by moving the toolchain to vite 7 and vitest 4.
 
 ### Fixed
-- The open shortcut is `⌘⇧U`, not `⌘⇧Q`, which is the macOS log-out chord; `⌘⇧F` was ruled out because Logseq binds it to toggle-favorite.
+- The open shortcut is `⌘⇧F`, not `⌘⇧Q`, which is the macOS log-out chord. It takes over Logseq's toggle-favorite while the plugin is enabled; rebind in the keymap settings if needed.
 - The hidden state property's schema is ensured right before every write, never changing an existing property's type; a write racing the startup call could leave a visible, untyped `state` property on the block.
 
 ### Notes
