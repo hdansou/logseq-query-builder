@@ -65,7 +65,13 @@ E15 private repo `hdansou/logseq-query-builder` created and `main` pushed; E16 R
 scratch graph (`docs/screenshot.jpg`); E17 handoff folder kept and named as the design record in the README.
 Open: replace the screenshot with a real-graph capture before the marketplace PR; make the repo public then.
 
-## Now — daily use
+## Now — rescope references
+
+| ID | Type | Title | Status | Notes |
+|---|---|---|---|---|
+| FEAT-38 | feat | **Rescope "referenced in page…"** — the current scope (nodes that a page's blocks link to, `:block/refs`) is not the right shape; decide the intended questions before touching code | todo — next session | Observed gaps to weigh: `:block/refs` counts the properties and tags a block uses, so unfiltered results list Status/Task; only block-level refs are read, not the page's own properties; there is no "backlinks" direction (nodes whose blocks reference X); no way to combine with "on page". Keep `on page…` as is |
+
+## Then — daily use
 
 | ID | Type | Title | Status | Acceptance test |
 |---|---|---|---|---|
