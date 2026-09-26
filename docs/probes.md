@@ -240,3 +240,11 @@ is back. Upstream, not ours; not filed yet (mechanism still unproven).
 - Referenced-in, live: "Task Testing Page" → Priority, Status, Tags, Task. `:block/refs` includes
   the property and tag entities a block references, not only page/node links; a tag filter on
   top gives the intended "artists mentioned in my book page" result.
+
+## Deleting hidden plugin properties (2026-09-26)
+
+`delete_page(<property uuid>)` returns without error and deletes nothing when the property has
+`:logseq.property/hide? true`: the outliner treats a hidden page as built-in and refuses
+(`deps/outliner/src/logseq/outliner/page.cljs:128-131`, `entity_util.cljs:58-64`). Clearing the
+flag first (`upsert_block_property(uuid, "logseq.property/hide?", false)`) and then deleting works.
+Thirteen dev-registration `state` properties were removed from `demolocal2` this way.
