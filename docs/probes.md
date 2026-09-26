@@ -228,3 +228,15 @@ first. Every other clause of the picker query matched Priority on its own. Same 
 persisted-graph index anomaly as the `status` case in P0. The picker now reads `built-in?`,
 `public?`, `hide?` and `deleted-at` with `get-else` (entity lookups) and filters in code; Priority
 is back. Upstream, not ours; not filed yet (mechanism still unproven).
+
+## Scopes (2026-09-26, `demolocal2`)
+
+- Library model (source): built-in page with `:block/name "library"` and `:logseq.property/built-in?
+  true`, no ident; membership is the `:block/parent` tree under it, walked by the host `parent`
+  rule (`rules.cljc:7-12`); the outline shows page nodes only. The emitter's form:
+  `[?lib :block/name "library"] [?lib :logseq.property/built-in? true] (parent ?lib ?lp)
+  [?lp :block/tags :logseq.class/Page] (or [(= ?b ?lp)] [?b :block/page ?lp])`. The rules string
+  now carries `parent` as well as `class-extends`.
+- Referenced-in, live: "Task Testing Page" → Priority, Status, Tags, Task. `:block/refs` includes
+  the property and tag entities a block references, not only page/node links; a tag filter on
+  top gives the intended "artists mentioned in my book page" result.
