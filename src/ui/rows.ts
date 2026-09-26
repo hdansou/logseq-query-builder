@@ -10,12 +10,12 @@ import type { Ctx, ZoneRenderer } from "./render";
 
 const el = (tag: string, cls?: string, text?: string) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; };
 
-function selectEl(fid: string, options: [string, string][], selected: string | null, onChange: (v: string) => void, cls = "") {
-  const sel = document.createElement("select"); sel.dataset.fid = fid; sel.className = cls;
-  if (selected === null) { const o = document.createElement("option"); o.value = ""; o.textContent = "…"; o.selected = true; o.disabled = true; sel.appendChild(o); }
-  for (const [v, label] of options) { const o = document.createElement("option"); o.value = v; o.textContent = label; o.selected = v === selected; sel.appendChild(o); }
-  sel.addEventListener("change", () => onChange(sel.value));
-  return sel;
+/** AND/OR as a toggle button: Enter or click flips it, no native popup to fight the keyboard. */
+export function joinToggle(fid: string, join: "and" | "or", onChange: (j: "and" | "or") => void) {
+  const b = el("button", "tog on join", join.toUpperCase()) as HTMLButtonElement;
+  b.dataset.fid = fid; b.title = "Toggle AND / OR";
+  b.addEventListener("click", () => onChange(join === "and" ? "or" : "and"));
+  return b;
 }
 
 /** Text typed into a date control: a relative expression or an ISO day. */
@@ -115,7 +115,7 @@ function valueControls(r: FilterRow, { store, graph }: Ctx): HTMLElement[] {
 function renderRow(r: FilterRow, i: number, s: Parameters<ZoneRenderer>[1], ctx: Ctx): HTMLElement {
   const { store, graph } = ctx;
   const line = el("div", "row");
-  if (i > 0) line.appendChild(selectEl(`row-join-${r.id}`, [["and", "AND"], ["or", "OR"]], r.join, (v) => store.update((q) => setJoin(q, r.id, v as "and" | "or")), "join"));
+  if (i > 0) line.appendChild(joinToggle(`row-join-${r.id}`, r.join, (j) => store.update((q) => setJoin(q, r.id, j))));
   else line.appendChild(el("span", "spacer", "where"));
 
   const not = el("button", "tog" + (r.not ? " on" : ""), r.not ? "NOT" : "IS") as HTMLButtonElement;
@@ -137,16 +137,20 @@ function renderRow(r: FilterRow, i: number, s: Parameters<ZoneRenderer>[1], ctx:
   }));
 
   if (r.property) {
-    const ops = operatorsFor(r.property.type).map((id): [string, string] => [id, OPERATORS[id].label]);
-    line.appendChild(selectEl(`row-op-${r.id}`, ops, r.op, (v) => {
-      const op = v as OperatorId;
-      const keep = r.op && arityOf(r.op) === arityOf(op);
-      store.update((q) => setRow(q, r.id, { op, values: keep ? r.values : [] }));
+    const type = r.property.type;
+    line.appendChild(createPicker<OperatorId>({
+      fid: `row-op-${r.id}`, placeholder: "operator…", initial: r.op ? OPERATORS[r.op].label : "", showAllOnFocus: true, width: "130px",
+      options: async () => operatorsFor(type).map((id) => ({ id, label: OPERATORS[id].label, value: id })),
+      onPick: (o) => {
+        const keep = r.op && arityOf(r.op) === arityOf(o.value);
+        store.update((q) => setRow(q, r.id, { op: o.value, values: keep ? r.values : [] }));
+        (document.querySelector<HTMLElement>(`[data-fid="row-val-${r.id}"], [data-fid="row-vpick-${r.id}"]`) ?? document.querySelector<HTMLElement>(`[data-fid="row-x-${r.id}"]`))?.focus();
+      },
     }));
   }
   if (r.property && r.op) for (const c of valueControls(r, ctx)) line.appendChild(c);
 
-  const x = el("button", "x", "×") as HTMLButtonElement; x.dataset.fid = `row-x-${r.id}`; x.title = "Remove filter"; x.style.marginLeft = "auto";
+  const x = el("button", "x", "×") as HTMLButtonElement; x.dataset.fid = `row-x-${r.id}`; x.title = "Remove filter";
   x.addEventListener("click", () => store.update((q) => removeRow(q, r.id)));
   line.appendChild(x);
   return line;

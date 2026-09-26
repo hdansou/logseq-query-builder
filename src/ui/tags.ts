@@ -2,6 +2,7 @@ import type { TagClause } from "../model";
 import { addTag, removeTag, setInherit, setTag } from "../model";
 import { createPicker, type Option } from "./picker";
 import type { ZoneRenderer } from "./render";
+import { joinToggle } from "./rows";
 
 /** Tag selector: chips with AND/OR/NOT, an autocomplete over the graph's tags, the inherit toggle. */
 export const renderTags: ZoneRenderer = (root, s, { store, graph }) => {
@@ -15,12 +16,7 @@ export const renderTags: ZoneRenderer = (root, s, { store, graph }) => {
 
   const line = document.createElement("div"); line.className = "flex";
   s.q.tags.forEach((t, i) => {
-    if (i > 0) {
-      const join = document.createElement("select"); join.className = "join"; join.dataset.fid = `tag-join-${i}`;
-      for (const j of ["and", "or"]) { const opt = document.createElement("option"); opt.value = j; opt.textContent = j.toUpperCase(); opt.selected = t.join === j; join.appendChild(opt); }
-      join.addEventListener("change", () => store.update((q) => setTag(q, i, { join: join.value as TagClause["join"] })));
-      line.appendChild(join);
-    }
+    if (i > 0) line.appendChild(joinToggle(`tag-join-${i}`, t.join, (j) => store.update((q) => setTag(q, i, { join: j }))));
     const chip = document.createElement("span"); chip.className = "chip" + (t.not ? " neg" : "");
     const not = document.createElement("button"); not.className = "tog" + (t.not ? " on" : ""); not.textContent = t.not ? "NOT" : "IS"; not.dataset.fid = `tag-not-${i}`;
     not.title = "Toggle NOT";

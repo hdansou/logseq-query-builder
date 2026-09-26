@@ -10,6 +10,7 @@ import { renderContent } from "./ui/content";
 import { createRenderer } from "./ui/render";
 import { focusRow, renderRows } from "./ui/rows";
 import { Store, targetFromEvent } from "./ui/store";
+import { watchTheme } from "./theme";
 import { renderTags } from "./ui/tags";
 
 const dq = (q: string, ...ins: unknown[]) => logseq.DB.datascriptQuery(q, ...ins);
@@ -17,6 +18,7 @@ const dq = (q: string, ...ins: unknown[]) => logseq.DB.datascriptQuery(q, ...ins
 function main() {
   const store = new Store({ preview: (q) => runPreview(emit(q), dq) });
   const graph = new Graph(dq);
+  watchTheme();
   logseq.DB.onChanged(() => graph.invalidate());
   const root = document.getElementById("root")!;
   const close = () => { store.close(); hidePanel(); };

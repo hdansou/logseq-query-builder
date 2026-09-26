@@ -45,7 +45,7 @@
   .tog.on { color: var(--qb-fg); }
 
   .picker { position: relative; display: inline-block; }
-  .picker input { min-width: 150px; height: 28px; padding: 0 8px; border: 1px solid var(--qb-border); border-radius: var(--qb-r1); background: var(--qb-bg2); outline: 0; }
+  .picker input { min-width: 120px; height: 28px; padding: 0 8px; border: 1px solid var(--qb-border); border-radius: var(--qb-r1); background: var(--qb-bg2); outline: 0; }
   .picker input:focus { border-color: var(--qb-accent); }
   .picker ul { position: absolute; z-index: 5; top: 30px; left: 0; min-width: 240px; max-height: 220px; overflow-y: auto; margin: 0; padding: 4px; list-style: none; background: var(--qb-bg2); border: 1px solid var(--qb-border); border-radius: var(--qb-r2); box-shadow: 0 12px 30px rgba(0,0,0,.4); }
   .picker li { display: flex; justify-content: space-between; gap: 12px; padding: 5px 8px; border-radius: var(--qb-r1); cursor: pointer; }
@@ -59,7 +59,7 @@
   input.date { width: 150px; }
   input:focus.num, input:focus.date { border-color: var(--qb-accent); }
   .row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 4px 0; }
-  .row .join { width: 56px; }
+  .row .join, .tog.join { min-width: 44px; height: 26px; }
   .row .spacer { width: 56px; text-align: center; color: var(--qb-fg2); font-size: 11px; }
   .btn { height: 28px; padding: 0 10px; border: 1px solid var(--qb-border); border-radius: var(--qb-r1); background: var(--qb-bg2); }
   .btn:hover, .btn:focus-visible { border-color: var(--qb-accent); outline: 0; }

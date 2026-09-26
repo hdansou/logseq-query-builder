@@ -41,22 +41,17 @@ Single source of truth for work in this repo. Nothing gets implemented before it
 | FEAT-13 | feat | `graph.ts`: distinct values with counts (open + closed), node search, asset list | Unit: grouped by text, placeholder excluded. Live: counts equal the graph's |
 | FEAT-14 | feat | `preview.ts`: run the emitted query with string inputs + rule string; normalise rows; page of 10 + load more | Unit: paging; rows carry uuid, title, page title. Live: scenario 1 count matches a hand-run query |
 | FEAT-15 | feat | Result row navigation via `pushState('page', {name: uuid})`; builder stays open | Chrome 2026-09-26: selecting the Gamma result routed to `#/page/<uuid>` (title "Gamma"), panel and results still there. Driven by keyboard (Tab/Enter) because the Chrome extension cannot deliver synthetic clicks into the cross-origin plugin iframe |
+| FEAT-16 | feat | Floating panel: draggable, resizable, container sized to panel, close button | Chrome: drag, resize, click the graph beside it, reload keeps position |
+| FEAT-17 | feat | Entry points: `⌘⇧Q` + palette entry (captures editing block uuid if any); slash command "Query Builder" (targets its block) | Chrome 2026-09-26: ⌘⇧Q → footer "No target block"; `/Query Builder` in a block → footer "Insert target: this block" |
+| FEAT-18 | feat | Tag selector: autocomplete, AND/OR/NOT, inherit toggle | Chrome 2026-09-26 (keyboard): typed `qbp` filtered to QBPerson/QBProject with counts; ArrowDown+Enter added the chip, read-back "QBProject nodes", 3 results incl. the sub-tag |
+| FEAT-19 | feat | Property rows: property → operator → value control per type; per-row join and NOT | Chrome 2026-09-26 (keyboard): ⇧↩ adds a row focused on its property picker, picking defaults the operator, value picker lists Todo (2)/Done (1), chip + read-back + 1 result. Number/date/node controls covered by unit tests; date and node re-checked live in FEAT-21 |
+| FEAT-20 | feat | Content search row | Chrome 2026-09-26: `contains "alp"` narrowed the results and appeared in the read-back; the four operators map to the emitter's verified forms |
+| FEAT-21 | feat | Keyboard-only path: typed filtering, arrows, Enter, Tab, add-row shortcut, Esc | Chrome 2026-09-26, keyboard only: tag → ⇧↩ → property → operator (typed "does") → node search "mar" → ⇧↩ → … → date "+30d"; read-back matched the spec sentence, result Alpha plan. Operator is a picker, joins are toggle buttons |
+| FEAT-22 | feat | Theme: copy host tokens into `:root`; refresh on theme change | Chrome 2026-09-26: panel took the host's teal dark palette after `resolveThemeCssPropsVals`; mode/theme change handlers re-apply (light-mode switch not yet exercised live) |
 
-## Now — P3, panel, entry points, keyboard, theme
+## Now — P4, insert and round-trip
 
-P2 exit met 2026-09-26: the dev-only `Query Builder: demo (P2)` palette command drives graph → emit → preview → navigation on the scratch graph (`docs/probes.md`, "P2 demo"). 80 unit tests.
-
-| ID | Type | Title | Status | Acceptance test |
-|---|---|---|---|---|
-| FEAT-16 | feat | Floating panel: draggable, resizable, container sized to panel, close button | done | Chrome: drag, resize, click the graph beside it, reload keeps position |
-| FEAT-17 | feat | Entry points: `⌘⇧Q` + palette entry (captures editing block uuid if any); slash command "Query Builder" (targets its block) | done | Chrome 2026-09-26: ⌘⇧Q → footer "No target block"; `/Query Builder` in a block → footer "Insert target: this block" |
-| FEAT-18 | feat | Tag selector: autocomplete, AND/OR/NOT, inherit toggle | done | Chrome 2026-09-26 (keyboard): typed `qbp` filtered to QBPerson/QBProject with counts; ArrowDown+Enter added the chip, read-back "QBProject nodes", 3 results incl. the sub-tag |
-| FEAT-19 | feat | Property rows: property → operator → value control per type; per-row join and NOT | done | Chrome 2026-09-26 (keyboard): ⇧↩ adds a row focused on its property picker, picking defaults the operator, value picker lists Todo (2)/Done (1), chip + read-back + 1 result. Number/date/node controls covered by unit tests; date and node re-checked live in FEAT-21 |
-| FEAT-20 | feat | Content search row | done | Chrome 2026-09-26: `contains "alp"` narrowed the results and appeared in the read-back; the four operators map to the emitter's verified forms |
-| FEAT-21 | feat | Keyboard-only path: typed filtering, arrows, Enter, Tab, add-row shortcut, Esc | todo | Chrome (keyboard only): scenario 2 built without a mouse |
-| FEAT-22 | feat | Theme: copy host tokens into `:root`; refresh on theme change | todo | Chrome: light/dark switch re-colours the panel |
-
-## Then — P4, insert and round-trip
+P3 exit met 2026-09-26: spec scenario 2 built without a mouse; panel follows the host theme tokens. 95 unit tests.
 
 | ID | Type | Title | Status | Acceptance test |
 |---|---|---|---|---|
@@ -70,6 +65,8 @@ P2 exit met 2026-09-26: the dev-only `Query Builder: demo (P2)` palette command 
 |---|---|---|---|---|
 | FEAT-26 | feat | Debounce + session cache; search-as-you-type for large value sets | todo | Gate on FEAT-4 numbers |
 | FEAT-27 | feat | Result row context: page, key properties | todo | |
+| FEAT-29 | feat | Layout: filter rows wrap onto two lines when a value picker is present; results zone gets squeezed at the default panel height | todo | Seen in the FEAT-21 run |
+| FEAT-30 | feat | Verify light-mode token refresh live (switch theme with the panel open) | todo | FEAT-22 was checked in dark mode only |
 | FEAT-28 | feat | Hide settings-like built-in properties from the property picker (`Enable bidirectional properties`, `Enable property history`, `Hide empty value` passed the host's public/hidden rule live) — probably by `:logseq.property/view-context` | todo | Found in the P2 demo |
 | TASK-5 | task | Production build, real `manifest.json`, icon, README for users | todo | |
 

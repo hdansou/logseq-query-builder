@@ -137,3 +137,21 @@ focusing the iframe from the host (`iframe.focus(); iframe.contentWindow.focus()
 Tab/Enter. The host-DOM parts (title bar, drag, resize, click-through) do respond to clicks.
 Also: the scaffold's backdrop click-to-close was removed; a floating panel must not close on a
 click inside its own frame.
+
+## P3 keyboard walkthrough (2026-09-26)
+
+Spec scenario 2 built with the keyboard alone (the extension cannot click inside the frame):
+`⌘⇧Q` → `qbp` ↓ ↩ Esc → `⇧↩` → `qbas` ↩ → Tab → `mar` (node search) ↩ → `⇧↩` → `qbst` ↩ →
+`does` ↩ → `Done` ↩ → `⇧↩` → `qbwh` ↩ → `on or b` ↩ → `+30d` Tab. Read-back: *QBProject nodes
+where qbAssignee is Maria and qbStatus is not Done and qbWhen is on or before 30 days from now*;
+result: Alpha plan. Findings on the way:
+
+- Initial focus must be placed after the host focuses the frame (`window` focus event), and any
+  focus jump after a pick must be synchronous: the store renders synchronously and a timer loses
+  the race against fast typing.
+- Native `<select>` controls did not respond to arrow keys through the extension; the operator
+  is now the same picker as everything else and AND/OR are toggle buttons.
+- The host's theme tokens came through on load (`--ls-primary-background-color` etc.), so the
+  panel rendered in the graph's dark teal palette without any per-theme CSS.
+- The scaffold's backdrop click-to-close was removed earlier; a wide dropdown also scrolled the
+  frame horizontally until `body { overflow: hidden }`.
