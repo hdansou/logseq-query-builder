@@ -1,6 +1,6 @@
 import "@logseq/libs";
 import { emit } from "./emit";
-import { STATE_KEY, canInsert, deserializeState, planInsert, runInsert, serializeState, stateSchemaFor } from "./insert";
+import { LEGACY_STATE_KEY, STATE_KEY, canInsert, deserializeState, planInsert, runInsert, serializeState, stateSchemaFor } from "./insert";
 import { Graph } from "./graph";
 import { manifest } from "./manifest";
 import { hidePanel, installPanelStyle, showPanel } from "./panel";
@@ -77,7 +77,8 @@ function main() {
   const open = async (target: ReturnType<typeof targetFromEvent>) => {
     let restored = null;
     if (target) {
-      const saved = await logseq.Editor.getBlockProperty(target.uuid, STATE_KEY).catch(() => null);
+      const saved = (await logseq.Editor.getBlockProperty(target.uuid, STATE_KEY).catch(() => null))
+        ?? (await logseq.Editor.getBlockProperty(target.uuid, LEGACY_STATE_KEY).catch(() => null));
       restored = typeof saved === "string" ? deserializeState(saved) : null;
     }
     if (restored && target) target = { ...target, mode: "slash" };

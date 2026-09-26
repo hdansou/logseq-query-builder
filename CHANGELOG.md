@@ -37,6 +37,7 @@ All notable changes to this plugin are recorded here. The format follows
   - *referenced in page…*: nodes referenced from the blocks of a page picked by title, e.g. every `artist` mentioned in a `Book` page. Properties and tags a block uses count as references, so add a tag or filter to narrow.
   A scope counts as a positive clause, so a scope with only NOT filters can run. The read-back says "referenced in X" or "in the Library"; queries saved before scopes existed reopen as *anywhere*.
 - `Page` is offered in the tag selector, so "all pages" and "pages tagged X" can be built.
+- The round-trip property is named `query-builder-state` instead of `state`, so it cannot be mistaken for a user's own property; blocks inserted under the old name still reopen.
 - Date values use the same picker as everything else: focus shows the relative shortcuts with their meaning (`-7d · 7 days ago`), typing filters them, and free text accepts an ISO day or any `±Nd/w/m/y`. A calendar button beside it fills in a day. The browser datalist is gone; its arrow only listed entries matching the current text.
 
 ### Notes

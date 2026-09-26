@@ -51,6 +51,13 @@ describe("state round trip", () => {
   });
 });
 
+describe("STATE_KEY", () => {
+  it("is a distinct, hyphenated name the host keeps as the visible title", () => {
+    expect(STATE_KEY).toBe("query-builder-state");
+    expect(STATE_KEY).not.toMatch(/\s/);
+  });
+});
+
 describe("stateSchemaFor", () => {
   it("creates hidden, hides an existing visible one without touching its type, leaves a hidden one alone", () => {
     expect(stateSchemaFor(null)).toEqual({ type: "string", hide: true });

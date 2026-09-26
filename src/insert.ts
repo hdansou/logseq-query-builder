@@ -9,7 +9,13 @@ import type { Target } from "./ui/store";
  * builder state (JSON in a plugin-namespaced property) so the block can be reopened as chips.
  * The API calls were verified live (docs/probes.md, FEAT-2).
  */
-export const STATE_KEY = "state";              // resolves to plugin.property.<id>/state on the host
+/**
+ * Resolves to plugin.property.<id>/query-builder-state. The visible title is the key itself, so
+ * it must not read like a user's property ("state" did); the host strips spaces, hyphens stay.
+ */
+export const STATE_KEY = "query-builder-state";
+/** Name used before 2026-09-26; still read so already-inserted blocks reopen. */
+export const LEGACY_STATE_KEY = "state";
 export const QUERY_TAG = "logseq.class/Query";
 export const QUERY_KEY = "logseq.property/query";
 

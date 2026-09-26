@@ -63,7 +63,9 @@ while editing that block brings its filters back.
 
 The plugin reads your graph through the Logseq plugin API to fill its pickers and preview results.
 It writes only what you ask it to: the target block (tag, query text, title) and one hidden
-property on that block holding the builder state. Nothing is sent anywhere; there is no network
+property on that block, `query-builder-state`, holding your filters as JSON so the block reopens in
+the builder with the same chips. It is hidden by default; Logseq's per-block "Show hidden
+properties" toggle reveals it. Nothing is sent anywhere; there is no network
 access, telemetry or storage outside your graph.
 
 ## Limits (first implementation)
