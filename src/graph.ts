@@ -23,9 +23,12 @@ const labelAttr = (type: PropertyType) => (type === "number" ? ":logseq.property
 
 const BUILDER_TYPES: ReadonlySet<string> = new Set(["default", "number", "url", "node", "asset", "date", "datetime", "checkbox"]);
 
-/** Built-in classes nobody filters by (SPEC § Grounding 3). */
+/**
+ * Built-in classes nobody filters by (SPEC § Grounding 3). `Page` is deliberately NOT here: "all
+ * pages" and "pages tagged X" are real questions, and Journal is offered on the same basis.
+ */
 export const STRUCTURAL_TAGS: ReadonlySet<string> = new Set([
-  ":logseq.class/Root", ":logseq.class/Tag", ":logseq.class/Property", ":logseq.class/Page", ":logseq.class/Asset",
+  ":logseq.class/Root", ":logseq.class/Tag", ":logseq.class/Property", ":logseq.class/Asset",
   ":logseq.class/Whiteboard", ":logseq.class/Pdf-annotation", ":logseq.class/Code-block", ":logseq.class/Quote-block",
   ":logseq.class/Math-block", ":logseq.class/Comments", ":logseq.class/Comment",
 ]);

@@ -21,9 +21,10 @@ describe("Graph.tags (FEAT-11)", () => {
       [":logseq.class/Property", "Property", "u-prop"],
     ],
   };
-  it("lists tags most-used first, unused tags last with count 0, structural tags hidden", async () => {
+  it("lists tags most-used first, unused tags last with count 0, structural tags hidden, Page kept", async () => {
     const g = new Graph(fake(table));
     expect(await g.tags()).toEqual([
+      { ident: ":logseq.class/Page", title: "Page", uuid: "u-page", count: 99 },
       { ident: ":user.class/project-1", title: "project", uuid: "u-proj", count: 12 },
       { ident: ":logseq.class/Task", title: "Task", uuid: "u-task", count: 3 },
       { ident: ":user.class/person-1", title: "person", uuid: "u-pers", count: 0 },
@@ -38,10 +39,10 @@ describe("Graph.tags (FEAT-11)", () => {
     await g.tags();
     expect(log).toHaveLength(4);
   });
-  it("structural set is exactly the hidden built-ins from the grounding", () => {
+  it("structural set is the hidden built-ins from the grounding, minus Page", () => {
     expect([...STRUCTURAL_TAGS].sort()).toEqual([
       ":logseq.class/Asset", ":logseq.class/Code-block", ":logseq.class/Comment", ":logseq.class/Comments",
-      ":logseq.class/Math-block", ":logseq.class/Page", ":logseq.class/Pdf-annotation", ":logseq.class/Property",
+      ":logseq.class/Math-block", ":logseq.class/Pdf-annotation", ":logseq.class/Property",
       ":logseq.class/Quote-block", ":logseq.class/Root", ":logseq.class/Tag", ":logseq.class/Whiteboard",
     ]);
   });

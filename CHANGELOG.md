@@ -21,6 +21,7 @@ All notable changes to this plugin are recorded here. The format follows
 - Cleared all eight `npm audit` advisories: `dompurify` and `lodash-es` (transitive through `@logseq/libs`) are pinned to patched versions with `overrides`; `esbuild` and `vite-node` are cleared by moving the toolchain to vite 7 and vitest 4.
 
 ### Fixed
+- `Page` is offered in the tag selector, so "all pages" and "pages tagged X" can be built; it had been hidden with the structural tags.
 - Result rows are vertically centred and separated by a hairline, so one row is distinguishable from the next.
 - Priority (and any property whose `public?` datom is missing from the attribute index on a persisted graph) now appears in the property picker: visibility flags are read per entity instead of scanned by value.
 - The panel stays opaque while being dragged; the host fades dragged plugin windows to 70%, which read as transparent on light themes.
