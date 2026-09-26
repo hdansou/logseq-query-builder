@@ -1,4 +1,4 @@
-import { parseRelative } from "../dates";
+import { describeRelative, parseRelative } from "../dates";
 import type { PropertyInfo } from "../graph";
 import { removeRow, setJoin, setRow, toggleNot, type FilterRow, type OperatorId, type Value } from "../model";
 import { OPERATORS, arityOf, controlFor, operatorsFor } from "../operators";
@@ -36,40 +36,36 @@ function dateText(v: Value | undefined): string {
 }
 
 function scalarInput(kind: "number" | "date", fid: string, current: Value | undefined, onValue: (v: Value | null) => void): HTMLElement {
-  const input = document.createElement("input");
-  input.dataset.fid = fid;
   if (kind === "number") {
+    const input = document.createElement("input");
+    input.dataset.fid = fid;
     input.type = "number"; input.className = "num"; input.placeholder = "number";
     input.value = current?.kind === "number" ? String(current.n) : "";
     input.addEventListener("change", () => onValue(input.value === "" ? null : { kind: "number", n: Number(input.value) }));
     return input;
   }
-  // Date: a text field (relative expressions or ISO) plus a native calendar that fills it.
+  // Date: the shared picker listing the relative shortcuts (free text for ISO days or other
+  // offsets), plus a native calendar that fills it with a day.
   const wrap = el("span", "datewrap");
-  input.type = "text"; input.className = "date"; input.placeholder = "today, -7d, 2026-10-02";
-  input.setAttribute("list", "qb-date-shortcuts");
-  input.autocomplete = "off";
-  input.value = dateText(current);
+  const commit = (text: string): boolean => {
+    const v = parseDateText(text);
+    if (!v && text.trim() !== "") return false;
+    onValue(v);
+    return true;
+  };
+  const picker = createPicker<string>({
+    fid, placeholder: "today, -7d, 2026-10-02", initial: dateText(current), showAllOnFocus: true, width: "150px",
+    options: async () => DATE_SHORTCUTS.map((t) => ({ id: t, label: t, hint: describeRelative(parseRelative(t)!), value: t })),
+    onPick: (o) => { commit(o.value); },
+    onFree: (t) => commit(t),
+    keepOnPick: true,
+  });
   const cal = document.createElement("input");
   cal.type = "date"; cal.className = "datepick"; cal.dataset.fid = `${fid}-cal`; cal.title = "Pick a day";
   cal.value = current?.kind === "date" && current.date.kind === "absolute" ? dateText(current) : "";
-  const commit = (text: string) => {
-    const v = parseDateText(text);
-    if (v || text.trim() === "") { input.setCustomValidity(""); onValue(v); }
-    else input.setCustomValidity("today, tomorrow, yesterday, ±Nd/w/m/y, or YYYY-MM-DD");
-  };
-  input.addEventListener("change", () => commit(input.value));
-  input.addEventListener("input", () => input.setCustomValidity(""));
-  cal.addEventListener("change", () => { if (cal.value) { input.value = cal.value; commit(cal.value); } });
-  wrap.append(input, cal);
+  cal.addEventListener("change", () => { if (cal.value) commit(cal.value); });
+  wrap.append(picker, cal);
   return wrap;
-}
-
-function ensureDatalist() {
-  if (document.getElementById("qb-date-shortcuts")) return;
-  const dl = document.createElement("datalist"); dl.id = "qb-date-shortcuts";
-  for (const s of DATE_SHORTCUTS) { const o = document.createElement("option"); o.value = s; dl.appendChild(o); }
-  document.body.appendChild(dl);
 }
 
 function valueControls(r: FilterRow, { store, graph }: Ctx): HTMLElement[] {
@@ -80,7 +76,6 @@ function valueControls(r: FilterRow, { store, graph }: Ctx): HTMLElement[] {
 
   if (arity === 1 || arity === 2) {
     const kind = control === "date" ? "date" : "number";
-    if (kind === "date") ensureDatalist();
     const out: HTMLElement[] = [scalarInput(kind, `row-val-${r.id}`, r.values[0], setAt(0))];
     if (arity === 2) out.push(el("span", "", "and"), scalarInput(kind, `row-val2-${r.id}`, r.values[1], setAt(1)));
     return out;

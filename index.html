@@ -48,6 +48,7 @@
   .picker { position: relative; display: inline-block; }
   .picker input { min-width: 110px; width: 130px; height: 28px; padding: 0 8px; border: 1px solid var(--qb-border); border-radius: var(--qb-r1); background: var(--qb-bg2); outline: 0; }
   .picker input:focus { border-color: var(--qb-accent); }
+  .picker input.invalid { border-color: #c0392b; }
   .picker ul { position: absolute; z-index: 5; top: 30px; left: 0; min-width: 240px; max-height: 220px; overflow-y: auto; margin: 0; padding: 4px; list-style: none; background: var(--qb-bg2); border: 1px solid var(--qb-border); border-radius: var(--qb-r2); box-shadow: 0 12px 30px rgba(0,0,0,.4); }
   .picker li { display: flex; justify-content: space-between; gap: 12px; padding: 5px 8px; border-radius: var(--qb-r1); cursor: pointer; }
   .picker li.sel { background: var(--qb-sel); }

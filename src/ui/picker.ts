@@ -35,9 +35,11 @@ export interface PickerOpts<T> {
   /** Async search per keystroke (debounced); replaces `options` filtering. */
   search?: (text: string) => Promise<Option<T>[]>;
   onPick: (o: Option<T>) => void;
-  /** Enter with no highlighted option; when absent, free text is ignored. */
-  onFree?: (text: string) => void;
+  /** Enter with no highlighted option; when absent, free text is ignored. Return false to refuse it (the text stays). */
+  onFree?: (text: string) => void | boolean;
   initial?: string;
+  /** Single-value controls: show the picked label in the input instead of clearing it. */
+  keepOnPick?: boolean;
   /** Show every option when focused, ignoring the current text until the user types. */
   showAllOnFocus?: boolean;
   autoFocus?: boolean;
@@ -94,7 +96,7 @@ export function createPicker<T>(o: PickerOpts<T>): HTMLElement {
     paint();
   };
 
-  const pick = (opt: Option<T>) => { st = { open: false, index: 0 }; input.value = ""; paint(); o.onPick(opt); };
+  const pick = (opt: Option<T>) => { st = { open: false, index: 0 }; input.value = o.keepOnPick ? opt.label : ""; paint(); o.onPick(opt); };
 
   input.addEventListener("focus", () => { typed = false; st = { ...st, open: true }; if (o.showAllOnFocus) input.select(); void refresh(); });
   input.addEventListener("input", () => { typed = true; st = { ...st, open: true, index: 0 }; void refresh(); });
@@ -104,7 +106,15 @@ export function createPicker<T>(o: PickerOpts<T>): HTMLElement {
     st = r.state;
     switch (r.action) {
       case "pick": e.preventDefault(); pick(shown[r.state.index]); return;
-      case "free": if (o.onFree && input.value.trim()) { e.preventDefault(); const t = input.value.trim(); input.value = ""; paint(); o.onFree(t); } else paint(); return;
+      case "free":
+        if (o.onFree && input.value.trim()) {
+          e.preventDefault();
+          const t = input.value.trim();
+          if (o.onFree(t) === false) { input.classList.add("invalid"); setTimeout(() => input.classList.remove("invalid"), 800); paint(); return; }
+          if (!o.keepOnPick) input.value = "";
+          paint();
+        } else paint();
+        return;
       case "close": e.preventDefault(); e.stopPropagation(); paint(); return;   // Esc closes the list, not the panel
       case "advance": paint(); return;
       default: if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); void refresh(); }
