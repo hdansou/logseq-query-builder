@@ -65,11 +65,24 @@ E15 private repo `hdansou/logseq-query-builder` created and `main` pushed; E16 R
 scratch graph (`docs/screenshot.jpg`); E17 handoff folder kept and named as the design record in the README.
 Open: replace the screenshot with a real-graph capture before the marketplace PR; make the repo public then.
 
-## Now — rescope references
+## Now — reference rows (rescope of FEAT-38, 2026-09-26)
 
-| ID | Type | Title | Status | Notes |
+The requirement doc gained a *Reference querying* section (SPEC.md, grounded in §10) and the
+prototype a References zone. Direction is an operator, target is a node, a tag (with inheritance)
+or a filtered set, one hop, linked references only. Decisions taken here: *in the Library* becomes
+*on page under* the built-in Library page (one clause); *referenced in page…* is removed,
+superseded by *is linked from · page*; hidden `$$$views` blocks are excluded like the host's panel.
+
+| ID | Type | Title | Status | Acceptance test |
 |---|---|---|---|---|
-| FEAT-38 | feat | **Rescope "referenced in page…"** — the current scope (nodes that a page's blocks link to, `:block/refs`) is not the right shape; decide the intended questions before touching code | todo — next session | Observed gaps to weigh: `:block/refs` counts the properties and tags a block uses, so unfiltered results list Status/Task; only block-level refs are read, not the page's own properties; there is no "backlinks" direction (nodes whose blocks reference X); no way to combine with "on page". Keep `on page…` as is |
+| FEAT-38 | feat | Rescope "referenced in page…" | done | Superseded by FEAT-39..45; the decision and its grounding are SPEC.md §Reference querying and §10 |
+| FEAT-39 | feat | `model.ts`: `RefRow` (direction · target · NOT · join), target = node \| tag (+ name condition), reducers, `Query.refs`; state round-trip keeps `refs`, older state reads as `[]` | todo | Unit: reducers pure; `deserializeState` of a v1 state without `refs` yields `refs: []` |
+| FEAT-40 | feat | `emit.ts`: one clause per direction (SPEC §10 table), tag target with inheritance, name condition; Library scope emitted through the same `under` helper; `referenced-in` scope gone | todo | Unit: the four directions match the probed forms verbatim; tag target sets `rules`; ancestor/under set `rules`; NOT wraps; Library scope = under `library` |
+| FEAT-41 | feat | Guard + read-back: a ref row is positive unless NOT; sentence "task nodes that link to Project Iris and whose ancestor links to any project" | todo | Unit: guard accepts a lone ref row and refuses a lone NOT ref row; read-back phrases for the four directions, tag targets, name condition, NOT |
+| FEAT-42 | feat | `ui/refs.ts`: References zone — rows with direction picker, target picker (tags first, then node search), *name…* narrow for tag targets, NOT, AND/OR, remove, "+ add reference"; keyboard path like filter rows | todo | Unit (jsdom): add → pick direction → pick target renders the chip and updates the store; live: prototype's three demo cases on `demolocal2` / `Library-Test` |
+| FEAT-43 | feat | Scope zone: drop *referenced in page…*; README, CHANGELOG, `docs/probes.md` updated | todo | Unit: scope zone renders three toggles; README scope table has no *referenced in* row |
+| FEAT-44 | feat | Live check in the web app: links to, is linked from, ancestor links to, on page under, tag target with name | todo | Chrome: each direction returns the expected rows on a graph with nested blocks and Library pages; counts match a hand-run CLI query |
+| FEAT-45 | feat | Filtered target: property conditions on the target set (spec *A filtered target set*), reusing the row controls | todo — after FEAT-44 | Unit: `rowClause` parametrised by subject var; UI: a target chip opens one property row |
 
 ## Then — daily use
 

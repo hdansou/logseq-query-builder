@@ -106,6 +106,57 @@ think in days, not timestamps.
   stores a fixed date for them, which the spec rules out; see Grounding §2 for the decision.
 - **Between:** two inputs, each absolute or relative, e.g. *between today and +30d*.
 
+## Reference querying
+
+*(Added to the requirement doc 2026-09-26, rev 34–38; grounded the same day, see §10.)*
+
+Tags and properties are two ways to narrow a query; references are the third. In practice a Logseq
+graph expresses relationship four different ways, and the builder needs a row type for each rather
+than one generic "links to" filter.
+
+- **Node-typed properties** — a deliberate, named relationship such as `depends on` or `part of`,
+  pointing at another node. Already covered by property rows.
+- **Linked references in the node's own text** — an inline link with no property behind it.
+- **Outliner hierarchy** — a task indented under a project's linked reference in a journal is
+  related to that project, though neither a property nor a link on the task itself says so.
+- **Library hierarchy** — a page-level tree where a parent page holds child pages, for example a
+  company page with finance and engineering department pages beneath it.
+
+**Direction is an operator, not a mode.** A reference row reads *links to* or *is linked from*,
+chosen from the same dropdown as every other operator, so it composes with the rest of the builder
+instead of adding a state the user has to remember they are in. Backlinks are not a separate
+feature: *is linked from X* is the backlink query.
+
+**Target: a node or a tag.** Picking a specific node covers *tasks linked to this project*. Picking
+a tag matches anything carrying it, which covers the equally common *tasks linked to any journal*.
+Tag inheritance applies to a tag target exactly as it does in the tag selector, so *links to
+anything tagged task* also matches links to bugs when `bug` extends `task`.
+
+**A filtered target set.** A single node and a bare tag both fall short of a common case: *tasks
+linking to any project whose name contains Iris*, where several projects share a name fragment and
+none of them is the one the user means. The target therefore accepts a small filter — a tag plus
+one or more property or name conditions — built with the same controls as a property row. This is
+one filter in one fixed place, not the general nested grouping deferred under Scope: the target set
+is evaluated first, then the reference row matches against its members.
+
+**One hop.** If a task links to a project and that project links to a client, the task does not
+match *links to that client*. Multi-hop traversal is recursive and a different class of query, so
+it moves to the later list.
+
+**Ancestry** is matched by its own operator — *ancestor links to* — which asks whether any node in
+the parent chain references the target. This is what makes the outliner-hierarchy case work, and
+the library case is the same question asked of the page tree rather than the block tree. Whether
+ancestry needs recursive traversal over parent links or can read a pre-computed set of ancestry
+references is the main implementation question, listed in the grounding checklist below.
+**[verified]** There is no pre-computed set: `:block/path-refs` was deleted from DB graphs by
+migration 65.11. Ancestry recurses `:block/parent` through the host's `parent` rule, which the
+builder already uses for the Library; the page tree is the same attribute, so the library case is
+the same clause with a page as its target (*on page under*). See §10.
+
+**Linked references only.** Unlinked references — nodes whose text mentions a name without an
+actual link — are found by text matching rather than by traversing the reference graph, a
+different and more expensive mechanism. Out of scope for v1.
+
 ## Results and persistence
 
 The builder works both as an ad-hoc search panel and as a way to insert a live query into a page.
@@ -273,7 +324,7 @@ nesting, table view and graph traversal come later.
 | Nested grouping with parentheses | | To explore |
 | Table view with property columns | | To explore |
 | Content search descending into nested children | | To scope, decide on inclusion |
-| Querying references / backlinks | | To scope, decide on inclusion |
+| Reference rows: links to / is linked from / ancestor links to / on page under; node, tag or filtered target; one hop | Yes | Multi-hop traversal; unlinked references |
 | Sorting results by a property | | Later stage |
 | Natural-language entry that populates the builder | | Later stage |
 | Dockable sidebar placement as an alternative to the floating panel | | Later, if asked for |
@@ -340,6 +391,8 @@ nodes where has-tag = false
   supported set is narrower than assumed (no week/month boundaries), see Grounding §2.
 - [x] Resolved: results show the first 10 matching nodes, with a load more / view more option to
   reveal the rest.
+- [x] Resolved 2026-09-26: a reference row's target may be a filtered set, not only a single node
+  or a bare tag. See *A filtered target set* under Reference querying.
 
 ## Grounding (2026-09-25)
 
@@ -650,3 +703,34 @@ Operator table, one definition (property ident `P`, value symbol `?v`, inputs `?
 | content contains | `[?b :block/title ?t] [(clojure.string/lower-case ?t) ?lt] [(clojure.string/includes? ?lt "x")]` |
 
 Every row above was run live on 2026-09-26 and returned the expected rows (`docs/probes.md`, FEAT-1); `src/emit.test.ts` encodes exactly these forms, and `src/dates.ts` `bounds` is the single definition of the date/datetime comparison semantics.
+
+### 10. Reference querying (2026-09-26)
+
+Grounded against upstream `master` (worktree at `7fc101638d`) and probed read-only with the CLI on
+the graphs `Demo-Graph` and `Library-Test` (same Datascript engine as the host; `docs/probes.md`).
+
+| Fact | Evidence |
+|---|---|
+| A block's `:block/refs` = its tags + `:block/link` + the **keys** of its non-private properties + property values that are pages/objects (not `created-from-property` values) + journal days of `scheduled`/`deadline`/user datetime values + `[[uuid]]` links in its title; minus itself and its aliases | `deps/outliner/src/logseq/outliner/pipeline.cljs:59-130` (`block-refs`) |
+| Pages carry their own `:block/refs` (on `Demo-Graph` every page lists `Page` and `Tags`; real ones such as `property-example`, `Task`) | CLI probe |
+| **No `:block/path-refs`**: deleted by migration 65.11; zero datoms on `Demo-Graph` | `src/main/frontend/worker/db/migrate.cljs:63-65,130`; `deps/db/src/logseq/db.cljs:209` |
+| Block tree and page tree are both `:block/parent`; a top-level block's parent is its page | FEAT-33 grounding; `Library-Test`: 158 pages and 31 blocks under `library` via `(parent ?lib ?x)` |
+| The host injects `%` rules (`parent`, `class-extends`, …) whenever `:in $ %` is present; the preview still passes them as a string | CLI: passing rules explicitly fails with `Extra inputs passed` |
+| Linked References panel = inbound `:block/refs` of the page and its aliases, minus hidden blocks/pages (`$$$views`, `hide?`, `deleted-at`), and for a class minus the blocks tagged with it | `deps/db/src/logseq/db/common/reference.cljs` (`get-linked-references`, `linked-reference-top-block-ids`) |
+| `(or [(= ?b ?x)] …)` with `?b` unbound throws `Insufficient bindings`; `(or [(identity ?x) ?b] …)` works (BUG-2) | CLI probe |
+| Property-value entities carry `:block/parent` as well as `:block/page` (57 of 57 on `Library-Test`) | CLI probe |
+
+**Clauses per direction** (target set bound to `?tN` first; `?b` is the result):
+
+| Direction | Clause | Probe |
+|---|---|---|
+| links to | `[?b :block/refs ?tN] (not [?b :block/tags ?tN])` | Quick Start → 5 blocks; class Task 16 → 1 with the objects excluded, as the host does |
+| is linked from | `(or [(identity ?tN) ?sN] [?sN :block/page ?tN]) [?sN :block/refs ?b] (not [?sN :block/tags ?b]) (not [?b :block/tags :logseq.class/Property])` — a page's content is its blocks; tags applied and property keys are not "links" | Quick Start → 12 nodes, no Status/Tags/Task entries |
+| ancestor links to | `[?aN :block/refs ?tN] (or-join [?aN ?b] [(identity ?aN) ?b] (parent ?aN ?b))` | Quick Start → 5 (no nested children in that graph) |
+| on page under | `(parent ?tN ?b) (not [?b :logseq.property/created-from-property _])` — child pages and their blocks, any depth | Library → 189 on `Library-Test` (158 pages + 31 blocks); the shipped Library scope form gave 186 because it dropped the 3 blocks on the Library page itself |
+| tag target | `[?tagN :db/ident T] [?tN :block/tags ?tvN] (or [(= ?tvN ?tagN)] (class-extends ?tagN ?tvN))` (+ name: `[?tN :block/title ?ttN] [(clojure.string/lower-case ?ttN) ?tlN] [(clojure.string/includes? ?tlN "iris")]`) | Task with inheritance → 6 |
+
+Decisions: the builder's *in the Library* scope becomes *on page under* the built-in `library`
+page (one clause, one code path); the *referenced in page…* scope is removed, superseded by *is
+linked from · page*; hidden `$$$views` blocks are excluded from inbound results the way the host's
+panel does.

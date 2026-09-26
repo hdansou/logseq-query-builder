@@ -141,8 +141,8 @@ header p{margin:0 0 16px;color:var(--muted);max-width:60ch}
 <body>
 <div class="wrap">
   <header>
-    <h1>Query builder — stacked panel, keyboard pass</h1>
-    <p>Build the whole query without the mouse. <span class="kbd">Tab</span> moves between controls, <span class="kbd">Enter</span> opens a picker, <span class="kbd">↑</span><span class="kbd">↓</span> move through options, <span class="kbd">Enter</span> picks, <span class="kbd">Esc</span> closes. <span class="kbd">⌘/Ctrl</span>+<span class="kbd">Enter</span> adds a filter row, <span class="kbd">Backspace</span> on an empty picker removes the row.</p>
+    <h1>Query builder — stacked panel, with reference rows</h1>
+    <p>Build the whole query without the mouse. <span class="kbd">Tab</span> moves between controls, <span class="kbd">Enter</span> opens a picker, <span class="kbd">↑</span><span class="kbd">↓</span> move through options, <span class="kbd">Enter</span> picks, <span class="kbd">Esc</span> closes. <span class="kbd">⌘/Ctrl</span>+<span class="kbd">Enter</span> adds a filter row, <span class="kbd">Backspace</span> on an empty picker removes the row. <b>References zone:</b> try <i>ancestor links to · any #project</i> to see the outliner-hierarchy case, <i>on page under · Acme Corp</i> for the library tree, or pick <i>any #project</i> then <b>name…</b> and type <i>iris</i> for a filtered target set.</p>
   </header>
 
   <div id="root"></div>
@@ -229,16 +229,63 @@ for(let i=0;i<14;i++){
 }
 // projects
 for(let i=0;i<18;i++){
-  mk(['project'], {status:[pick(STATUS)], assignee:some(PEOPLE,3), deadline:iso(dayOff(Math.floor(rnd()*60)-10)), area:some(AREAS,2), attachments:rnd()<.6?some(ASSETS,2):undefined, link:rnd()<.5?some(URLS,1):undefined}, 'Project '+['Atlas','Beacon','Cobalt','Delta','Ember','Flux','Granite','Harbor','Iris','Juniper','Kestrel','Lumen','Meridian','Nova','Orbit','Pulse','Quill','Ridge'][i], 'Projects');
+  mk(['project'], {status:[pick(STATUS)], assignee:some(PEOPLE,3), deadline:iso(dayOff(Math.floor(rnd()*60)-10)), area:some(AREAS,2), attachments:rnd()<.6?some(ASSETS,2):undefined, link:rnd()<.5?some(URLS,1):undefined}, ['Project Atlas','Project Beacon','Project Cobalt','Project Delta','Project Ember','Project Flux','Project Granite','Project Harbor','Project Iris','Iris Phase Two','Iris Migration','Iris Data Model','Project Juniper','Project Kestrel','Project Lumen','Project Nova','Project Orbit','Project Pulse'][i], 'Projects');
 }
 // meetings
 for(let i=0;i<41;i++){
   mk(['meeting'], {scheduled:iso(dayOff(Math.floor(rnd()*20)-10)), assignee:some(PEOPLE,3), attachments:rnd()<.3?some(ASSETS,1):undefined}, pick(['Weekly sync','Design review','1:1','Vendor call','Planning']), 'Journal '+iso(dayOff(-i)));
 }
+// library: parent pages with child pages
+const LIBRARY = {'Acme Corp':['Finance dept','Engineering dept','Legal dept'],'Field Guide':['Birds','Trees']};
+Object.entries(LIBRARY).forEach(([parent,kids])=>{
+  mk(['page'],{},parent,parent); const pid=id-1;
+  kids.forEach(k=>{ mk(['page'],{},k,k); NODES[NODES.length-1].parentPage=pid;
+    for(let i=0;i<3;i++){ mk(['task'],{status:[pick(STATUS)],priority:[pick(PRIORITY)]},pick(PHRASES),k); }
+  });
+});
 // untagged nodes, some with a status applied directly
 for(let i=0;i<30;i++){
   mk([], rnd()<.4?{status:[pick(STATUS)]}:{}, pick(PHRASES), 'Inbox');
 }
+
+/* ---------- references, block ancestry, library ---------- */
+// node.refs = ids this node links to inline; node.parent = block-tree parent; node.parentPage = library parent
+(function(){
+  const byTag = t => NODES.filter(n=>n.tags.includes(t));
+  const projects = byTag('project'), journals = byTag('journal'), pages = byTag('page'), people = byTag('person');
+  const tasks = NODES.filter(n=>n.tags.includes('task')||n.tags.includes('bug'));
+  NODES.forEach(n=>{ n.refs = n.refs||[]; });
+  // node-typed property values are references too (assignee -> person)
+  NODES.forEach(n=>{ (n.props.assignee||[]).forEach(nm=>{ const p=people.find(x=>x.content===nm); if(p) n.refs.push(p.id); }); });
+  // some tasks link a project inline; some link a journal
+  tasks.forEach(t=>{ if(rnd()<.45){ const p=pick(projects); t.refs.push(p.id); t.content += ' [['+p.content+']]'; }
+                     if(rnd()<.2){ const j=pick(journals); t.refs.push(j.id); } });
+  // some projects link a page
+  projects.forEach(p=>{ if(rnd()<.5){ const g=pick(pages); p.refs.push(g.id); } });
+  // block hierarchy: a project reference node in a journal, with tasks indented under it
+  journals.slice(0,25).forEach(j=>{
+    const proj = pick(projects);
+    mk([], {}, 'Re: [['+proj.content+']]', j.page);
+    const hdr = NODES[NODES.length-1]; hdr.refs=[proj.id]; hdr.parent=j.id;
+    const n = 1+Math.floor(rnd()*3);
+    for(let k=0;k<n;k++){
+      mk(['task'], {status:[pick(STATUS)], priority:[pick(PRIORITY)], assignee:some(PEOPLE,1)}, pick(PHRASES), j.page);
+      NODES[NODES.length-1].parent = hdr.id;
+    }
+  });
+  NODES.forEach(n=>{ n.refs=[...new Set(n.refs||[])]; });
+})();
+const NODE_BY_ID = {}; NODES.forEach(n=>NODE_BY_ID[n.id]=n);
+// every reference in a node's parent chain (the pre-computed 'path refs' question)
+function pathRefs(n){ const out=new Set(); let cur=n, guard=0;
+  while(cur && guard++<20){ (cur.refs||[]).forEach(r=>out.add(r)); cur = cur.parent?NODE_BY_ID[cur.parent]:null; }
+  return out; }
+// library ancestry: the page a node lives on, walked up the page tree
+function libraryAncestors(n){ const out=new Set();
+  const page = NODES.find(x=>x.tags.includes('page')&&x.content===n.page);
+  let cur=page, guard=0;
+  while(cur && guard++<10){ out.add(cur.id); cur = cur.parentPage?NODE_BY_ID[cur.parentPage]:null; }
+  return out; }
 
 /* ---------- relative dates ---------- */
 const REL = {
@@ -316,7 +363,36 @@ function evalContent(node,q){
   }
   return true;
 }
-function run(q){ return NODES.filter(n=>evalTags(n,q)&&evalFilters(n,q)&&evalContent(n,q)); }
+
+/* ---------- reference rows ---------- */
+const REF_OPS = ['links to','is linked from','ancestor links to','on page under'];
+function targetIds(r){
+  if(!r.target) return new Set();
+  if(r.targetKind==='tag'){
+    let set=NODES.filter(n=>tagMatches(n,r.target,state.q.inherit));
+    if(r.tname) set=set.filter(n=>n.content.toLowerCase().includes(r.tname.toLowerCase()));
+    return new Set(set.map(n=>n.id));
+  }
+  const t=NODES.find(n=>n.content===r.target); return t? new Set([t.id]) : new Set();
+}
+function evalRef(node,r){
+  if(!r.target) return true;
+  const ids=targetIds(r); let v=false;
+  switch(r.dir){
+    case 'links to': v=(node.refs||[]).some(x=>ids.has(x)); break;
+    case 'is linked from': v=NODES.some(o=>ids.has(o.id)&&(o.refs||[]).includes(node.id)); break;
+    case 'ancestor links to': { const pr=pathRefs(node); v=[...ids].some(x=>pr.has(x)); break; }
+    case 'on page under': { const anc=libraryAncestors(node); v=[...ids].some(x=>anc.has(x)); break; }
+  }
+  return r.not? !v : v;
+}
+function evalRefs(node,q){
+  if(!q.refs||!q.refs.length) return true;
+  let acc=null;
+  q.refs.forEach(r=>{ const v=evalRef(node,r); if(acc===null) acc=v; else acc=(r.join==='or')?(acc||v):(acc&&v); });
+  return acc;
+}
+function run(q){ return NODES.filter(n=>evalTags(n,q)&&evalFilters(n,q)&&evalRefs(n,q)&&evalContent(n,q)); }
 
 /* assisted vocab: values with counts, scoped to what the tag zone leaves */
 function scopeNodes(q){ return NODES.filter(n=>evalTags(n,q)); }
@@ -345,7 +421,7 @@ const state = {
   variant:'A',
   q:{ tags:[{tag:'project',not:false,join:'and'}], inherit:true,
       filters:[{prop:'status',op:'does not contain',values:['DONE'],not:false,join:'and'},{prop:'deadline',op:'on or before',values:['end of month'],not:false,join:'and'}],
-      content:{op:'contains',value:''}, children:true },
+      refs:[], content:{op:'contains',value:''}, children:true },
   shown:10, name:'', toast:''
 };
 const $ = s=>document.querySelector(s);
@@ -489,6 +565,30 @@ function filterRow(f,i, sentence){
     <button type="button" class="x add" data-act="rm" data-i="${i}" title="remove">×</button>
   </div>`;
 }
+function refRow(r,i){
+  const join = i===0 ? '' : `<span class="join"><button type="button" data-act="rjoin" data-i="${i}">${r.join}</button></span>`;
+  const c = r.target ? run({...state.q, refs:[r]}).length : null;
+  const tgt = r.target ? (r.targetKind==='tag'? '#'+r.target+(r.tname?' \u00b7 name ~ \u201c'+r.tname+'\u201d':'') : r.target) : 'pick target';
+  return `<div class="row" data-i="${i}">${join}
+    ${chip('op'+(r.not?' not':''), r.dir, `data-act="rdir" data-i="${i}"`)}
+    ${chip('val'+(r.target?'':' empty'), tgt, `data-act="rtarget" data-i="${i}"`)}
+    ${r.target&&r.targetKind==='tag'? `<button type="button" class="x add" data-act="rname" data-i="${i}" title="narrow target by name">name\u2026</button>`:''}
+    ${r.target? `<span class="count">${c} ${c===1?'node':'nodes'}</span>`:''}
+    <button type="button" class="x add" data-act="rnot" data-i="${i}" title="negate">${r.not?'not':'\u00ac'}</button>
+    <button type="button" class="x add" data-act="rrm" data-i="${i}" title="remove">\u00d7</button>
+  </div>`;
+}
+function pickRefTarget(el,r){
+  const tagItems = tagCounts(state.q).filter(t=>t.c).map(t=>({v:'#'+t.v, c:t.c, raw:t.v, kind:'tag'}));
+  const named = NODES.filter(n=>n.tags.some(t=>['project','person','page','journal'].includes(t)))
+                     .map(n=>({v:n.content, c:null, raw:n.content, kind:'node'}));
+  const items=[...tagItems,...named];
+  listPicker(el,{search:true, groups:[
+      {label:'any node tagged\u2026', items:tagItems},
+      {label:'a specific node', items:named}],
+    onPick:v=>{ const hit=items.find(x=>x.v===v); if(!hit) return;
+      r.targetKind=hit.kind; r.target=hit.raw; r.tname=''; render(); }});
+}
 function tagChips(sentence){
   return state.q.tags.map((t,i)=>`${i? (sentence?`<button type="button" class="and" data-act="tjoin" data-i="${i}">${t.join}</button>`:`<span class="join"><button type="button" data-act="tjoin" data-i="${i}">${t.join}</button></span>`):''}
     ${chip('tag'+(t.not?' not':''), t.tag, `data-act="tag" data-i="${i}"`)}<button type="button" class="x add" data-act="tnot" data-i="${i}" title="negate">${t.not?'not':'¬'}</button><button type="button" class="x add" data-act="trm" data-i="${i}">×</button>`).join(' ');
@@ -509,6 +609,7 @@ function pseudo(){
   const q=state.q; const parts=[];
   if(q.tags.length) parts.push('tag '+q.tags.map((t,i)=>(i?t.join+' ':'')+(t.not?'not ':'')+'#'+t.tag).join(' ')+(q.inherit?' (incl. extending)':''));
   q.filters.filter(f=>f.prop).forEach((f,i)=>parts.push((i||q.tags.length?f.join+' ':'')+(f.not?'not ':'')+f.prop+' '+f.op+(NO_VALUE.has(f.op)?'':' ['+f.values.join(', ')+']')));
+  (q.refs||[]).filter(r=>r.target).forEach(r=>parts.push('and '+(r.not?'not ':'')+r.dir+' '+(r.targetKind==='tag'?'any #'+r.target+(r.tname?' with name containing "'+r.tname+'"':''):'"'+r.target+'"')));
   if(q.content.value) parts.push('and content '+q.content.op+' "'+q.content.value+'"'+(q.children?' (incl. children)':''));
   return 'nodes where '+(parts.join('\n  ')||'(anything)');
 }
@@ -518,8 +619,9 @@ function readback(){
   if(q.tags.length) s+=' <span class="w">tagged</span> '+q.tags.map((t,i)=>(i?`<span class="w">${t.join}</span> `:'')+(t.not?'<span class="w">not</span> ':'')+`<b>#${t.tag}</b>`).join(' ')+(q.inherit?'':' <span class="w">(exact)</span>');
   const fs=q.filters.filter(f=>f.prop);
   if(fs.length) s+=' <span class="w">where</span> '+fs.map((f,i)=>(i?`<span class="w">${f.join}</span> `:'')+(f.not?'<span class="w">not</span> ':'')+`<b>${f.prop}</b> <span class="w">${f.op}</span>`+(NO_VALUE.has(f.op)?'':' <b>'+(f.values.filter(Boolean).join(f.op==='between'?' and ':', ')||'…')+'</b>')).join(' ');
+  if((q.refs||[]).filter(r=>r.target).length) s+=' <span class="w">that</span> '+q.refs.filter(r=>r.target).map((r,i)=>(i?`<span class="w">${r.join}</span> `:'')+(r.not?'<span class="w">do not</span> ':'')+`<span class="w">${r.dir}</span> <b>${r.targetKind==='tag'?'any #'+r.target+(r.tname?' named like \u201c'+r.tname+'\u201d':''):r.target}</b>`).join(' ');
   if(q.content.value) s+=` <span class="w">and text ${q.content.op}</span> <b>“${q.content.value}”</b>`+(q.children?' <span class="w">incl. children</span>':'');
-  if(!q.tags.length&&!fs.length&&!q.content.value) return '<span class="none">Everything in the graph — add a tag or a filter to narrow it.</span>';
+  if(!q.tags.length&&!fs.length&&!q.content.value&&!(q.refs||[]).some(r=>r.target)) return '<span class="none">Everything in the graph — add a tag or a filter to narrow it.</span>';
   return s;
 }
 function datalog(){
@@ -551,6 +653,20 @@ function datalog(){
     }
     where.push(f.not?`(not ${c})`:c);
   });
+  (q.refs||[]).filter(r=>r.target).forEach(r=>{
+    const t=sym(); let c;
+    const tn = (r.targetKind==='tag'&&r.tname) ? (()=>{const s2=sym(); return `\n    [${t} :block/title ${s2}] [(clojure.string/includes? ${s2} "${r.tname}")]`;})() : '';
+    const bind = r.targetKind==='tag'
+      ? `[${t} :block/tags ?tg] [?tg :block/title "${r.target}"]${tn}`
+      : `[${t} :block/title "${r.target}"]`;
+    switch(r.dir){
+      case 'links to': c=`${bind}\n    [?b :block/refs ${t}]`; break;
+      case 'is linked from': { const o=sym(); c=`${bind}\n    [${t} :block/refs ?b]`.replace(`[${t} :block/refs ?b]`,`[${t} :block/refs ?b]`); break; }
+      case 'ancestor links to': c=`${bind}\n    [?b :block/path-refs ${t}]  ; verify path-refs exists, else recurse :block/parent`; break;
+      case 'on page under': c=`${bind}\n    [?b :block/page ?pg]\n    (page-ancestor ?pg ${t})  ; library tree \u2014 storage unverified`; break;
+    }
+    where.push(r.not?`(not ${c})`:c);
+  });
   if(q.content.value){ const s=sym(); const m=q.content.op==='matches'?`[(re-find #"${q.content.value}" ${s})]`:q.content.op==='starts with'?`[(clojure.string/starts-with? ${s} "${q.content.value}")]`:`[(clojure.string/includes? ${s} "${q.content.value}")]`; where.push(`[?b :block/title ${s}]\n    ${q.content.op==='does not contain'?`(not ${m})`:m}`+(q.children?'\n    ; TODO: also match descendants via :block/parent':'')); }
   const hasOr=q.filters.some((f,i)=>i&&f.join==='or');
   return `{:title "${state.name.trim()||'untitled'}"\n :query [:find (pull ?b [*])\n  :in $ ?today\n  :where\n    ${where.length?where.join('\n    '):'[?b :block/uuid _]'}${hasOr?'\n    ; note: or-joins across rows emitted as (or …) once grouping lands':''}]\n :inputs [:today]}`;
@@ -565,6 +681,11 @@ function renderA(res){
     <div class="zone"><div class="zone-head"><span class="zone-title">Filters</span><span class="hint">and / or, left to right</span></div>
       ${state.q.filters.map((f,i)=>filterRow(f,i,false)).join('')}
       <div class="row"><button type="button" class="add" data-act="addfilter" data-pop>+ add filter</button></div>
+    </div>
+    <div class="zone"><div class="zone-head"><span class="zone-title">References</span><span class="hint">one hop \u00b7 linked references only</span></div>
+      ${state.q.refs.map((r,i)=>refRow(r,i)).join('')}
+      <div class="row"><button type="button" class="add" data-act="addref" data-pop>+ add reference</button></div>
+      ${state.q.refs.length? '' : '<div class="hint">Links in the node text or its node-typed properties, the reverse direction, block ancestry, or the library page tree.</div>'}
     </div>
     <div class="readback" aria-live="polite">${readback()}</div>
     <div class="zone"><div class="zone-head"><span class="zone-title">Content</span><label class="toggle"><input type="checkbox" data-act="children" ${state.q.children?'checked':''}> search nested children</label></div>
@@ -611,6 +732,13 @@ root.addEventListener('click',e=>{
     case 'not': q.filters[i].not=!q.filters[i].not; return render();
     case 'rm': q.filters.splice(i,1); return render();
     case 'join': q.filters[i].join=q.filters[i].join==='and'?'or':'and'; return render();
+    case 'addref': { const r={dir:'links to',targetKind:'tag',target:null,not:false,join:'and'}; q.refs.push(r); render(); const btn=root.querySelector(`[data-act="rtarget"][data-i="${q.refs.length-1}"]`); return pickRefTarget(btn,r); }
+    case 'rdir': return listPicker(el,{groups:[{label:'direction',items:REF_OPS.map(v=>({v}))}], onPick:v=>{q.refs[i].dir=v;render();}});
+    case 'rtarget': return pickRefTarget(el,q.refs[i]);
+    case 'rname': { const cur=q.refs[i].tname||''; const v=prompt('Target name contains\u2026',cur); if(v===null) return; q.refs[i].tname=v.trim(); return render(); }
+    case 'rnot': q.refs[i].not=!q.refs[i].not; return render();
+    case 'rrm': q.refs.splice(i,1); return render();
+    case 'rjoin': q.refs[i].join=q.refs[i].join==='and'?'or':'and'; return render();
     case 'cop': return listPicker(el,{groups:[{items:['contains','does not contain','starts with','matches'].map(v=>({v}))}], onPick:v=>{q.content.op=v;render();}});
     case 'more': state.shown+=10; return render();
     case 'insert': state.toast=`Created node · applied #query · name “${state.name.trim()}” · Datalog written (see below)`; return render();

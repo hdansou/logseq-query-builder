@@ -127,8 +127,17 @@ row (page, key properties), "full scan"-style hints if a form proves slow in P0.
 - **Native relative-date set only**: no week/month boundaries until the host has such inputs
   (approved).
 - **Preview through `datascriptQuery`**, not `customQuery`: the latter cannot carry `:inputs`.
+- **References as rows, direction as the operator** (spec, 2026-09-26): *links to* / *is linked
+  from* / *ancestor links to* / *on page under*, target = node, tag (inherited) or filtered set.
+  Rejected: a "referenced in page…" scope (one direction, page targets only, could not combine
+  with *on page*) and a pinned pseudo-property (no ancestry, no page tree).
+- **Ancestry recurses `:block/parent`** through the host's `parent` rule: `:block/path-refs` no
+  longer exists in DB graphs (migration 65.11). The Library scope is the same clause with the
+  built-in Library page as target.
+- **"Is linked from a page" reads the page and its blocks**; tags applied to a block and property
+  keys are not links, so they are excluded, as are the host's hidden `$$$views` blocks.
 
 ## Out of scope for v1
 
-Nested grouping · table view · content search into children · references/backlinks · sorting ·
+Nested grouping · table view · content search into children · multi-hop references · unlinked references · sorting ·
 natural language · docked sidebar · marketplace packaging until it has been used for a week.
