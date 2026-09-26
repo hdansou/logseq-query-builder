@@ -4,36 +4,87 @@
 <meta charset="utf-8">
 <title>Query Builder</title>
 <style>
+  /* Tokens: host values are copied into :root by theme.ts; these are only fallbacks. */
   :root {
-    --bg: #1f1f22; --border: #34343c; --line: #2a2a31; --fg: #e8e6e3;
-    --dim: #cdcbc7; --mut: #9b9a97; --faint: #6e6e76; --accent: #4a63c8;
-    --mono: ui-monospace, 'IBM Plex Mono', Menlo, monospace;
+    --qb-bg: var(--ls-primary-background-color, #1f1f22);
+    --qb-bg2: var(--ls-secondary-background-color, #26262d);
+    --qb-bg3: var(--ls-tertiary-background-color, #2e2e36);
+    --qb-fg: var(--ls-primary-text-color, #e8e6e3);
+    --qb-fg2: var(--ls-secondary-text-color, #9b9a97);
+    --qb-border: var(--ls-border-color, #34343c);
+    --qb-link: var(--ls-link-text-color, #8ec2c2);
+    --qb-accent: var(--ls-active-primary-color, #4a63c8);
+    --qb-sel: var(--ls-selection-background-color, #2a2e41);
+    --qb-font: var(--ls-font-family, Inter, system-ui, sans-serif);
+    --qb-r1: var(--ls-border-radius-low, 4px);
+    --qb-r2: var(--ls-border-radius-medium, 8px);
+    --qb-amber: #e0af68; --qb-amber-bg: #3a3327; --qb-amber-br: #55492f;
+    --qb-mono: ui-monospace, Menlo, monospace;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: transparent; }
-  body { font-family: system-ui, sans-serif; color: var(--fg); }
+  body { font-family: var(--qb-font); font-size: 13px; color: var(--qb-fg); }
+  button, input, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+
   /* The host sizes and positions the iframe container (draggable, resizable); the panel fills it. */
-  #backdrop { position: fixed; inset: 0; display: flex; }
-  #panel {
-    flex: 1; display: flex; flex-direction: column; min-height: 0;
-    background: var(--bg); border: 1px solid var(--border); border-radius: 0 0 10px 10px; overflow: hidden;
-  }
-  #panel header { padding: 14px 20px; border-bottom: 1px solid var(--line); font-weight: 600; }
-  #panel main { padding: 20px; font-size: 13.5px; color: var(--dim); overflow-y: auto; flex: 1; }
-  #panel footer {
-    display: flex; gap: 14px; padding: 10px 20px; border-top: 1px solid var(--line);
-    background: #1a1a1d; font-size: 11px; color: var(--mut);
-  }
+  #root { position: fixed; inset: 0; display: flex; flex-direction: column; background: var(--qb-bg); border: 1px solid var(--qb-border); border-top: 0; overflow: hidden; }
+  .zone { padding: 10px 14px; border-bottom: 1px solid var(--qb-border); }
+  .zone-label { font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--qb-fg2); margin-bottom: 6px; display: flex; align-items: center; gap: 10px; }
+  .zone-label .hint { font-weight: 400; letter-spacing: 0; text-transform: none; }
+  .flex { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .name { flex: 1; min-width: 160px; border: 0; background: transparent; font-size: 15px; font-weight: 600; padding: 4px 0; outline: 0; }
+  .name::placeholder { color: var(--qb-fg2); font-weight: 400; }
+
+  .chip { display: inline-flex; align-items: center; gap: 5px; height: 26px; padding: 0 4px 0 8px; border-radius: var(--qb-r2); background: var(--qb-bg3); border: 1px solid var(--qb-border); }
+  .chip.neg { border-color: #6b4245; background: #3b2a2b; }
+  .chip .x { border: 0; background: transparent; color: var(--qb-fg2); width: 18px; height: 18px; border-radius: var(--qb-r1); padding: 0; line-height: 1; }
+  .chip .x:hover, .chip .x:focus-visible { background: var(--qb-sel); color: var(--qb-fg); outline: 0; }
+  .tog { border: 0; border-radius: var(--qb-r1); padding: 2px 6px; font-size: 10.5px; font-weight: 600; letter-spacing: .04em; background: var(--qb-sel); color: var(--qb-fg2); }
+  .tog:focus-visible { outline: 2px solid var(--qb-accent); }
+  .tog.on { color: var(--qb-fg); }
+
+  .picker { position: relative; display: inline-block; }
+  .picker input { min-width: 150px; height: 28px; padding: 0 8px; border: 1px solid var(--qb-border); border-radius: var(--qb-r1); background: var(--qb-bg2); outline: 0; }
+  .picker input:focus { border-color: var(--qb-accent); }
+  .picker ul { position: absolute; z-index: 5; top: 30px; left: 0; min-width: 240px; max-height: 220px; overflow-y: auto; margin: 0; padding: 4px; list-style: none; background: var(--qb-bg2); border: 1px solid var(--qb-border); border-radius: var(--qb-r2); box-shadow: 0 12px 30px rgba(0,0,0,.4); }
+  .picker li { display: flex; justify-content: space-between; gap: 12px; padding: 5px 8px; border-radius: var(--qb-r1); cursor: pointer; }
+  .picker li.sel { background: var(--qb-sel); }
+  .picker li .hint { color: var(--qb-fg2); font-size: 11.5px; }
+  .picker .empty { color: var(--qb-fg2); padding: 5px 8px; }
+
+  select { height: 28px; border: 1px solid var(--qb-border); border-radius: var(--qb-r1); background: var(--qb-bg2); padding: 0 6px; outline: 0; }
+  select:focus { border-color: var(--qb-accent); }
+  input.num, input.date { height: 28px; width: 110px; padding: 0 8px; border: 1px solid var(--qb-border); border-radius: var(--qb-r1); background: var(--qb-bg2); outline: 0; }
+  input.date { width: 150px; }
+  input:focus.num, input:focus.date { border-color: var(--qb-accent); }
+  .row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 4px 0; }
+  .row .join { width: 56px; }
+  .row .spacer { width: 56px; text-align: center; color: var(--qb-fg2); font-size: 11px; }
+  .btn { height: 28px; padding: 0 10px; border: 1px solid var(--qb-border); border-radius: var(--qb-r1); background: var(--qb-bg2); }
+  .btn:hover, .btn:focus-visible { border-color: var(--qb-accent); outline: 0; }
+  .btn.primary { background: var(--qb-accent); border-color: var(--qb-accent); color: #fff; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .shortcuts { display: flex; gap: 4px; flex-wrap: wrap; }
+  .shortcuts button { font-size: 11px; height: 22px; padding: 0 7px; }
+
+  #guard { display: none; align-items: center; gap: 8px; padding: 8px 14px; background: var(--qb-amber-bg); border-bottom: 1px solid var(--qb-amber-br); color: #f0dcb8; font-size: 12px; }
+  #guard.on { display: flex; }
+  #readback { padding: 8px 14px; font-weight: 600; border-bottom: 1px solid var(--qb-border); color: var(--qb-fg); }
+  #results { flex: 1; overflow-y: auto; min-height: 60px; }
+  .result { display: flex; align-items: baseline; gap: 10px; width: 100%; padding: 0 14px; height: 32px; border: 0; background: transparent; text-align: left; }
+  .result:hover, .result:focus-visible { background: var(--qb-sel); outline: 0; }
+  .result .t { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .result .m { color: var(--qb-fg2); font-size: 11.5px; flex-shrink: 0; }
+  .more, .empty-results { padding: 6px 14px 10px; color: var(--qb-fg2); font-size: 12px; }
+  #footer { display: flex; align-items: center; gap: 12px; padding: 8px 14px; border-top: 1px solid var(--qb-border); background: var(--qb-bg2); font-size: 11.5px; color: var(--qb-fg2); }
+  #footer .keys { margin-left: auto; display: flex; gap: 12px; }
+  #dsl { padding: 6px 14px; font-family: var(--qb-mono); font-size: 11px; color: var(--qb-fg2); white-space: pre-wrap; border-top: 1px solid var(--qb-border); max-height: 120px; overflow: auto; display: none; }
+  #dsl.on { display: block; }
 </style>
 </head>
 <body>
-  <div id="backdrop">
-    <div id="panel" role="dialog" aria-label="Query Builder">
-      <header>Query Builder</header>
-      <main id="content">Scaffold only. The UI is defined by the scoping doc and mockup in <code>docs/</code>.</main>
-      <footer><span>Esc Close</span></footer>
-    </div>
-  </div>
+  <div id="root" role="dialog" aria-label="Query Builder"></div>
   <script type="module" src="./src/main.ts"></script>
 </body>
 </html>

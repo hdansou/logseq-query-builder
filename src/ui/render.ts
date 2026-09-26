@@ -1,0 +1,97 @@
+import { navigateTo } from "../nav";
+import { page } from "../preview";
+import type { State, Store } from "./store";
+
+/**
+ * Renders the whole panel from state on every change. Zones are filled in by their own modules
+ * (tags.ts, rows.ts, content.ts); this file owns the frame, read-back, guard bar, results, footer.
+ */
+export type ZoneRenderer = (root: HTMLElement, s: State, store: Store) => void;
+
+const el = (tag: string, cls?: string, text?: string) => {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+};
+
+/** Remember which control had focus (and its caret) across a full re-render. */
+function captureFocus() {
+  const a = document.activeElement as HTMLElement | null;
+  const fid = a?.dataset.fid;
+  const sel = a instanceof HTMLInputElement ? [a.selectionStart, a.selectionEnd] : null;
+  return () => {
+    if (!fid) return;
+    const n = document.querySelector<HTMLElement>(`[data-fid="${CSS.escape(fid)}"]`);
+    if (!n) return;
+    n.focus();
+    if (n instanceof HTMLInputElement && sel && sel[0] !== null) n.setSelectionRange(sel[0], sel[1]);
+  };
+}
+
+export function createRenderer(root: HTMLElement, store: Store, zones: { tags: ZoneRenderer; rows: ZoneRenderer; content: ZoneRenderer }, onClose: () => void) {
+  return (s: State) => {
+    const restore = captureFocus();
+    root.innerHTML = "";
+
+    const head = el("div", "zone flex");
+    const name = el("input", "name") as HTMLInputElement;
+    name.placeholder = "Query name (needed to insert)";
+    name.value = s.q.name;
+    name.dataset.fid = "name";
+    name.addEventListener("change", () => store.update((q) => ({ ...q, name: name.value.trim() })));
+    head.appendChild(name);
+    root.appendChild(head);
+
+    const tags = el("div", "zone"); zones.tags(tags, s, store); root.appendChild(tags);
+    const rows = el("div", "zone"); zones.rows(rows, s, store); root.appendChild(rows);
+    const content = el("div", "zone"); zones.content(content, s, store); root.appendChild(content);
+
+    const g = el("div", "guard"); g.id = "guard";
+    if (!s.guard.ok) { g.classList.add("on"); g.textContent = s.guard.reason; }
+    root.appendChild(g);
+
+    const rb = el("div", "", s.readback); rb.id = "readback"; root.appendChild(rb);
+
+    const results = el("div"); results.id = "results";
+    if (s.error) results.appendChild(el("div", "empty-results", `Query failed: ${s.error}`));
+    else if (!s.guard.ok) results.appendChild(el("div", "empty-results", "Add a tag or a filter to see results."));
+    else if (s.loading && !s.results.length) results.appendChild(el("div", "empty-results", "Running…"));
+    else {
+      const p = page(s.results, s.pages);
+      if (!p.total) results.appendChild(el("div", "empty-results", "No matching nodes."));
+      p.shown.forEach((r, i) => {
+        const b = el("button", "result") as HTMLButtonElement;
+        b.dataset.fid = `result-${i}`;
+        b.appendChild(el("span", "t", r.title || "(untitled)"));
+        if (r.page) b.appendChild(el("span", "m", r.page.title));
+        b.addEventListener("click", () => void navigateTo(r.uuid));
+        results.appendChild(b);
+      });
+      if (p.remaining) {
+        const more = el("button", "btn", `Show ${Math.min(10, p.remaining)} more (${p.remaining} left)`);
+        more.style.margin = "6px 14px 10px";
+        more.dataset.fid = "more";
+        more.addEventListener("click", () => store.loadMore());
+        results.appendChild(more);
+      } else if (p.total) results.appendChild(el("div", "more", `${p.total} node${p.total === 1 ? "" : "s"}`));
+    }
+    root.appendChild(results);
+
+    const dsl = el("pre", "", store.emitted()?.block ?? ""); dsl.id = "dsl"; if (s.showDsl) dsl.classList.add("on"); root.appendChild(dsl);
+
+    const foot = el("div"); foot.id = "footer";
+    foot.appendChild(el("span", "", s.target ? `Insert target: ${s.target.mode === "slash" ? "this block" : "block being edited"}` : "No target block: Insert is off, results still open on click"));
+    const showDsl = el("button", "tog" + (s.showDsl ? " on" : ""), "datalog");
+    showDsl.dataset.fid = "showdsl";
+    showDsl.addEventListener("click", () => store.toggleDsl());
+    foot.appendChild(showDsl);
+    const keys = el("span", "keys");
+    for (const k of ["↩ pick", "Tab next", "⇧↩ add filter", "Esc close"]) keys.appendChild(el("span", "", k));
+    foot.appendChild(keys);
+    root.appendChild(foot);
+
+    restore();
+    void onClose;
+  };
+}

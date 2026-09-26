@@ -32,7 +32,7 @@ export async function demo() {
   const shown = page(rows, 1);
   const ms = Math.round(performance.now() - t0);
 
-  const el = document.getElementById("content")!;
+  const el = document.getElementById("root")!;
   el.innerHTML = "";
   const h = (tag: string, text: string) => { const n = document.createElement(tag); n.textContent = text; el.appendChild(n); return n; };
   h("p", readback(q)).style.fontWeight = "600";
