@@ -58,6 +58,11 @@
   select:focus { border-color: var(--qb-accent); }
   input.num, input.date { height: 28px; width: 110px; padding: 0 8px; border: 1px solid var(--qb-border); border-radius: var(--qb-r1); background: var(--qb-bg2); outline: 0; }
   input.date { width: 150px; }
+  .datewrap { display: inline-flex; align-items: center; gap: 4px; }
+  input.datepick { height: 28px; width: 34px; padding: 0 4px; border: 1px solid var(--qb-border); border-radius: var(--qb-r1); background: var(--qb-bg2); color: var(--qb-fg); outline: 0; cursor: pointer; }
+  input.datepick::-webkit-datetime-edit { display: none; }
+  input.datepick::-webkit-calendar-picker-indicator { margin: 0; cursor: pointer; }
+  input.datepick:focus { border-color: var(--qb-accent); }
   input:focus.num, input:focus.date { border-color: var(--qb-accent); }
   .row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 4px 0; }
   .row .x { flex-shrink: 0; }

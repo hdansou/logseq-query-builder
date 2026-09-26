@@ -72,6 +72,7 @@ Open: replace the screenshot with a real-graph capture before the marketplace PR
 | FEAT-31 | feat | `Page` selectable in the tag picker | done | Unit: Page listed with its count; live: "Page nodes" query lists pages |
 | FEAT-32 | feat | **Scope: referenced in a page** (the spec's deferred "references / backlinks") | done | Scope zone with a page picker; emitter `[?src :block/uuid …] [?sb :block/page ?src] [?sb :block/refs ?b]` first. Live on `demolocal2`: "all nodes referenced in Task Testing Page" → 4 nodes (Priority, Status, Tags, Task: property and tag entities count as references; a tag filter narrows to the artists-in-a-book case) |
 | FEAT-34 | feat | Result count in the header row, not under the list | done | Live screenshot |
+| FEAT-35 | feat | Native calendar beside the date text field; text stays the source of truth | done | Live: pick a day → field shows the ISO date, preview updates; typed `-7d` still works |
 | FEAT-33 | feat | **Scope: inside the Library** | done (live check pending data) | Grounded: Library = built-in page `library`, membership = `:block/parent` tree, host `parent` rule; emitter takes those pages and blocks on them. Live: runs without error on `demolocal2`, which has no Library pages yet; re-check on a graph that has some |
 
 

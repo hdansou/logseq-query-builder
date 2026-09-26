@@ -35,22 +35,34 @@ function dateText(v: Value | undefined): string {
   return `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
 }
 
-function scalarInput(kind: "number" | "date", fid: string, current: Value | undefined, onValue: (v: Value | null) => void) {
+function scalarInput(kind: "number" | "date", fid: string, current: Value | undefined, onValue: (v: Value | null) => void): HTMLElement {
   const input = document.createElement("input");
   input.dataset.fid = fid;
   if (kind === "number") {
     input.type = "number"; input.className = "num"; input.placeholder = "number";
     input.value = current?.kind === "number" ? String(current.n) : "";
     input.addEventListener("change", () => onValue(input.value === "" ? null : { kind: "number", n: Number(input.value) }));
-  } else {
-    input.type = "text"; input.className = "date"; input.placeholder = "today, -7d, 2026-10-02";
-    input.setAttribute("list", "qb-date-shortcuts");
-    input.autocomplete = "off";
-    input.value = dateText(current);
-    input.addEventListener("change", () => { const v = parseDateText(input.value); if (v || input.value.trim() === "") onValue(v); else input.setCustomValidity("today, tomorrow, yesterday, ±Nd/w/m/y, or YYYY-MM-DD"); });
-    input.addEventListener("input", () => input.setCustomValidity(""));
+    return input;
   }
-  return input;
+  // Date: a text field (relative expressions or ISO) plus a native calendar that fills it.
+  const wrap = el("span", "datewrap");
+  input.type = "text"; input.className = "date"; input.placeholder = "today, -7d, 2026-10-02";
+  input.setAttribute("list", "qb-date-shortcuts");
+  input.autocomplete = "off";
+  input.value = dateText(current);
+  const cal = document.createElement("input");
+  cal.type = "date"; cal.className = "datepick"; cal.dataset.fid = `${fid}-cal`; cal.title = "Pick a day";
+  cal.value = current?.kind === "date" && current.date.kind === "absolute" ? dateText(current) : "";
+  const commit = (text: string) => {
+    const v = parseDateText(text);
+    if (v || text.trim() === "") { input.setCustomValidity(""); onValue(v); }
+    else input.setCustomValidity("today, tomorrow, yesterday, ±Nd/w/m/y, or YYYY-MM-DD");
+  };
+  input.addEventListener("change", () => commit(input.value));
+  input.addEventListener("input", () => input.setCustomValidity(""));
+  cal.addEventListener("change", () => { if (cal.value) { input.value = cal.value; commit(cal.value); } });
+  wrap.append(input, cal);
+  return wrap;
 }
 
 function ensureDatalist() {

@@ -36,6 +36,7 @@ All notable changes to this plugin are recorded here. The format follows
   - *referenced in page…*: nodes referenced from the blocks of a page picked by title, e.g. every `artist` mentioned in a `Book` page. Properties and tags a block uses count as references, so add a tag or filter to narrow.
   A scope counts as a positive clause, so a scope with only NOT filters can run. The read-back says "referenced in X" or "in the Library"; queries saved before scopes existed reopen as *anywhere*.
 - `Page` is offered in the tag selector, so "all pages" and "pages tagged X" can be built.
+- Date values have a calendar button next to the text field; picking a day fills the field with the ISO date. Typed relative expressions (`today`, `-7d`, `+1m`) still work and stay live when inserted.
 
 ### Notes
 - Requires `@logseq/libs` 0.3.4 or later: 0.2.x drops the last input of `datascriptQuery`.
