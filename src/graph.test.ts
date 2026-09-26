@@ -78,3 +78,48 @@ describe("Graph.properties (FEAT-12)", () => {
     expect(ordered.map((p) => p.title)).toEqual(["deadline", "status", "assignee", "notes"]);
   });
 });
+
+describe("Graph.values / nodes / assets (FEAT-13)", () => {
+  const status = { ident: ":user.property/status-1", title: "status", type: "default", cardinality: "one" } as const;
+  const assignee = { ident: ":user.property/assignee-1", title: "assignee", type: "node", cardinality: "many" } as const;
+  const table = {
+    ":block/closed-value-property": [["cv-todo", "Todo", 1], ["cv-doing", "Doing", 2], ["cv-done", "Done", 3]],
+    "(count-distinct ?b)": [["Todo", 5, "cv-todo"], ["Done", 2, "cv-done"], ["Blocked", 1, "open-1"]],
+    "[?a :block/tags :logseq.class/Asset]": [["u-img", "photo.png"]],
+    "clojure.string/includes? ?lt": [[{ uuid: "u1", title: "Maria", page: { uuid: "p1", title: "People" } }], [{ uuid: "u2", title: "Marian Keyes" }]],
+  };
+  it("values: closed choices in their order with counts (0 when unused), then open values by count", async () => {
+    const g = new Graph(fake(table));
+    expect(await g.values(status)).toEqual([
+      { label: "Todo", count: 5, uuid: "cv-todo" },
+      { label: "Doing", count: 0, uuid: "cv-doing" },
+      { label: "Done", count: 2, uuid: "cv-done" },
+      { label: "Blocked", count: 1, uuid: "open-1" },
+    ]);
+  });
+  it("values: passes the property ident as an input, never interpolates it", async () => {
+    const log: string[] = [];
+    const inputs: unknown[][] = [];
+    const g = new Graph(async (q, ...ins) => { log.push(q); inputs.push(ins); return table[Object.keys(table).find((k) => q.includes(k)) as keyof typeof table]; });
+    await g.values(status);
+    expect(inputs.every((i) => i[0] === ":user.property/status-1")).toBe(true);
+  });
+  it("nodes: title search is case-insensitive, embeds the needle as an escaped literal, optional tag constraint", async () => {
+    const log: string[] = [];
+    const g = new Graph(fake(table, log));
+    const found = await g.nodes('Mar"ia');
+    expect(found).toEqual([{ uuid: "u1", title: "Maria", page: { uuid: "p1", title: "People" } }, { uuid: "u2", title: "Marian Keyes", page: null }]);
+    expect(log[0]).toContain(`[(clojure.string/includes? ?lt "mar\\"ia")]`);
+    expect(log[0]).not.toContain(":block/tags");
+    await g.nodes("mar", ":user.class/person-1");
+    expect(log[1]).toContain("[?b :block/tags :user.class/person-1]");
+  });
+  it("assets lists nodes tagged Asset", async () => {
+    expect(await new Graph(fake(table)).assets()).toEqual([{ uuid: "u-img", title: "photo.png" }]);
+  });
+  it("values for a node property use the referenced node's title and uuid", async () => {
+    const log: string[] = [];
+    await new Graph(fake(table, log)).values(assignee);
+    expect(log.find((q) => q.includes("count-distinct"))).toContain("[?v :block/title ?label] [?v :block/uuid ?u]");
+  });
+});

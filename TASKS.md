@@ -45,7 +45,7 @@ P1 exit met 2026-09-26: five spec scenarios emit the live-verified Datalog, ever
 |---|---|---|---|---|
 | FEAT-11 | feat | `graph.ts`: tags with usage counts, structural tags hidden | done (unit; live check with FEAT-15) | Unit on a fake `datascriptQuery`: sorted most-used first; Page/Tag/Property/Root/Asset absent. Live: matches the graph's All Tags |
 | FEAT-12 | feat | `graph.ts`: properties with type, cardinality, owner tags; selected tags' properties first | done (unit; live check with FEAT-15) | Unit: ordering rule; hidden/built-in-non-public excluded. Live: `status` shows its owner tag |
-| FEAT-13 | feat | `graph.ts`: distinct values with counts (open + closed), node search, asset list | todo | Unit: grouped by text, placeholder excluded. Live: counts equal the graph's |
+| FEAT-13 | feat | `graph.ts`: distinct values with counts (open + closed), node search, asset list | done (unit; live check with FEAT-15) | Unit: grouped by text, placeholder excluded. Live: counts equal the graph's |
 | FEAT-14 | feat | `preview.ts`: run the emitted query with string inputs + rule string; normalise rows; page of 10 + load more | todo | Unit: paging; rows carry uuid, title, page title. Live: scenario 1 count matches a hand-run query |
 | FEAT-15 | feat | Result row navigation via `pushState('page', {name: uuid})`; builder stays open | todo | Chrome: click zooms to the block; panel and filters still there |
 
