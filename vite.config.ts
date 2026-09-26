@@ -25,6 +25,7 @@ function probeSink(): Plugin {
 
 export default defineConfig({
   base: "./",
+  publicDir: false,   // icon.svg lives at the repo root and travels in the release zip, not in dist/
   plugins: [probeSink()],
   build: { outDir: "dist", emptyOutDir: true },
   test: { include: ["src/**/*.test.ts"] },

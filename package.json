@@ -2,6 +2,27 @@
   "name": "logseq-query-builder",
   "version": "0.1.0",
   "description": "Build Logseq DB queries visually",
+  "author": "Danzu",
+  "license": "MIT",
+  "private": true,
+  "homepage": "https://github.com/hdansou/logseq-query-builder#readme",
+  "bugs": {
+    "url": "https://github.com/hdansou/logseq-query-builder/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hdansou/logseq-query-builder.git"
+  },
+  "keywords": [
+    "logseq",
+    "logseq-plugin",
+    "logseq-db",
+    "query"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "npm@11.12.1",
   "main": "dist/index.html",
   "scripts": {
     "dev": "vite --port 8291 --strictPort",
@@ -13,8 +34,11 @@
   "logseq": {
     "id": "logseq-query-builder",
     "title": "Query Builder",
+    "icon": "./icon.svg",
     "main": "dist/index.html",
-    "icon": "./dist/icon.svg"
+    "supportsDB": true,
+    "supportsDBOnly": true,
+    "minSDKVersion": "0.3.4"
   },
   "devDependencies": {
     "typescript": "^5.6.0",
