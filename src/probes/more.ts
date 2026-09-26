@@ -1,5 +1,6 @@
 import "@logseq/libs";
 import { PAGE, RULES, dq, propertyIdent, tagIdent } from "./api";
+import { setMainUIAttrs, setMainUIInlineStyle } from "../sdk";
 
 /** FEAT-2: does the insert sequence produce a block that renders as a live query table? */
 export async function insertProbe() {
@@ -19,7 +20,7 @@ export async function insertProbe() {
   if (!b) throw new Error("append B failed");
   await logseq.Editor.addBlockTag(b.uuid, "logseq.class/Query");
   await logseq.Editor.upsertBlockProperty(b.uuid, "logseq.property/query", text);
-  const valueUuid = (await dq(`[:find ?u :where [?b :block/uuid #uuid "${b.uuid}"] [?b :logseq.property/query ?v] [?v :block/uuid ?u]]`))[0]?.[0];
+  const valueUuid = String((await dq(`[:find ?u :where [?b :block/uuid #uuid "${b.uuid}"] [?b :logseq.property/query ?v] [?v :block/uuid ?u]]`))[0]?.[0] ?? "");
   let subProps: unknown = "skipped: no value entity";
   if (valueUuid) {
     try {
@@ -36,8 +37,8 @@ export async function insertProbe() {
 
 /** FEAT-3a: host-provided drag/resize on the main UI container, sized to a panel. */
 export async function panelProbe() {
-  logseq.setMainUIAttrs({ draggable: true, resizable: true } as never);
-  logseq.setMainUIInlineStyle({ width: "560px", height: "420px", top: "90px", left: "240px", zIndex: 99 } as never);
+  setMainUIAttrs({ draggable: true, resizable: true });
+  setMainUIInlineStyle({ width: "560px", height: "420px", top: "90px", left: "240px", zIndex: 99 });
   logseq.showMainUI({ autoFocus: false });
   return { shown: true, note: "verify in Chrome: title bar, drag, resize, app clickable beside it, position after reload" };
 }

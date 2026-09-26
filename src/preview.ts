@@ -10,11 +10,14 @@ export interface ResultRow { uuid: string; title: string; page: { uuid: string; 
 
 export const PAGE_SIZE = 10;
 
-export function normalize(rows: any[]): ResultRow[] {
+interface PullMap { uuid: string; title?: string; page?: { uuid: string; title: string }; [k: string]: unknown }
+const isPullMap = (m: unknown): m is PullMap => !!m && typeof m === "object" && typeof (m as PullMap).uuid === "string";
+
+export function normalize(rows: unknown[]): ResultRow[] {
   return rows
     .map((r) => {
       const m = Array.isArray(r) ? r[0] : r;
-      if (!m || typeof m !== "object" || typeof m.uuid !== "string") throw new Error(`preview row is not a pull map: ${JSON.stringify(r)}`);
+      if (!isPullMap(m)) throw new Error(`preview row is not a pull map: ${JSON.stringify(r)}`);
       return { uuid: m.uuid, title: String(m.title ?? ""), page: m.page ? { uuid: String(m.page.uuid), title: String(m.page.title) } : null, raw: m };
     })
     .sort((a, b) => a.title.localeCompare(b.title));

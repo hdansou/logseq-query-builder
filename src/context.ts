@@ -27,17 +27,19 @@ export function contextPull(props: PropertyRef[]): string {
 const key = (ident: string) => ident;
 
 const pad = (n: number) => String(n).padStart(2, "0");
-function one(p: PropertyRef, v: any): string {
+const field = (v: unknown, k: string): unknown => (v && typeof v === "object" ? (v as Record<string, unknown>)[k] : undefined);
+
+function one(p: PropertyRef, v: unknown): string {
   switch (p.type) {
-    case "number": return String(v?.[":logseq.property/value"] ?? v);
-    case "date": return String(v?.title ?? v?.["journal-day"] ?? v);
+    case "number": return String(field(v, ":logseq.property/value") ?? v);
+    case "date": return String(field(v, "title") ?? field(v, "journal-day") ?? v);
     case "datetime": { const d = new Date(Number(v)); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
     case "checkbox": return v ? "yes" : "no";
-    default: return String(v?.title ?? v);
+    default: return String(field(v, "title") ?? v);
   }
 }
 
-export function formatContext(props: PropertyRef[], m: Record<string, any>): string {
+export function formatContext(props: PropertyRef[], m: Record<string, unknown>): string {
   const parts: string[] = [];
   const seen = new Set<string>();
   for (const p of props) {

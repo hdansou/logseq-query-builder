@@ -85,7 +85,8 @@ describe("Graph.values / nodes / assets (FEAT-13)", () => {
   const status = { ident: ":user.property/status-1", title: "status", type: "default", cardinality: "one" } as const;
   const assignee = { ident: ":user.property/assignee-1", title: "assignee", type: "node", cardinality: "many" } as const;
   const table = {
-    ":block/closed-value-property": [["cv-todo", "Todo", 1], ["cv-doing", "Doing", 2], ["cv-done", "Done", 3]],
+    // :block/order is a fractional-index string in a real graph, never a number
+    ":block/closed-value-property": [["cv-todo", "Todo", "a0"], ["cv-doing", "Doing", "a1"], ["cv-done", "Done", "a2"]],
     "(count-distinct ?b)": [["Todo", 5, "cv-todo"], ["Done", 2, "cv-done"], ["Blocked", 1, "open-1"]],
     "[?a :block/tags :logseq.class/Asset]": [["u-img", "photo.png"]],
     "clojure.string/includes? ?lt": [[{ uuid: "u1", title: "Maria", page: { uuid: "p1", title: "People" } }], [{ uuid: "u2", title: "Marian Keyes" }]],

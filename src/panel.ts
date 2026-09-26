@@ -1,4 +1,5 @@
 import "@logseq/libs";
+import { setMainUIAttrs, setMainUIInlineStyle } from "./sdk";
 
 /**
  * The floating panel is the host's main-UI container with drag/resize attrs; the plugin only
@@ -8,8 +9,8 @@ let sized = false;
 
 export function showPanel() {
   if (!sized) {
-    logseq.setMainUIAttrs({ draggable: true, resizable: true } as never);
-    logseq.setMainUIInlineStyle({ width: "780px", height: "620px", top: "60px", left: "200px", zIndex: 99 } as never);
+    setMainUIAttrs({ draggable: true, resizable: true });
+    setMainUIInlineStyle({ width: "780px", height: "620px", top: "60px", left: "200px", zIndex: 99 });
     sized = true;
   }
   logseq.showMainUI({ autoFocus: true });

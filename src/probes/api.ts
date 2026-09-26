@@ -1,4 +1,5 @@
 import "@logseq/libs";
+import type { Row } from "../graph";
 
 /** Thin helpers over the plugin API used only by probes and the seed. */
 
@@ -9,9 +10,9 @@ export const PAGE = "QB Scratch";
  * namespace tag that `datascriptQuery` pops). 0.3.4 appends the tag, so inputs pass through.
  * This project requires ^0.3.4 for that reason; do not downgrade.
  */
-export async function dq(query: string, ...inputs: unknown[]): Promise<any[]> {
-  const rows = await logseq.DB.datascriptQuery(query, ...inputs);
-  return Array.isArray(rows) ? rows : [];
+export async function dq(query: string, ...inputs: unknown[]): Promise<Row[]> {
+  const rows: unknown = await logseq.DB.datascriptQuery(query, ...inputs);
+  return Array.isArray(rows) ? (rows as Row[]) : [];
 }
 
 const identCache = new Map<string, string>();

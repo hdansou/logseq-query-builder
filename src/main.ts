@@ -10,6 +10,7 @@ import { renderContent } from "./ui/content";
 import { createRenderer } from "./ui/render";
 import { focusRow, renderRows } from "./ui/rows";
 import { Store, targetFromEvent } from "./ui/store";
+import { upsertProperty } from "./sdk";
 import { watchTheme } from "./theme";
 import { renderTags } from "./ui/tags";
 
@@ -46,7 +47,7 @@ function main() {
   };
   store.subscribe(createRenderer(root, { store, graph, insert }, { tags: renderTags, rows: renderRows, content: renderContent }));
   // The round-trip property: a hidden string on each inserted block, created once in our namespace.
-  void logseq.Editor.upsertProperty(STATE_KEY, { type: "string", hide: true } as never).catch((e) => console.warn("[qb] state property", e));
+  void upsertProperty(STATE_KEY, { type: "string", hide: true }).catch((e) => console.warn("[qb] state property", e));
 
   const focusFirst = (force = false) => {
     const active = document.activeElement as HTMLElement | null;
