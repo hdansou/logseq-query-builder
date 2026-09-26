@@ -1,6 +1,6 @@
 import { describeRelative } from "./dates";
-import { rowComplete } from "./guard";
-import type { ContentClause, FilterRow, OperatorId, Query, TagClause, Value } from "./model";
+import { refComplete, rowComplete } from "./guard";
+import type { ContentClause, FilterRow, OperatorId, Query, RefRow, RefTarget, TagClause, Value } from "./model";
 
 /** The plain-English line above the results, so a query can be checked without reading Datalog. */
 
@@ -66,6 +66,20 @@ function content(c: ContentClause): string {
   }
 }
 
+const targetText = (t: RefTarget): string =>
+  t.kind === "node" ? t.title : `any ${t.tag.title}${t.name.trim() ? ` named like "${t.name.trim()}"` : ""}`;
+
+/** One reference row as a verb phrase: "link to X", "do not link to X". */
+export function refText(r: RefRow): string {
+  const t = targetText(r.target!);
+  switch (r.dir) {
+    case "links-to": return `${r.not ? "do not link to" : "link to"} ${t}`;
+    case "linked-from": return `${r.not ? "are not linked from" : "are linked from"} ${t}`;
+    case "ancestor-links-to": return `${r.not ? "have no ancestor linking to" : "have an ancestor linking to"} ${t}`;
+    case "under": return `${r.not ? "are not on a page under" : "are on a page under"} ${t}`;
+  }
+}
+
 function scope(q: Query): string {
   switch (q.scope.kind) {
     case "anywhere": return "";
@@ -79,6 +93,7 @@ export function readback(q: Query): string {
   const rows = q.rows.filter(rowComplete);
   const clauses = rows.map((r, i) => (i === 0 ? rowText(r) : `${r.join} ${rowText(r)}`));
   if (q.content) clauses.push(`${clauses.length ? "and " : ""}${content(q.content)}`);
-  const subject = tags(q.tags) + scope(q);
+  const refs = q.refs.filter(refComplete).map((r, i) => (i === 0 ? refText(r) : `${r.join} ${refText(r)}`));
+  const subject = tags(q.tags) + scope(q) + (refs.length ? ` that ${refs.join(" ")}` : "");
   return clauses.length ? `${subject} where ${clauses.join(" ")}` : subject;
 }

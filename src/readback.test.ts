@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addRow, addTag, emptyQuery, setContent, setJoin, setRow, setScope, setTag, toggleNot, type PropertyRef, type Query, type TagRef, type Value } from "./model";
+import { addRef, addRow, addTag, emptyQuery, setContent, setJoin, setRef, setRow, setScope, setTag, toggleNot, type PropertyRef, type Query, type RefRow, type TagRef, type Value } from "./model";
 import { readback } from "./readback";
 
 const project: TagRef = { ident: ":user.class/project-1", title: "project" };
@@ -60,5 +60,37 @@ describe("readback with a scope", () => {
     expect(readback(addTag(setScope(emptyQuery(), { kind: "referenced-in", page: { uuid: "u", title: "Book" } }), artist))).toBe("artist nodes referenced in Book");
     expect(readback(setScope(emptyQuery(), { kind: "library" }))).toBe("all nodes in the Library");
     expect(readback(setScope(emptyQuery(), { kind: "on-page", page: { uuid: "u", title: "Book" } }))).toBe("all nodes on Book");
+  });
+});
+
+describe("readback with reference rows", () => {
+  const withRef = (q: Query, patch: Partial<Omit<RefRow, "id">>) => {
+    const q2 = addRef(q);
+    return setRef(q2, q2.refs[q2.refs.length - 1].id, patch);
+  };
+  const iris = { kind: "node", uuid: "u", title: "Project Iris" } as const;
+  it("phrases the four directions after the subject, before the filters", () => {
+    expect(readback(withRef(addTag(emptyQuery(), project), { dir: "links-to", target: iris }))).toBe("project nodes that link to Project Iris");
+    expect(readback(withRef(emptyQuery(), { dir: "linked-from", target: iris }))).toBe("all nodes that are linked from Project Iris");
+    expect(readback(withRef(emptyQuery(), { dir: "ancestor-links-to", target: iris }))).toBe("all nodes that have an ancestor linking to Project Iris");
+    expect(readback(withRef(emptyQuery(), { dir: "under", target: iris }))).toBe("all nodes that are on a page under Project Iris");
+    let q = withRef(addTag(emptyQuery(), project), { dir: "links-to", target: iris });
+    q = row(q, { property: status, op: "contains-any", values: [text("Todo")] });
+    expect(readback(q)).toBe("project nodes that link to Project Iris where status is Todo");
+  });
+  it("tag targets read as any <tag>, with the name condition; NOT and OR compose", () => {
+    const anyProject = { kind: "tag", tag: project, name: "" } as const;
+    expect(readback(withRef(emptyQuery(), { dir: "links-to", target: anyProject }))).toBe("all nodes that link to any project");
+    expect(readback(withRef(emptyQuery(), { dir: "links-to", target: { ...anyProject, name: "iris" } }))).toBe('all nodes that link to any project named like "iris"');
+    let q = withRef(emptyQuery(), { dir: "links-to", target: iris, not: true });
+    expect(readback(q)).toBe("all nodes that do not link to Project Iris");
+    expect(readback(withRef(emptyQuery(), { dir: "linked-from", target: iris, not: true }))).toBe("all nodes that are not linked from Project Iris");
+    expect(readback(withRef(emptyQuery(), { dir: "ancestor-links-to", target: iris, not: true }))).toBe("all nodes that have no ancestor linking to Project Iris");
+    expect(readback(withRef(emptyQuery(), { dir: "under", target: iris, not: true }))).toBe("all nodes that are not on a page under Project Iris");
+    q = withRef(q, { dir: "under", target: anyProject, join: "or" });
+    expect(readback(q)).toBe("all nodes that do not link to Project Iris or are on a page under any project");
+  });
+  it("skips rows without a target", () => {
+    expect(readback(addRef(addTag(emptyQuery(), project)))).toBe("project nodes");
   });
 });
