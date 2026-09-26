@@ -58,8 +58,10 @@ Applied: A1 demo removed; A3 bundle checked free of dev code; C6 `CHANGELOG.md`;
 section; C8 dev-only note in `INSTALL-DEV.md`; E11 `.gitignore`; E12 MIT `LICENSE` (Danzu); E13
 manifest fields (`author`, `license`, `repository`, `engines`, `packageManager`, `logseq.supportsDB`,
 `supportsDBOnly`, `minSDKVersion`, icon at repo root); E14 `ci.yml` + `publish.yml` (Node 22).
+Also applied: D9 overrides (`dompurify` ^3.4.16, `lodash-es` ^4.18.1, resolved exactly) and D10 vite 7.3.6 +
+vitest 4.1.11; `npm audit` reports 0 vulnerabilities; suite, typecheck and build green on the new toolchain.
 Deferred: A2 `docs/probes.jsonl` (keep or ignore), B4 SDK typing wrapper, B5 `graph.ts` row types,
-D9–D10 dependency overrides / vite+vitest bump, E15 remote, E16 README screenshot, E17 handoff folder note.
+E15 remote, E16 README screenshot, E17 handoff folder note.
 
 ## Now — daily use
 
