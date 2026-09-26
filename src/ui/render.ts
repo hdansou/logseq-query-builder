@@ -49,6 +49,10 @@ export function createRenderer(root: HTMLElement, ctx: Ctx, zones: { tags: ZoneR
     // Commit on every keystroke: a blur-time change would re-render mid Tab and lose the focus move.
     name.addEventListener("input", () => store.setName(name.value));
     head.appendChild(name);
+    // Result count lives up here, at the right end of the name row.
+    const count = el("span", "count", s.error ? "error" : !s.guard.ok ? "" : s.loading ? "running…" : `${s.results.length} node${s.results.length === 1 ? "" : "s"}`);
+    count.dataset.fid = "count";
+    head.appendChild(count);
     root.appendChild(head);
 
     const tags = el("div", "zone"); zones.tags(tags, s, ctx); root.appendChild(tags);
@@ -82,7 +86,7 @@ export function createRenderer(root: HTMLElement, ctx: Ctx, zones: { tags: ZoneR
         more.dataset.fid = "more";
         more.addEventListener("click", () => store.loadMore());
         results.appendChild(more);
-      } else if (p.total) results.appendChild(el("div", "more", `${p.total} node${p.total === 1 ? "" : "s"}`));
+      }
     }
     root.appendChild(results);
 

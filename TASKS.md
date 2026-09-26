@@ -71,6 +71,7 @@ Open: replace the screenshot with a real-graph capture before the marketplace PR
 |---|---|---|---|---|
 | FEAT-31 | feat | `Page` selectable in the tag picker | done | Unit: Page listed with its count; live: "Page nodes" query lists pages |
 | FEAT-32 | feat | **Scope: referenced in a page.** Nodes (optionally tagged X) that are referenced from blocks of a chosen page — the "artists mentioned in my #book page" case: `[?pg :block/title ?title] [?b :block/page ?pg] [?b :block/refs ?node] [?node :block/tags ?artist-tag]`. Needs a page picker and a new scope zone (or a "referenced in" row type) plus `:block/refs` grounding; corresponds to the spec's deferred "Querying references / backlinks" | todo | Unit: emitter form; live: a page with refs to tagged nodes returns exactly those nodes; insert renders |
+| FEAT-34 | feat | Result count in the header row, not under the list | done | Live screenshot |
 | FEAT-33 | feat | **Scope: inside the Library.** Restrict results to pages/nodes under the built-in Library page; model to be grounded first (parent attribute, nesting) | todo — grounding in progress | Unit: emitter form; live on a graph with Library pages |
 
 
