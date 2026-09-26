@@ -42,3 +42,10 @@ describe("page", () => {
     expect(page([], 1)).toEqual({ shown: [], remaining: 0, total: 0 });
   });
 });
+
+describe("normalize resolves [[uuid]] links through the pulled refs", () => {
+  it("shows the referenced node's title instead of its uuid", () => {
+    const rows = [[{ uuid: "u", title: "Mentions [[abc]] inline", refs: [{ uuid: "abc", title: "Project Iris" }] }]];
+    expect(normalize(rows)[0].title).toBe("Mentions [[Project Iris]] inline");
+  });
+});

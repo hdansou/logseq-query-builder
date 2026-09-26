@@ -1,5 +1,6 @@
 import type { Emitted } from "./emit";
 import type { Dq } from "./graph";
+import { resolveRefs, type RefTitle } from "./titles";
 
 /**
  * Runs the emitter's preview query and turns the rows into what the results list needs.
@@ -10,7 +11,7 @@ export interface ResultRow { uuid: string; title: string; page: { uuid: string; 
 
 export const PAGE_SIZE = 10;
 
-interface PullMap { uuid: string; title?: string; page?: { uuid: string; title: string }; [k: string]: unknown }
+interface PullMap { uuid: string; title?: string; page?: { uuid: string; title: string }; refs?: RefTitle[]; [k: string]: unknown }
 const isPullMap = (m: unknown): m is PullMap => !!m && typeof m === "object" && typeof (m as PullMap).uuid === "string";
 
 export function normalize(rows: unknown[]): ResultRow[] {
@@ -18,7 +19,7 @@ export function normalize(rows: unknown[]): ResultRow[] {
     .map((r) => {
       const m = Array.isArray(r) ? r[0] : r;
       if (!isPullMap(m)) throw new Error(`preview row is not a pull map: ${JSON.stringify(r)}`);
-      return { uuid: m.uuid, title: String(m.title ?? ""), page: m.page ? { uuid: String(m.page.uuid), title: String(m.page.title) } : null, raw: m };
+      return { uuid: m.uuid, title: resolveRefs(String(m.title ?? ""), m.refs), page: m.page ? { uuid: String(m.page.uuid), title: String(m.page.title) } : null, raw: m };
     })
     .sort((a, b) => a.title.localeCompare(b.title));
 }

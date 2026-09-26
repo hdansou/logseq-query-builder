@@ -1,4 +1,5 @@
 import { str } from "./edn";
+import { resolveRefs, type RefTitle } from "./titles";
 import type { PropertyRef, PropertyType, TagRef } from "./model";
 
 /**
@@ -15,7 +16,7 @@ export interface PropertyInfo extends PropertyRef { uuid: string; owners: string
 export interface ValueInfo { label: string; count: number; uuid: string }
 export interface NodeInfo { uuid: string; title: string; page: { uuid: string; title: string } | null }
 /** The host strips `:block/` from pull-map keys (observed live). */
-interface NodePull { uuid: string; title: string; page?: { uuid: string; title: string } }
+interface NodePull { uuid: string; title: string; page?: { uuid: string; title: string }; refs?: RefTitle[] }
 export interface AssetInfo { uuid: string; title: string }
 
 /** Where a ref value entity keeps its comparable scalar (same rule as the emitter). */
@@ -128,10 +129,10 @@ export class Graph {
   async nodes(needle: string, tagIdent?: string, limit = 20): Promise<NodeInfo[]> {
     const tag = tagIdent ? ` [?b :block/tags ${tagIdent}]` : "";
     const rows = await this.rows<[NodePull]>(
-      `[:find (pull ?b [:block/uuid :block/title {:block/page [:block/uuid :block/title]}]) :where [?b :block/title ?title] [?b :block/uuid _]${tag} (not [?b :logseq.property/created-from-property _]) (not [?b :logseq.property/built-in? true]) [(clojure.string/lower-case ?title) ?lt] [(clojure.string/includes? ?lt ${str(needle.toLowerCase())})]]`,
+      `[:find (pull ?b [:block/uuid :block/title {:block/page [:block/uuid :block/title]} {:block/refs [:block/uuid :block/title]}]) :where [?b :block/title ?title] [?b :block/uuid _]${tag} (not [?b :logseq.property/created-from-property _]) (not [?b :logseq.property/built-in? true]) [(clojure.string/lower-case ?title) ?lt] [(clojure.string/includes? ?lt ${str(needle.toLowerCase())})]]`,
     );
     return rows
-      .map(([m]): NodeInfo => ({ uuid: m.uuid, title: m.title, page: m.page ? { uuid: m.page.uuid, title: m.page.title } : null }))
+      .map(([m]): NodeInfo => ({ uuid: m.uuid, title: resolveRefs(m.title, m.refs), page: m.page ? { uuid: m.page.uuid, title: m.page.title } : null }))
       .sort((a, b) => a.title.localeCompare(b.title))
       .slice(0, limit);
   }

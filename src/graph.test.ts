@@ -95,7 +95,7 @@ describe("Graph.values / nodes / assets (FEAT-13)", () => {
     ":block/closed-value-property": [["cv-todo", "Todo", "a0"], ["cv-doing", "Doing", "a1"], ["cv-done", "Done", "a2"]],
     "(count-distinct ?b)": [["Todo", 5, "cv-todo"], ["Done", 2, "cv-done"], ["Blocked", 1, "open-1"]],
     "[?a :block/tags :logseq.class/Asset]": [["u-img", "photo.png"]],
-    "clojure.string/includes? ?lt": [[{ uuid: "u1", title: "Maria", page: { uuid: "p1", title: "People" } }], [{ uuid: "u2", title: "Marian Keyes" }]],
+    "clojure.string/includes? ?lt": [[{ uuid: "u1", title: "Maria", page: { uuid: "p1", title: "People" } }], [{ uuid: "u2", title: "Marian Keyes wrote [[b00k]]", refs: [{ uuid: "b00k", title: "Rachel's Holiday" }] }]],
   };
   it("values: closed choices in their order with counts (0 when unused), then open values by count", async () => {
     const g = new Graph(fake(table));
@@ -117,7 +117,7 @@ describe("Graph.values / nodes / assets (FEAT-13)", () => {
     const log: string[] = [];
     const g = new Graph(fake(table, log));
     const found = await g.nodes('Mar"ia');
-    expect(found).toEqual([{ uuid: "u1", title: "Maria", page: { uuid: "p1", title: "People" } }, { uuid: "u2", title: "Marian Keyes", page: null }]);
+    expect(found).toEqual([{ uuid: "u1", title: "Maria", page: { uuid: "p1", title: "People" } }, { uuid: "u2", title: "Marian Keyes wrote [[Rachel's Holiday]]", page: null }]);   // [[uuid]] resolved through the pulled refs
     expect(log[0]).toContain(`[(clojure.string/includes? ?lt "mar\\"ia")]`);
     expect(log[0]).not.toContain(":block/tags");
     expect(log[0]).toContain("(not [?b :logseq.property/built-in? true])");

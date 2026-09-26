@@ -25,7 +25,7 @@ export const RULES = ` [[(class-extends ?p ?c) [?c :logseq.property.class/extend
 
 const previewPull = (q: Query) => {
   const ctx = contextPull(q.rows.flatMap((r) => (r.property ? [r.property] : [])));
-  return `(pull ?b [:block/uuid :block/title {:block/page [:block/uuid :block/title]}${ctx ? " " + ctx : ""}])`;
+  return `(pull ?b [:block/uuid :block/title {:block/page [:block/uuid :block/title]} {:block/refs [:block/uuid :block/title]}${ctx ? " " + ctx : ""}])`;
 };
 const BLOCK_PULL = "(pull ?b [*])";
 

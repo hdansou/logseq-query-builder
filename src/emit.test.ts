@@ -53,7 +53,7 @@ describe("spec scenarios", () => {
  (not [?b ${P(status)} ?v2] [?v2 :block/title ?x2] [(contains? #{"done"} ?x2)])]
  :inputs [:+30d-end]}`);
     expect(e.preview.inputs).toEqual([":+30d-end", RULES]);
-    expect(e.preview.query).toContain(`:find (pull ?b [:block/uuid :block/title {:block/page [:block/uuid :block/title]} {${P(assignee)} [:block/title]} {${P(status)} [:block/title]} ${P(deadline)}]) :in $ ?in1 % :where`);
+    expect(e.preview.query).toContain(`:find (pull ?b [:block/uuid :block/title {:block/page [:block/uuid :block/title]} {:block/refs [:block/uuid :block/title]} {${P(assignee)} [:block/title]} {${P(status)} [:block/title]} ${P(deadline)}]) :in $ ?in1 % :where`);
   });
 
   it("3. anything assigned to one of three people (no tag); contains all needs all three", () => {
