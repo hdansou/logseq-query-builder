@@ -6,7 +6,6 @@ import { manifest } from "./manifest";
 import { hidePanel, showPanel } from "./panel";
 import { runPreview } from "./preview";
 import { registerProbeCommands } from "./probes";
-import { registerDemo } from "./demo";
 import { renderContent } from "./ui/content";
 import { createRenderer } from "./ui/render";
 import { focusRow, renderRows } from "./ui/rows";
@@ -93,10 +92,7 @@ function main() {
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); e.stopPropagation(); void insert(); }
   }, true);
 
-  if (import.meta.env.DEV) {
-    registerProbeCommands();
-    registerDemo();
-  }
+  if (import.meta.env.DEV) registerProbeCommands();   // probe commands never reach the production bundle
   console.info(`[${manifest.id}] ready v${manifest.version}`);
 }
 
