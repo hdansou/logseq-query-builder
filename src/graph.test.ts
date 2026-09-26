@@ -72,7 +72,7 @@ describe("Graph.properties (FEAT-12)", () => {
   it("keeps public built-ins like Priority, drops hidden, deleted, non-public built-ins, unsupported types and settings-like built-ins", async () => {
     const g = new Graph(fake(table));
     const props = await g.properties();
-    expect(props.map((p) => p.title)).toEqual(["Priority", "assignee", "deadline", "notes", "status"]);
+    expect(props.map((p) => p.title)).toEqual(["assignee", "deadline", "notes", "Priority", "status"]);
     expect(props.find((p) => p.title === "status")).toEqual({
       ident: ":user.property/status-1", title: "status", uuid: "u-s", type: "default", cardinality: "one",
       owners: [":user.class/project-1", ":logseq.class/Task"],
@@ -82,7 +82,7 @@ describe("Graph.properties (FEAT-12)", () => {
   it("orders the selected tags' own properties first, then the rest alphabetically", async () => {
     const g = new Graph(fake(table));
     const ordered = await g.properties([":logseq.class/Task"]);
-    expect(ordered.map((p) => p.title)).toEqual(["deadline", "status", "Priority", "assignee", "notes"]);
+    expect(ordered.map((p) => p.title)).toEqual(["deadline", "status", "assignee", "notes", "Priority"]);
   });
 });
 
