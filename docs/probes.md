@@ -268,3 +268,34 @@ host). Recorded here because `demolocal2` had no Library pages, which hid the fi
 - Inbound refs for a class: `[?x :db/ident :logseq.class/Task] [?b :block/refs ?x]` → 16 blocks,
   15 of them tagged `Task` (tags are refs). With `(not [?b :block/tags ?x])` → 1, which is what the
   host's `get-linked-references` does for classes (`deps/db/src/logseq/db/common/reference.cljs`).
+
+## Reference rows, live (2026-09-26, FEAT-44)
+
+Web app at `localhost:3001`, graph `logseq_db_demolocal2`, plugin from vite `:8291`, driven by keyboard.
+Seed added for the run (kept on the graph): pages `Project Iris` and `QB Refs Probe`; on the probe
+page a block `Mentions [[Project Iris]] inline` with a child `Nested under the Iris mention, no link
+of its own` and a sibling `No links here`; on the Iris page a block linking back to the probe page.
+
+| Row | Read-back | Observed |
+|---|---|---|
+| links to · Project Iris | all nodes that link to Project Iris | 1 node: the Mentions block |
+| ancestor links to · Project Iris | all nodes that have an ancestor linking to Project Iris | 2 nodes: Mentions + its nested child |
+| is linked from · Project Iris | all nodes that are linked from Project Iris | 1 node: QB Refs Probe (the page, linked from a block on the Iris page) |
+| on page under · QB Refs Probe | all nodes that are on a page under QB Refs Probe | 3 nodes: the page's three blocks |
+| on page under · QB Refs Probe AND links to · any Page | … and link to any Page | 1 node: the Mentions block (tag target with inheritance; a name condition input follows the chip) |
+| links to · any Task | all nodes that link to any Task | 0 nodes, no error (nothing links to a task on this graph) |
+| Insert from `/Query Builder` | block "all nodes that link to Project Iris", Live query (1) | state JSON carries `refs`; ⌘⇧F on the block reopens with the Project Iris chip and 1 node |
+
+Findings:
+- **Typed picker text was wiped by a re-render.** A picker's text is not state; when the preview
+  came back (300 ms debounce + query) the panel re-rendered and the target picker lost what had
+  been typed. `captureFocus` in `render.ts` now restores the input's text and re-dispatches
+  `input`. Before the fix, "task" and "iris" typed right after a pick vanished; after it, "qb refs"
+  and "page" survived.
+- Clearing a target (chip ×) and picking a direction now move focus to the next useful control.
+- The host's `datascript_query` from the page console does **not** inject `%` rules (`Too few
+  inputs passed, expected: [$ %]`), unlike the CLI; the preview keeps passing the rules string.
+- Vite's full reload after an edit blanks the plugin iframe; reload the host page and re-register
+  (each registration creates one more hidden `query-builder-state` property under a new plugin id).
+- Node search results are sorted by title, so `Project Iris` came third behind two blocks that
+  mention "Iris"; pages first would read better (queued as FEAT-46).

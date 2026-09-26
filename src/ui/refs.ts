@@ -46,7 +46,8 @@ function renderRef(r: RefRow, i: number, ctx: Ctx): HTMLElement {
     options: async () => DIRECTIONS.map((d) => ({ id: d.id, label: d.label, value: d.id })),
     onPick: (o) => {
       store.update((q) => setRef(q, r.id, { dir: o.value }));
-      document.querySelector<HTMLElement>(`[data-fid="ref-target-${r.id}"]`)?.focus();   // render is synchronous
+      // Next control: the target picker, else (target already set) the name condition or the remove button. Render is synchronous.
+      document.querySelector<HTMLElement>(`[data-fid="ref-target-${r.id}"], [data-fid="ref-name-${r.id}"], [data-fid="ref-x-${r.id}"]`)?.focus();
     },
   }));
 
@@ -55,7 +56,10 @@ function renderRef(r: RefRow, i: number, ctx: Ctx): HTMLElement {
     const chip = el("span", "chip" + (r.not ? " neg" : ""));
     chip.appendChild(el("span", undefined, t.kind === "node" ? t.title : `any ${t.tag.title}`));
     const x = el("button", "x", "×") as HTMLButtonElement; x.dataset.fid = `ref-clear-${r.id}`; x.title = "Change target";
-    x.addEventListener("click", () => store.update((q) => setRef(q, r.id, { target: null })));
+    x.addEventListener("click", () => {
+      store.update((q) => setRef(q, r.id, { target: null }));
+      document.querySelector<HTMLElement>(`[data-fid="ref-target-${r.id}"]`)?.focus();   // render is synchronous
+    });
     chip.appendChild(x);
     line.appendChild(chip);
     if (t.kind === "tag") {

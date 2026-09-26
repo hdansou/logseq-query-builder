@@ -19,17 +19,26 @@ const el = (tag: string, cls?: string, text?: string) => {
   return n;
 };
 
-/** Remember which control had focus (and its caret) across a full re-render. */
+/**
+ * Remember which control had focus (its text and caret) across a full re-render. A picker's typed
+ * text is not state, so a re-render caused by results arriving would otherwise wipe what the user
+ * is typing; restoring it and re-dispatching `input` lets the picker refresh its list. Observed
+ * live: text typed into the reference target picker vanished when the preview came back.
+ */
 function captureFocus() {
   const a = document.activeElement as HTMLElement | null;
   const fid = a?.dataset.fid;
   const sel = a instanceof HTMLInputElement ? [a.selectionStart, a.selectionEnd] : null;
+  const val = a instanceof HTMLInputElement ? a.value : null;
   return () => {
     if (!fid) return;
     const n = document.querySelector<HTMLElement>(`[data-fid="${CSS.escape(fid)}"]`);
     if (!n) return;
     n.focus();
-    if (n instanceof HTMLInputElement && sel && sel[0] !== null) n.setSelectionRange(sel[0], sel[1]);
+    if (n instanceof HTMLInputElement) {
+      if (val !== null && n.value !== val) { n.value = val; n.dispatchEvent(new Event("input")); }
+      if (sel && sel[0] !== null) n.setSelectionRange(sel[0], sel[1]);
+    }
   };
 }
 

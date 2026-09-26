@@ -23,6 +23,7 @@ All notable changes to this plugin are recorded here. The format follows
 ### Fixed
 - The result count sits at the right end of the name row instead of under the list.
 - `Page` is offered in the tag selector, so "all pages" and "pages tagged X" can be built; it had been hidden with the structural tags.
+- Text typed into a picker is no longer lost when live results arrive and the panel re-renders.
 - The Library scope no longer fails with `Insufficient bindings` on a graph whose Library holds pages: the "page itself" branch of its `or` now binds the result variable with `identity` instead of comparing an unbound one.
 - Result rows are vertically centred and separated by a hairline, so one row is distinguishable from the next.
 - Priority (and any property whose `public?` datom is missing from the attribute index on a persisted graph) now appears in the property picker: visibility flags are read per entity instead of scanned by value.
