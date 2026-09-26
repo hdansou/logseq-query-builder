@@ -6,7 +6,7 @@ All notable changes to this plugin are recorded here. The format follows
 ## [Unreleased]
 
 ### Added
-- Floating, draggable, resizable builder panel opened with `⌘⇧Q`, from the command palette, or with the `/Query Builder` slash command.
+- Floating, draggable, resizable builder panel opened with `⌘⇧U`, from the command palette, or with the `/Query Builder` slash command.
 - Tag selector with autocomplete over the graph's tags (most-used first), AND / OR / NOT, an "any tag" presence test, and sub-tag inheritance on by default.
 - Filter rows (`property · operator · value`) for the eight DB property types, with operators taken from the type, values picked from the graph with usage counts, free entry for text and numbers, node search, and a date control that accepts `today`, `tomorrow`, `yesterday`, `±Nd/w/m/y` or `YYYY-MM-DD`.
 - Content search on the node's own text: contains, does not contain, starts with, regular expression.
@@ -21,6 +21,7 @@ All notable changes to this plugin are recorded here. The format follows
 - Cleared all eight `npm audit` advisories: `dompurify` and `lodash-es` (transitive through `@logseq/libs`) are pinned to patched versions with `overrides`; `esbuild` and `vite-node` are cleared by moving the toolchain to vite 7 and vitest 4.
 
 ### Fixed
+- The open shortcut is `⌘⇧U`, not `⌘⇧Q`, which is the macOS log-out chord; `⌘⇧F` was ruled out because Logseq binds it to toggle-favorite.
 - The hidden state property's schema is ensured right before every write, never changing an existing property's type; a write racing the startup call could leave a visible, untyped `state` property on the block.
 
 ### Notes

@@ -13,8 +13,10 @@ live query node. No Datalog written by hand.
 
 ## Using it
 
-Open the builder with **⌘⇧Q** (also "Query Builder: open" in the command palette), or type
-**/Query Builder** inside a block. The panel floats: drag it by its title bar, resize it from the
+Open the builder with **⌘⇧U** (also "Query Builder: open" in the command palette), or type
+**/Query Builder** inside a block. The shortcut can be changed in Logseq's keymap settings; ⌘⇧U
+was chosen because it is free in Logseq, macOS and Chrome (⌘⇧Q logs out of macOS, ⌘⇧F is
+Logseq's toggle-favorite). The panel floats: drag it by its title bar, resize it from the
 corner, click the graph behind it.
 
 | Zone | What it does |
