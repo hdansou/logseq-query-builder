@@ -25,6 +25,9 @@ All notable changes to this plugin are recorded here. The format follows
 - `Page` is offered in the tag selector, so "all pages" and "pages tagged X" can be built; it had been hidden with the structural tags.
 - Text typed into a picker is no longer lost when live results arrive and the panel re-renders; only text being composed is carried over, so a freshly picked property keeps its label.
 - In the reference target search, pages come before blocks.
+- A newcomer cheatsheet, `docs/cheatsheet.md`, linked from the README.
+- The footer stays visible when the panel is resized small: everything above it scrolls as one.
+- A long query name wraps onto more lines instead of being cut off at the right, and spaces typed into it are no longer swallowed.
 - Result rows and node search show `[[Project Iris]]` instead of `[[<uuid>]]`: links in a block's title are resolved through its pulled references.
 - The Library scope no longer fails with `Insufficient bindings` on a graph whose Library holds pages: the "page itself" branch of its `or` now binds the result variable with `identity` instead of comparing an unbound one.
 - Result rows are vertically centred and separated by a hairline, so one row is distinguishable from the next.

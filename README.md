@@ -28,7 +28,8 @@ corner, click the graph behind it.
 | **Content** | Search the node's own text: contains, does not contain, starts with, or a regular expression. |
 | **Results** | The first 10 matches with the values you filtered on and the page they live on; *Show more* reveals the rest. Click or select one to jump to it — the builder stays open. |
 
-The **datalog** toggle in the footer shows what would be inserted.
+The **datalog** toggle in the footer shows what would be inserted. New to queries? Start with the
+[cheatsheet](docs/cheatsheet.md).
 
 ### Scopes
 

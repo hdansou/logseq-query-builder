@@ -27,17 +27,19 @@ const el = (tag: string, cls?: string, text?: string) => {
  * carries its own label, which must not be overwritten. Observed live: text typed into the target
  * picker vanished when the preview came back; then a picked property was blanked by the restore.
  */
+const isText = (n: Element | null): n is HTMLInputElement | HTMLTextAreaElement => n instanceof HTMLInputElement || n instanceof HTMLTextAreaElement;
+
 function captureFocus() {
   const a = document.activeElement as HTMLElement | null;
   const fid = a?.dataset.fid;
-  const sel = a instanceof HTMLInputElement ? [a.selectionStart, a.selectionEnd] : null;
-  const val = a instanceof HTMLInputElement && a.dataset.typing === "1" ? a.value : null;
+  const sel = isText(a) ? [a.selectionStart, a.selectionEnd] : null;
+  const val = isText(a) && a.dataset.typing === "1" ? a.value : null;
   return () => {
     if (!fid) return;
     const n = document.querySelector<HTMLElement>(`[data-fid="${CSS.escape(fid)}"]`);
     if (!n) return;
     n.focus();
-    if (n instanceof HTMLInputElement) {
+    if (isText(n)) {
       if (val !== null && n.value !== val) { n.value = val; n.dispatchEvent(new Event("input")); }
       if (sel && sel[0] !== null) n.setSelectionRange(sel[0], sel[1]);
     }
@@ -49,32 +51,39 @@ export function createRenderer(root: HTMLElement, ctx: Ctx, zones: { scope: Zone
   return (s: State) => {
     const restore = captureFocus();
     root.innerHTML = "";
+    // Everything above the footer scrolls as one; the footer stays put however small the panel is.
+    const body = el("div"); body.id = "body"; root.appendChild(body);
 
     const head = el("div", "zone flex");
     // Prefilled with the read-back sentence until the user types their own name (or clears it).
-    const name = el("input", "name") as HTMLInputElement;
+    // A textarea that grows with its text, so a long sentence wraps instead of being cut off.
+    const name = el("textarea", "name") as HTMLTextAreaElement;
+    name.rows = 1;
     name.placeholder = "Query name";
-    name.value = nameFor(s);
+    name.value = s.q.name.trim() ? s.q.name : nameFor(s);   // raw while typing (a trailing space must survive the re-render); the suggestion otherwise
     name.title = s.q.name.trim() ? "Your name for this query" : "Suggested from the filters; edit or replace it";
     name.dataset.fid = "name";
+    const fit = () => { name.style.height = "0"; name.style.height = `${name.scrollHeight}px`; };
     // Commit on every keystroke: a blur-time change would re-render mid Tab and lose the focus move.
-    name.addEventListener("input", () => store.setName(name.value));
+    name.addEventListener("input", () => { fit(); store.setName(name.value); });
+    name.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.metaKey && !e.ctrlKey && !e.shiftKey) e.preventDefault(); });   // one line; ⌘↩ still inserts
     head.appendChild(name);
     // Result count lives up here, at the right end of the name row.
     const count = el("span", "count", s.error ? "error" : !s.guard.ok ? "" : s.loading ? "running…" : `${s.results.length} node${s.results.length === 1 ? "" : "s"}`);
     count.dataset.fid = "count";
     head.appendChild(count);
-    root.appendChild(head);
+    body.appendChild(head);
+    fit();
 
-    const scope = el("div", "zone"); zones.scope(scope, s, ctx); root.appendChild(scope);
-    const tags = el("div", "zone"); zones.tags(tags, s, ctx); root.appendChild(tags);
-    const rows = el("div", "zone"); zones.rows(rows, s, ctx); root.appendChild(rows);
-    const refs = el("div", "zone"); zones.refs(refs, s, ctx); root.appendChild(refs);
-    const content = el("div", "zone"); zones.content(content, s, ctx); root.appendChild(content);
+    const scope = el("div", "zone"); zones.scope(scope, s, ctx); body.appendChild(scope);
+    const tags = el("div", "zone"); zones.tags(tags, s, ctx); body.appendChild(tags);
+    const rows = el("div", "zone"); zones.rows(rows, s, ctx); body.appendChild(rows);
+    const refs = el("div", "zone"); zones.refs(refs, s, ctx); body.appendChild(refs);
+    const content = el("div", "zone"); zones.content(content, s, ctx); body.appendChild(content);
 
     const g = el("div", "guard"); g.id = "guard";
     if (!s.guard.ok) { g.classList.add("on"); g.textContent = s.guard.reason; }
-    root.appendChild(g);
+    body.appendChild(g);
 
     const results = el("div"); results.id = "results";
     if (s.error) results.appendChild(el("div", "empty-results", `Query failed: ${s.error}`));
@@ -101,9 +110,9 @@ export function createRenderer(root: HTMLElement, ctx: Ctx, zones: { scope: Zone
         results.appendChild(more);
       }
     }
-    root.appendChild(results);
+    body.appendChild(results);
 
-    const dsl = el("pre", "", store.emitted()?.block ?? ""); dsl.id = "dsl"; if (s.showDsl) dsl.classList.add("on"); root.appendChild(dsl);
+    const dsl = el("pre", "", store.emitted()?.block ?? ""); dsl.id = "dsl"; if (s.showDsl) dsl.classList.add("on"); body.appendChild(dsl);
 
     const foot = el("div"); foot.id = "footer";
     const can = canInsert({ guard: s.guard, name: nameFor(s), target: s.target });
