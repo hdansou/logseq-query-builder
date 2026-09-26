@@ -1,6 +1,6 @@
 import { emit } from "../emit";
 import { guard, type GuardResult } from "../guard";
-import { addRow, emptyQuery, type Query } from "../model";
+import { addRef, addRow, emptyQuery, type Query } from "../model";
 import type { ResultRow } from "../preview";
 import { readback } from "../readback";
 
@@ -98,6 +98,11 @@ export class Store {
   addRow(): string {
     this.update(addRow);
     return this.state.q.rows[this.state.q.rows.length - 1].id;
+  }
+  /** Adds a reference row and returns its id so the UI can focus it. */
+  addRef(): string {
+    this.update(addRef);
+    return this.state.q.refs[this.state.q.refs.length - 1].id;
   }
   loadMore() { this.state = { ...this.state, pages: this.state.pages + 1 }; this.notify(); }
 
