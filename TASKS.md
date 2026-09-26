@@ -100,4 +100,5 @@ P5 and TASK-5 done 2026-09-26: every first-implementation item in the spec's sco
 | ID | Title | Status | Evidence |
 |---|---|---|---|
 | BUG-1 | **Upstream, unverified:** attribute-index scans miss datoms on a persisted graph (`[?p :logseq.property/public? true]` misses Priority; `status` clauses in P0) | todo — verify before filing | `docs/probes.md` "Priority missing" and the P0 `status` notes. Worked around in `graph.ts` with `get-else`. To verify: reproduce on a fresh graph after a full reload (not in-memory), compare `(d/datoms db :avet :logseq.property/public?)` against `:eavt` for the same entity, check whether an EDN export/import round trip clears it, then file at logseq/db-test with the minimal repro. Do not "fix" in this plugin beyond the workaround |
+| BUG-2 | Library scope threw `Insufficient bindings: #{?b} not bound in [(= ?b ?lp)]` once the Library held a page; the live check on `demolocal2` passed only because its Library was empty | done | Found while probing scope forms on the CLI graph `Demo-Graph` (2026-09-26). The page branch of the `or` now binds `?b` with `[(identity ?lp) ?b]`; unit test updated |
 

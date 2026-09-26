@@ -199,9 +199,9 @@ describe("scopes", () => {
     expect(e.where).toEqual([`[?src :block/uuid #uuid "b00k"] [?b :block/page ?src]`]);
     expect(e.rules).toBe(false);
   });
-  it("library: pages under the built-in Library page or blocks on them, via the parent rule", () => {
+  it("library: pages under the built-in Library page or blocks on them, via the parent rule; the page branch binds ?b with identity, `(= ?b ?lp)` is an unbound predicate", () => {
     const e = emit(setScope(emptyQuery(), { kind: "library" }));
-    expect(e.where).toEqual([`[?lib :block/name "library"] [?lib :logseq.property/built-in? true] (parent ?lib ?lp) [?lp :block/tags :logseq.class/Page] (or [(= ?b ?lp)] [?b :block/page ?lp])`]);
+    expect(e.where).toEqual([`[?lib :block/name "library"] [?lib :logseq.property/built-in? true] (parent ?lib ?lp) [?lp :block/tags :logseq.class/Page] (or [(identity ?lp) ?b] [?b :block/page ?lp])`]);
     expect(e.rules).toBe(true);
     expect(RULES).toContain("(parent ?p ?c)");
   });

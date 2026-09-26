@@ -248,3 +248,23 @@ is back. Upstream, not ours; not filed yet (mechanism still unproven).
 (`deps/outliner/src/logseq/outliner/page.cljs:128-131`, `entity_util.cljs:58-64`). Clearing the
 flag first (`upsert_block_property(uuid, "logseq.property/hide?", false)`) and then deleting works.
 Thirteen dev-registration `state` properties were removed from `demolocal2` this way.
+
+## Scope forms re-probed on the CLI (2026-09-26)
+
+Read-only `logseq query` runs against the CLI graph `Demo-Graph` (same Datascript engine as the
+host). Recorded here because `demolocal2` had no Library pages, which hid the first finding.
+
+- **BUG-2.** `(or [(= ?b ?lp)] [?b :block/page ?lp])` with `?b` otherwise unbound fails:
+  `Insufficient bindings: #{?b} not bound in [(= ?b ?lp)]`. `(or [(identity ?lp) ?b] [?b :block/page ?lp])`
+  runs (79 rows for a page and its blocks). The Library scope now uses the `identity` branch.
+- Page entities carry their own `:block/refs`: on `Demo-Graph` every page lists `Page` (its tag)
+  and `Tags` (the `:block/tags` property), plus real ones (`Formatting Style Guide` →
+  `property-example`, `Link to another page` → `Task`). The current "referenced in page…" form
+  reads only `[?sb :block/page ?src]`, so a page's own property values never appear.
+- Inbound refs `[?b :block/refs ?x]` for `Quick Start` return five rows, two of them the host's
+  hidden `Linked references` / `Unlinked references` view blocks on the `$$$views` page; the
+  Linked References panel drops them through `entity-util/hidden?`. Excluding blocks whose page
+  name starts with `$$$` leaves the three visible ones.
+- Inbound refs for a class: `[?x :db/ident :logseq.class/Task] [?b :block/refs ?x]` → 16 blocks,
+  15 of them tagged `Task` (tags are refs). With `(not [?b :block/tags ?x])` → 1, which is what the
+  host's `get-linked-references` does for classes (`deps/db/src/logseq/db/common/reference.cljs`).

@@ -142,7 +142,7 @@ function scopeClause(scope: Scope, ctx: Ctx): Clause | null {
     case "library":
       ctx.rules = true;
       return {
-        text: `[?lib :block/name "library"] [?lib :logseq.property/built-in? true] (parent ?lib ?lp) [?lp :block/tags :logseq.class/Page] (or [(= ?b ?lp)] [?b :block/page ?lp])`,
+        text: `[?lib :block/name "library"] [?lib :logseq.property/built-in? true] (parent ?lib ?lp) [?lp :block/tags :logseq.class/Page] (or [(identity ?lp) ?b] [?b :block/page ?lp])`,
         positive: true, join: "and",
       };
   }
