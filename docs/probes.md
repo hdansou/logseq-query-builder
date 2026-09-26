@@ -299,3 +299,29 @@ Findings:
   (each registration creates one more hidden `query-builder-state` property under a new plugin id).
 - Node search results are sorted by title, so `Project Iris` came third behind two blocks that
   mention "Iris"; pages first would read better (queued as FEAT-46).
+
+## Filtered target set, live (2026-09-26, FEAT-45)
+
+Same setup. Keyboard-driven: *is linked from · any Task* → 2 nodes (Sep 25th, 2026 and Task Testing
+Page); *+ condition on the target* opened a condition row under the reference row reading "whose IS
+[property] [operator] [value]", the property picker listing Task's own properties first (Deadline,
+Priority, Scheduled, Status with the `· Task` hint); picking Status set *contains any*. The keyboard
+path into the plugin frame then stopped delivering keys (the focused input ignored Backspace/typing),
+so the condition's effect was checked with the emitter's exact clause on the host engine:
+
+| Clause | Result |
+|---|---|
+| is linked from any Task (no condition) | Sep 25th, 2026 · Task Testing Page |
+| … whose Status is Todo | Task Testing Page |
+| … whose Status is Doing | Sep 25th, 2026 |
+
+Findings:
+- **BUG-4.** The BUG-3 restore (carry typed picker text across a re-render) overwrote a freshly
+  picked property's label with the empty text the picker had just cleared. Only text being composed
+  is carried now: the picker marks its input `data-typing` while the user types and clears it on
+  pick and blur; `captureFocus` restores only that.
+- Toggling `⌘⇧F` out of phase sends keystrokes to the host: one run typed "is linked" into the
+  Journal table's *New property* box and created a `:user.property/islinked-…` property, deleted
+  afterwards. Check the panel is open (screenshot) before typing.
+- After a pick, `Tab` from the name condition goes to the row's remove × before the *+ condition*
+  button: the button sits after the row line in DOM order.

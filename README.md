@@ -24,7 +24,7 @@ corner, click the graph behind it.
 | **Name** | The query's title once inserted. Prefilled with a plain-English reading of your filters; edit or replace it. |
 | **Tags** | Autocomplete over your graph's tags, most-used first. Several tags combine with AND / OR; each can be NOT. "any tag" is a presence test. *Include sub-tags* (on by default) also matches tags that extend the chosen one. |
 | **Filters** | One row per property: property → operator → value. Operators follow the property's type (text, number, URL, node, asset, date, date-time, checkbox). Rows combine with AND / OR left to right, each can be NOT. Values are picked from what the graph actually holds, with counts; text and numbers also accept free entry; dates accept `today`, `tomorrow`, `yesterday`, `±Nd/w/m/y` or `YYYY-MM-DD`, typed or picked from the calendar button beside the field. |
-| **References** | One row per relationship: *links to*, *is linked from*, *ancestor links to*, or *on page under*, then a target: one node, or *any \<tag\>* (sub-tags included) optionally narrowed by a name fragment. Rows combine with AND / OR, each can be NOT. See [References](#references). |
+| **References** | One row per relationship: *links to*, *is linked from*, *ancestor links to*, or *on page under*, then a target: one node, or *any \<tag\>* (sub-tags included) optionally narrowed by a name fragment and by property conditions. Rows combine with AND / OR, each can be NOT. See [References](#references). |
 | **Content** | Search the node's own text: contains, does not contain, starts with, or a regular expression. |
 | **Results** | The first 10 matches with the values you filtered on and the page they live on; *Show more* reveals the rest. Click or select one to jump to it — the builder stays open. |
 
@@ -48,7 +48,9 @@ click. Relationships to other nodes are reference rows, below.
 
 A reference row reads `that <direction> <target>`. Direction is the operator; the target is one node
 (pages, journals, blocks) or every node carrying a tag, with sub-tags included like the tag selector,
-optionally narrowed with *named like…* to titles containing a fragment. One hop: a task linking to a
+optionally narrowed with *named like…* to titles containing a fragment and with *+ condition on
+the target*: property rows evaluated on the target set, with the same controls as a filter row, so
+*is linked from any Task whose Status is Todo* reads exactly that. One hop: a task linking to a
 project that links to a client does not *link to* the client. Linked references only: a name typed
 without a link is not found.
 

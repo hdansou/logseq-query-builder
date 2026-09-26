@@ -1,8 +1,8 @@
 import type { NodeInfo, TagInfo } from "../graph";
-import { removeRef, setRef, type RefDirection, type RefRow, type RefTarget } from "../model";
+import { addTargetRow, patchTargetRows, removeRef, removeTargetRow, rowsSetJoin, rowsToggleNot, setRef, setTargetRow, type RefDirection, type RefRow, type RefTarget, type TagRef } from "../model";
 import { createPicker, filterOptions, type Option } from "./picker";
 import type { Ctx, ZoneRenderer } from "./render";
-import { joinToggle } from "./rows";
+import { focusRow, joinToggle, renderFilterRow, type RowHost } from "./rows";
 
 /**
  * References zone (spec § Reference querying): one row per relationship, `direction · target`,
@@ -17,22 +17,39 @@ export const DIRECTIONS: { id: RefDirection; label: string }[] = [
 ];
 const dirLabel = (id: RefDirection) => DIRECTIONS.find((d) => d.id === id)!.label;
 
-/** Tags first ("any project", count as hint), then the nodes the graph search returned. */
+/**
+ * Tags first ("any project", count as hint), then the nodes the graph search returned: pages before
+ * blocks, since a reference target is usually a page (observed live: "Project Iris" came third
+ * behind two blocks mentioning Iris).
+ */
 export function targetOptions(tags: TagInfo[], nodes: NodeInfo[], text = ""): Option<RefTarget>[] {
   const tagOpts: Option<RefTarget>[] = tags.map((t) => ({
     id: t.ident, label: `any ${t.title}`, hint: `${t.count}`, value: { kind: "tag", tag: { ident: t.ident, title: t.title }, name: "", rows: [] },
   }));
-  const nodeOpts: Option<RefTarget>[] = nodes.map((n) => ({
-    id: n.uuid, label: n.title, hint: n.page?.title, value: { kind: "node", uuid: n.uuid, title: n.title },
-  }));
+  const nodeOpts: Option<RefTarget>[] = [...nodes]
+    .sort((a, b) => Number(a.page !== null) - Number(b.page !== null))   // stable: keeps the search's title order within each group
+    .map((n) => ({ id: n.uuid, label: n.title, hint: n.page?.title, value: { kind: "node", uuid: n.uuid, title: n.title } }));
   return [...filterOptions(tagOpts, text), ...nodeOpts];
 }
 
 const el = (tag: string, cls?: string, text?: string) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; };
 
+/** Condition rows of a tag target: the filter-row controls, changing the target's own row list. */
+const targetHost = (refId: string, tag: TagRef): RowHost => ({
+  ops: {
+    set: (id, patch) => (q) => setTargetRow(q, refId, id, patch),
+    remove: (id) => (q) => removeTargetRow(q, refId, id),
+    setJoin: (id, join) => (q) => patchTargetRows(q, refId, (rows) => rowsSetJoin(rows, id, join)),
+    toggleNot: (id) => (q) => patchTargetRows(q, refId, (rows) => rowsToggleNot(rows, id)),
+  },
+  tags: [tag], fid: `trow-${refId}`, first: "whose",
+});
+
 function renderRef(r: RefRow, i: number, ctx: Ctx): HTMLElement {
   const { store, graph } = ctx;
+  const wrap = el("div");
   const line = el("div", "row");
+  wrap.appendChild(line);
   if (i > 0) line.appendChild(joinToggle(`ref-join-${r.id}`, r.join, (j) => store.update((q) => setRef(q, r.id, { join: j }))));
   else line.appendChild(el("span", "spacer", "that"));
 
@@ -69,6 +86,19 @@ function renderRef(r: RefRow, i: number, ctx: Ctx): HTMLElement {
       name.title = "Narrow the target set to titles containing this text";
       name.addEventListener("input", () => store.update((q) => setRef(q, r.id, { target: { ...t, name: name.value } })));
       line.appendChild(name);
+      // Property conditions on the target set (spec: a filtered target set), indented under the row.
+      const host = targetHost(r.id, t.tag);
+      const sub = el("div", "subrows");
+      t.rows.forEach((row, k) => sub.appendChild(renderFilterRow(row, k, ctx, host)));
+      const add = el("button", "btn small", t.rows.length ? "+ condition" : "+ condition on the target") as HTMLButtonElement;
+      add.dataset.fid = `ref-cond-${r.id}`; add.title = `Only ${t.tag.title} nodes matching a property condition`;
+      add.addEventListener("click", () => {
+        store.update((q) => addTargetRow(q, r.id));
+        const target = store.state.q.refs.find((x) => x.id === r.id)?.target;
+        if (target?.kind === "tag") focusRow(target.rows[target.rows.length - 1].id, host.fid);
+      });
+      sub.appendChild(add);
+      wrap.appendChild(sub);
     }
   } else {
     line.appendChild(createPicker<RefTarget>({
@@ -84,7 +114,7 @@ function renderRef(r: RefRow, i: number, ctx: Ctx): HTMLElement {
   const x = el("button", "x", "×") as HTMLButtonElement; x.dataset.fid = `ref-x-${r.id}`; x.title = "Remove reference";
   x.addEventListener("click", () => store.update((q) => removeRef(q, r.id)));
   line.appendChild(x);
-  return line;
+  return wrap;
 }
 
 /** Put the cursor in a row's direction picker (the store renders synchronously, so no timer). */
