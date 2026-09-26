@@ -345,8 +345,20 @@ nodes where has-tag = false
 
 Verified against Logseq upstream `master` `f4d37904a6`. Paths are relative to that repo. Each
 subsection answers one item of the original "items to confirm" list, states what the source
-contradicts, and records the decision it forces. Nothing here was run against a live graph yet;
-the first FEAT items must include a live probe of each emitted form.
+contradicts, and records the decision it forces. **Live-verified 2026-09-26** on a scratch DB graph
+in the web app (`docs/probes.md` in the plugin repo): every operator form in §9, every input in
+§2, the insert sequence in §1 (renders "Live query (3)"), the draggable/resizable panel and the
+theme tokens in §6. Additional live findings:
+
+- **Plugin SDK must be `@logseq/libs` ^0.3.4.** 0.2.12 silently drops the last `datascriptQuery`
+  input (its proxy never appends the namespace tag that the method pops); 0.3.4 fixes it.
+- A string input that starts with `[[` is taken for a page reference before EDN reading; the rules
+  string is passed with a leading space.
+- Property-value entities carry `:block/page`; page-scoped queries must exclude
+  `:logseq.property/created-from-property` entities.
+- The plugin cannot write `display-type`/`code/lang` on the query value entity (schema validation
+  refuses); the block renders without them.
+- `:start-of-week` and friends pass through unresolved, confirming §2.
 
 ### 1. Query node schema and creation API
 
@@ -633,4 +645,4 @@ Operator table, one definition (property ident `P`, value symbol `?v`, inputs `?
 | has tag | `[?b :block/tags _]` |
 | content contains | `[?b :block/title ?t] [(clojure.string/lower-case ?t) ?lt] [(clojure.string/includes? ?lt "x")]` |
 
-Every row above is unverified live and is the acceptance test of the emitter's first FEAT item.
+Every row above was run live on 2026-09-26 and returned the expected rows (`docs/probes.md`, FEAT-1); the unit tests of the emitter encode exactly these forms.

@@ -36,13 +36,18 @@ LSPluginCore.register({
 - `webPkg` supplies the manifest inline, so the Electron-only fetch is skipped.
 - `installedFromUserWebUrl` **inside** `webPkg` stops the CDN rewrite.
 
-Confirm it loaded:
+Confirm it loaded. The host ignores the `id` you pass and assigns its own (e.g. `_ccrld6br9`),
+so look the plugin up by entry:
 
 ```js
-(() => { const p = LSPluginCore._registeredPlugins.get("logseq-query-builder");
-         return { status: p.status, entry: p.options.entry } })()
-// → { status: "loaded", entry: "http://localhost:8291/index.html" }
+(() => { const p = [...LSPluginCore._registeredPlugins.values()].find(p => p.options.entry?.startsWith("http://localhost:8291"));
+         return { id: p.id, status: p.status } })()
+// → { id: "_ccrld6br9", status: "loaded" }
 ```
+
+Consequences of the generated id: plugin-owned properties are namespaced
+`plugin.property.<id without leading underscore>/…`, and the host's remembered panel layout is
+keyed by it, so neither survives re-registration.
 
 **This is per-session.** A page reload drops it; paste the snippet again.
 
@@ -53,8 +58,16 @@ the backdrop closes it.
 
 ## Iterating
 
-Vite hot-reloads the source, but the plugin iframe needs a nudge:
+Vite hot-reloads the source, but the plugin iframe needs a nudge (use the id from above):
 
 ```js
-LSPluginCore.reload(["logseq-query-builder"])
+LSPluginCore.reload(["_ccrld6br9"])
 ```
+
+After changing `node_modules` (e.g. an SDK upgrade) restart vite with `--force`.
+
+## Probes (dev builds only)
+
+`Query Builder: probe <name>` palette commands run the P0 probes; results are POSTed to the dev
+server and appended to `docs/probes.jsonl`. `probe seed` builds the scratch page once per graph;
+`probe ALL` runs the read-only ones. Summarise with `python3 scripts/summarise_probes.py`.

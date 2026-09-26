@@ -24,18 +24,17 @@ Single source of truth for work in this repo. Nothing gets implemented before it
 |---|---|---|---|
 | TASK-1 | task | Scaffold: TS + vite + vitest, manifest-shaped `package.json`, empty modal on `⌘⇧Q` | `npx vitest run` green; `npx vite build` produces `dist/`; `npx tsc --noEmit` clean |
 | TASK-2 | task | Ground `SPEC.md` against the Logseq source | All seven items answered with `path:line` evidence in `SPEC.md` § Grounding; Datalog sketch rewritten; three decisions flagged for sign-off (relative-date set, round-trip state property, iframe theming by token copy) |
+| TASK-3 | task | `PLAN.md` + FEAT breakdown from the grounded spec | `PLAN.md` with phases, risks, verified facts; FEAT-1..27 each with an acceptance test; three decisions approved 2026-09-25 |
+| TASK-4 | task | `docs/probes.md` + probe harness (dev-only palette commands, results POSTed to a vite sink → `docs/probes.jsonl`) | 4 unit tests (`harness.test.ts`); `scripts/summarise_probes.py` |
+| FEAT-1 | feat | Probe every operator row via `datascriptQuery` on a seeded scratch graph | 32 / 32 forms return the expected rows (`docs/probes.md`); found and fixed: SDK 0.2.12 input drop, `[[`-prefixed rule string, value entities in page scope |
+| FEAT-2 | feat | Probe the insert sequence | Chrome: inserted block renders "Live query (3)" with the right rows; code sub-properties refused and unnecessary |
+| FEAT-3 | feat | Probe floating panel + theme tokens | Chrome: host title bar, drag, resize, click-through beside the panel, panel survives navigation; 13 of 14 tokens resolved; position memory deferred to a packaged build |
+| FEAT-4 | feat | Probe fetch latency | 1–5 ms per fetch on the seed graph, 66–86 ms for `getAllProperties`; too small to decide P5, re-run on a real graph |
 
-## Now — P0, retire the unknowns
+## Now — P1, pure core
 
-| ID | Type | Title | Status | Acceptance test |
-|---|---|---|---|---|
-| TASK-4 | task | `docs/probes.md` scaffold + a probe harness: a dev-only command in the plugin that runs a named probe and logs JSON to the console | todo | Running "Query Builder: probe <name>" from the palette prints `{probe, ok, detail}` to the console; unit test for the harness's result shape |
-| FEAT-1 | feat | Probe every operator row (SPEC § Grounding 9) via `datascriptQuery` with string inputs and the rule string, on a scratch graph seeded with one node per shape | todo | `docs/probes.md` has one line per row with the observed row count; any failing row has a replacement form recorded in SPEC.md |
-| FEAT-2 | feat | Probe the insert sequence: `insertBlock` → `addBlockTag` → `upsertBlockProperty`; with and without the code sub-properties | todo | Chrome: the block renders a live query table with the expected rows; `docs/probes.md` records whether the sub-properties change editing |
-| FEAT-3 | feat | Probe the floating panel: `setMainUIAttrs({draggable, resizable})` + inline size; theme tokens via `resolveThemeCssPropsVals` | todo | Chrome: app clickable beside the panel, position kept across reload, tokens returned and changed on light/dark switch; recorded in `docs/probes.md` |
-| FEAT-4 | feat | Probe latency: tag list, property list, a 500-value property, cold and cached | todo | `docs/probes.md` records ms for each; decides whether P5's search-as-you-type fallback is needed in v1 |
+P0 exit met 2026-09-26: `docs/probes.md` complete; no emitted form needed replacing.
 
-## Next — P1, pure core
 
 | ID | Type | Title | Status | Acceptance test |
 |---|---|---|---|---|

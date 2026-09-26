@@ -47,6 +47,7 @@ probe before a task depends on it.
 | `registerSlashCommand` handler gets `{uuid, format, pid}`; slash text auto-cleared; block stays editing; list rebuild debounced 1.5 s | slash entry point targets that block |
 | `pushState('page', {name: uuid})` zooms to a block | result click navigation |
 | Plugin may write only `plugin.property.<id>/…`, no suffix | round-trip state property |
+| `@logseq/libs` 0.2.12 drops the last `datascriptQuery` input; 0.3.4 does not (live, `docs/probes.md` F1) | depend on `^0.3.4` |
 
 ## Phases
 

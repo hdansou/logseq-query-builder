@@ -21,6 +21,6 @@
     "vitest": "^2.1.0"
   },
   "dependencies": {
-    "@logseq/libs": "^0.2.12"
+    "@logseq/libs": "^0.3.4"
   }
 }
