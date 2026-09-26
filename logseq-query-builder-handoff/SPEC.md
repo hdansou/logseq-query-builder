@@ -136,7 +136,7 @@ the builder on an existing query node should load its filters back into the UI s
 edited visually. **[design decision needed]** Parsing builder state back out of Datalog is
 brittle; the plugin should store its own state on the query block in a plugin-namespaced property
 (`plugin.property.logseq-query-builder/state`, JSON, no random suffix in plugin namespaces) and
-treat the Datalog as derived output. See Grounding §7.
+treat the Datalog as derived output. See Grounding §7 (approved 2026-09-25).
 
 ## UX and interaction model
 
@@ -388,10 +388,15 @@ stay live. **[verified]**
 | `:right-now-ms` | ms now |
 | `:current-page` `:query-page` `:current-block` `:parent-block` | page name string / block `:db/id` |
 
+**Confirmed 2026-09-25 on request:** offsets such as `-7d` are supported. Any `:[+-]N[dwmy]`
+keyword resolves through `get-offset-date` (`inputs.cljs:36-45, 121-126`) and the unit tests cover
+`:-1w`, `:-1m`, `:-1y` and `:-365d` (`deps/db/test/logseq/db/frontend/inputs_test.cljs:163-201`).
+The builder shows these as "N days/weeks/months/years ago / from now".
+
 **Not supported: start/end of week, month or year** (`inputs.cljs:69-80`, only calendar offsets
 from today exist, `:38-46`).
 
-**Decision (proposed, needs sign-off):** v1 offers exactly the native set — today, tomorrow,
+**Decision (approved 2026-09-25):** v1 offers exactly the native set — today, tomorrow,
 yesterday, and a signed offset with a unit picker (days / weeks / months / years). "Start of
 week", "end of month" and friends are removed from the value control until the host grows such an
 input; storing a fixed date for them would violate the "saved queries stay current" rule.
@@ -543,7 +548,7 @@ An alternative panel host is `logseq.provideUI({key, template, style, attrs})` w
 nor `path`: a float in the **host DOM** that inherits every theme variable and gets drag/resize for
 free (`libs/src/common.ts:366-545`). It is rejected for v1 because its content is a sanitised HTML
 template with `data-on-click` event wiring, not a live app, which does not fit a keyboard-driven
-picker UI. Revisit only if token-copying proves insufficient.
+picker UI. Revisit only if token-copying proves insufficient. **Token copying approved 2026-09-25.**
 
 ### 7. Round-trip (reopen an inserted query)
 
@@ -551,7 +556,7 @@ Not in the original list, but the API answers force it. The builder stores its s
 `plugin.property.logseq-query-builder/state` on the query block; that namespace needs no suffix
 and is the only one the plugin may write. On open from a slash command inside a block that has
 that property, the builder loads it. Datalog is derived output and is never parsed back.
-**Needs sign-off:** an extra hidden property on every inserted query block.
+**Approved 2026-09-25:** an extra hidden property on every inserted query block.
 
 ### 8. Content search and predicates
 
