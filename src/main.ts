@@ -3,7 +3,7 @@ import { emit } from "./emit";
 import { STATE_KEY, canInsert, deserializeState, planInsert, runInsert, serializeState, stateSchemaFor } from "./insert";
 import { Graph } from "./graph";
 import { manifest } from "./manifest";
-import { hidePanel, showPanel } from "./panel";
+import { hidePanel, installPanelStyle, showPanel } from "./panel";
 import { runPreview } from "./preview";
 import { registerProbeCommands } from "./probes";
 import { renderContent } from "./ui/content";
@@ -20,6 +20,7 @@ function main() {
   const store = new Store({ preview: (q) => runPreview(emit(q), dq) });
   const graph = new Graph(dq);
   watchTheme();
+  installPanelStyle();
   logseq.DB.onChanged(() => graph.invalidate());
   const root = document.getElementById("root")!;
   const close = () => { store.close(); hidePanel(); };
