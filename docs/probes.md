@@ -219,3 +219,12 @@ Each console registration gets a fresh id and therefore its own property; a real
 stable id `logseq-query-builder`. Consequence for `stateSchemaFor`: hiding an existing
 `default`-typed state property is not enough, so a future migration would have to move the value
 to a `string` property; for now that case only arises from dev-time races.
+
+## Real-graph finding: Priority missing from the property picker (2026-09-26, `demolocal2`)
+
+`[?p :logseq.property/public? true]` did not match Priority (eid 79) although a pull of the entity
+shows `:logseq.property/public? true`, and the same clause matched once `?p` was bound by its ident
+first. Every other clause of the picker query matched Priority on its own. Same class of
+persisted-graph index anomaly as the `status` case in P0. The picker now reads `built-in?`,
+`public?`, `hide?` and `deleted-at` with `get-else` (entity lookups) and filters in code; Priority
+is back. Upstream, not ours; not filed yet (mechanism still unproven).

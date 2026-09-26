@@ -54,20 +54,25 @@ describe("Graph.properties (FEAT-12)", () => {
       [":user.property/status-1", ":logseq.class/Task"],
       [":user.property/deadline-1", ":logseq.class/Task"],
     ],
+    // columns: ident title uuid type cardinality view-context built-in? public? hide? deleted-at
     ":block/tags :logseq.class/Property]": [
-      [":user.property/status-1", "status", "u-s", "default", ":db.cardinality/one", ":none"],
-      [":user.property/deadline-1", "deadline", "u-d", "datetime", ":db.cardinality/one", ":none"],
-      [":user.property/assignee-1", "assignee", "u-a", "node", ":db.cardinality/many", ":none"],
-      [":user.property/notes-1", "notes", "u-n", "default", ":db.cardinality/one", ":none"],
-      [":logseq.property/weird-1", "weird", "u-w", "keyword", ":db.cardinality/one", ":none"],
-      [":logseq.property/enable-history?", "Enable property history", "u-e", "checkbox", ":db.cardinality/one", ":property"],
-      [":logseq.property.class/extends", "Extends", "u-x", "class", ":db.cardinality/many", ":class"],
+      [":user.property/status-1", "status", "u-s", "default", ":db.cardinality/one", ":none", false, false, false, false],
+      [":user.property/deadline-1", "deadline", "u-d", "datetime", ":db.cardinality/one", ":none", false, false, false, false],
+      [":user.property/assignee-1", "assignee", "u-a", "node", ":db.cardinality/many", ":none", false, false, false, false],
+      [":user.property/notes-1", "notes", "u-n", "default", ":db.cardinality/one", ":none", false, false, false, false],
+      [":logseq.property/weird-1", "weird", "u-w", "keyword", ":db.cardinality/one", ":none", true, true, false, false],
+      [":logseq.property/enable-history?", "Enable property history", "u-e", "checkbox", ":db.cardinality/one", ":property", true, true, false, false],
+      [":logseq.property.class/extends", "Extends", "u-x", "class", ":db.cardinality/many", ":class", true, true, false, false],
+      [":logseq.property/priority", "Priority", "u-p", "default", ":db.cardinality/one", ":none", true, true, false, false],
+      [":logseq.property/query", "Query", "u-q", "default", ":db.cardinality/one", ":block", true, true, true, false],
+      [":logseq.property/secret", "Secret", "u-sec", "default", ":db.cardinality/one", ":none", true, false, false, false],
+      [":user.property/gone-1", "gone", "u-g", "default", ":db.cardinality/one", ":none", false, false, false, 1234],
     ],
   };
-  it("returns type, cardinality and owner tags; drops types the builder has no control for and settings-like built-ins (view-context set)", async () => {
+  it("keeps public built-ins like Priority, drops hidden, deleted, non-public built-ins, unsupported types and settings-like built-ins", async () => {
     const g = new Graph(fake(table));
     const props = await g.properties();
-    expect(props.map((p) => p.title)).toEqual(["assignee", "deadline", "notes", "status"]);
+    expect(props.map((p) => p.title)).toEqual(["Priority", "assignee", "deadline", "notes", "status"]);
     expect(props.find((p) => p.title === "status")).toEqual({
       ident: ":user.property/status-1", title: "status", uuid: "u-s", type: "default", cardinality: "one",
       owners: [":user.class/project-1", ":logseq.class/Task"],
@@ -77,7 +82,7 @@ describe("Graph.properties (FEAT-12)", () => {
   it("orders the selected tags' own properties first, then the rest alphabetically", async () => {
     const g = new Graph(fake(table));
     const ordered = await g.properties([":logseq.class/Task"]);
-    expect(ordered.map((p) => p.title)).toEqual(["deadline", "status", "assignee", "notes"]);
+    expect(ordered.map((p) => p.title)).toEqual(["deadline", "status", "Priority", "assignee", "notes"]);
   });
 });
 

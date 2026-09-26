@@ -63,10 +63,16 @@ export class Graph {
   /**
    * User-visible properties (the host's own hidden rule: deleted, hidden, or built-in-and-not-public
    * are dropped) with their owner tags. With `selected` tag idents, those tags' properties come first.
+   *
+   * The visibility flags are read with `get-else` (an entity lookup) and filtered here rather than
+   * scanned by value: on a persisted graph the attribute index for `:logseq.property/public?`
+   * missed Priority, so `[?p :logseq.property/public? true]` dropped it (docs/probes.md).
    */
   async properties(selected: string[] = []): Promise<PropertyInfo[]> {
     const [rows, owners] = await Promise.all([
-      this.rows<[string, string, string, string, string, string]>(`[:find ?i ?title ?u ?type ?card ?vc :where [?p :block/tags :logseq.class/Property] [?p :db/ident ?i] [?p :block/title ?title] [?p :block/uuid ?u] [?p :logseq.property/type ?type] [?p :db/cardinality ?card] (not [?p :logseq.property/deleted-at _]) (not [?p :logseq.property/hide? true]) (or (not [?p :logseq.property/built-in? true]) [?p :logseq.property/public? true]) [(get-else $ ?p :logseq.property/view-context :none) ?vc]]`),
+      this.rows<[string, string, string, string, string, string, boolean, boolean, boolean, unknown]>(
+        `[:find ?i ?title ?u ?type ?card ?vc ?bi ?pub ?hide ?del :where [?p :block/tags :logseq.class/Property] [?p :db/ident ?i] [?p :block/title ?title] [?p :block/uuid ?u] [?p :logseq.property/type ?type] [?p :db/cardinality ?card] [(get-else $ ?p :logseq.property/view-context :none) ?vc] [(get-else $ ?p :logseq.property/built-in? false) ?bi] [(get-else $ ?p :logseq.property/public? false) ?pub] [(get-else $ ?p :logseq.property/hide? false) ?hide] [(get-else $ ?p :logseq.property/deleted-at false) ?del]]`,
+      ),
       this.rows<[string, string]>(`[:find ?pi ?ci :where [?c :logseq.property.class/properties ?p] [?p :db/ident ?pi] [?c :db/ident ?ci]]`),
     ]);
     const ownersOf = new Map<string, string[]>();
@@ -75,7 +81,8 @@ export class Graph {
     // Settings-like built-ins (Enable property history, Extends, Page Tags…) carry a view-context of
     // property/class/page/never; node-level properties (Status, Deadline…) carry none. Observed live.
     return rows
-      .filter(([, , , type, , vc]) => BUILDER_TYPES.has(type) && vc.endsWith("none"))
+      .filter(([, , , type, , vc, builtIn, pub, hide, deleted]) =>
+        !deleted && !hide && (!builtIn || pub) && BUILDER_TYPES.has(type) && vc.endsWith("none"))
       .map(([ident, title, uuid, type, card]): PropertyInfo => ({
         ident, title, uuid, type: type as PropertyType,
         cardinality: card.endsWith("many") ? "many" : "one", owners: ownersOf.get(ident) ?? [],

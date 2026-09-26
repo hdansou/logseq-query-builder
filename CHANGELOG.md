@@ -21,6 +21,7 @@ All notable changes to this plugin are recorded here. The format follows
 - Cleared all eight `npm audit` advisories: `dompurify` and `lodash-es` (transitive through `@logseq/libs`) are pinned to patched versions with `overrides`; `esbuild` and `vite-node` are cleared by moving the toolchain to vite 7 and vitest 4.
 
 ### Fixed
+- Priority (and any property whose `public?` datom is missing from the attribute index on a persisted graph) now appears in the property picker: visibility flags are read per entity instead of scanned by value.
 - The panel stays opaque while being dragged; the host fades dragged plugin windows to 70%, which read as transparent on light themes.
 - The open shortcut is `⌘⇧F`, not `⌘⇧Q`, which is the macOS log-out chord. It takes over Logseq's toggle-favorite while the plugin is enabled; rebind in the keymap settings if needed.
 - The hidden state property's schema is ensured right before every write, never changing an existing property's type; a write racing the startup call could leave a visible, untyped `state` property on the block.
