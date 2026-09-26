@@ -84,8 +84,8 @@ describe("content and name", () => {
 
 describe("scope", () => {
   it("defaults to anywhere and can be set to a page or the Library", () => {
-    const q = setScope(emptyQuery(), { kind: "referenced-in", page: { uuid: "u", title: "Book" } });
-    expect(q.scope).toEqual({ kind: "referenced-in", page: { uuid: "u", title: "Book" } });
+    const q = setScope(emptyQuery(), { kind: "on-page", page: { uuid: "u", title: "Book" } });
+    expect(q.scope).toEqual({ kind: "on-page", page: { uuid: "u", title: "Book" } });
     expect(setScope(q, { kind: "library" }).scope).toEqual({ kind: "library" });
   });
 });

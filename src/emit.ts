@@ -132,17 +132,12 @@ function underClause(page: string, ctx: Ctx): string {
   return `(parent ${page} ?b) (not [?b :logseq.property/created-from-property _])`;
 }
 
-/**
- * Scope clauses bind ?b, so they are positive. `on-page`: ?b lives on the page. `referenced-in`:
- * blocks of the page reference ?b. `library`: ?b is under the built-in Library page.
- */
+/** Scope clauses bind ?b, so they are positive. `on-page`: ?b lives on the page. `library`: ?b is under the built-in Library page. */
 function scopeClause(scope: Scope, ctx: Ctx): Clause | null {
   switch (scope.kind) {
     case "anywhere": return null;
     case "on-page":
       return { text: `[?src :block/uuid #uuid "${scope.page.uuid}"] [?b :block/page ?src]`, positive: true, join: "and" };
-    case "referenced-in":
-      return { text: `[?src :block/uuid #uuid "${scope.page.uuid}"] [?sb :block/page ?src] [?sb :block/refs ?b]`, positive: true, join: "and" };
     case "library":
       return { text: `[?lib :block/name "library"] [?lib :logseq.property/built-in? true] ${underClause("?lib", ctx)}`, positive: true, join: "and" };
   }

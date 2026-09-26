@@ -57,7 +57,6 @@ describe("readback", () => {
 describe("readback with a scope", () => {
   it("names the page or the Library after the subject", () => {
     const artist: TagRef = { ident: ":user.class/artist-1", title: "artist" };
-    expect(readback(addTag(setScope(emptyQuery(), { kind: "referenced-in", page: { uuid: "u", title: "Book" } }), artist))).toBe("artist nodes referenced in Book");
     expect(readback(setScope(emptyQuery(), { kind: "library" }))).toBe("all nodes in the Library");
     expect(readback(setScope(emptyQuery(), { kind: "on-page", page: { uuid: "u", title: "Book" } }))).toBe("all nodes on Book");
   });

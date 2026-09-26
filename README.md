@@ -20,10 +20,11 @@ corner, click the graph behind it.
 
 | Zone | What it does |
 |---|---|
-| **Scope** | Where to look: *anywhere* (default), *in the Library*, *on page…*, or *referenced in page…*. See [Scopes](#scopes). |
+| **Scope** | Where to look: *anywhere* (default), *in the Library*, or *on page…*. See [Scopes](#scopes). |
 | **Name** | The query's title once inserted. Prefilled with a plain-English reading of your filters; edit or replace it. |
 | **Tags** | Autocomplete over your graph's tags, most-used first. Several tags combine with AND / OR; each can be NOT. "any tag" is a presence test. *Include sub-tags* (on by default) also matches tags that extend the chosen one. |
 | **Filters** | One row per property: property → operator → value. Operators follow the property's type (text, number, URL, node, asset, date, date-time, checkbox). Rows combine with AND / OR left to right, each can be NOT. Values are picked from what the graph actually holds, with counts; text and numbers also accept free entry; dates accept `today`, `tomorrow`, `yesterday`, `±Nd/w/m/y` or `YYYY-MM-DD`, typed or picked from the calendar button beside the field. |
+| **References** | One row per relationship: *links to*, *is linked from*, *ancestor links to*, or *on page under*, then a target: one node, or *any \<tag\>* (sub-tags included) optionally narrowed by a name fragment. Rows combine with AND / OR, each can be NOT. See [References](#references). |
 | **Content** | Search the node's own text: contains, does not contain, starts with, or a regular expression. |
 | **Results** | The first 10 matches with the values you filtered on and the page they live on; *Show more* reveals the rest. Click or select one to jump to it — the builder stays open. |
 
@@ -39,14 +40,28 @@ so a scope with only NOT filters still runs.
 | **anywhere** | every node in the graph | the default |
 | **in the Library** | pages inside Logseq's Library page (any depth) and the blocks on them | "tasks in my library pages", "library pages without a description" |
 | **on page…** | the blocks that live on the page you pick | "tasks on my Sprint page" |
-| **referenced in page…** | nodes that the blocks of the page you pick reference | pick your `Book` page, add the tag `artist`: every artist mentioned in that book, without leaving the page |
 
-*On page…* and *referenced in page…* are different questions: the tasks written on a page are *on*
-it; the people, books or tags those tasks mention are *referenced in* it. Two details about
-*referenced in page…*: references are taken from the page's blocks, not from the page's own
-properties, and Logseq records the properties and tags a block uses as references too.
-Without a tag or filter you will therefore see entries such as *Status* or *Task* among the
-results; add the tag you are after and they drop out.
+*In the Library* is the same question as a reference row *on page under · Library*, offered as one
+click. Relationships to other nodes are reference rows, below.
+
+### References
+
+A reference row reads `that <direction> <target>`. Direction is the operator; the target is one node
+(pages, journals, blocks) or every node carrying a tag, with sub-tags included like the tag selector,
+optionally narrowed with *named like…* to titles containing a fragment. One hop: a task linking to a
+project that links to a client does not *link to* the client. Linked references only: a name typed
+without a link is not found.
+
+| Direction | Matches nodes that… | Typical use |
+|---|---|---|
+| **links to** | link to the target in their text or through a node property (an assignee, a `part of`) | "tasks that link to Project Iris", "notes that link to any journal" |
+| **is linked from** | are linked from the target: from the node itself or, for a page, from any block on it | pick your `Book` page, add the tag `artist`: every artist mentioned in that book. This is the backlink question |
+| **ancestor links to** | link to the target themselves or sit under a block that does, at any depth | tasks indented under a `[[Project Iris]]` line in a journal, which carry no link of their own |
+| **on page under** | live on the target page or on any page beneath it in the page tree | "tasks under Acme Corp" when Acme holds Finance and Engineering pages |
+
+Logseq records the tags a block carries and the properties it uses as references too. The builder
+leaves those out where they would read as links: a tag's own objects are not "linked to" the tag,
+and a page does not "link to" the properties it uses.
 
 ### Keys
 

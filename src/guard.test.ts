@@ -64,7 +64,7 @@ describe("guard", () => {
 describe("guard with a scope", () => {
   it("a scope alone is a runnable, positive query, and lets NOT-only filters run", () => {
     expect(guard(setScope(emptyQuery(), { kind: "library" })).ok).toBe(true);
-    const q = row(setScope(emptyQuery(), { kind: "referenced-in", page: { uuid: "u", title: "Book" } }), { property: status, op: "not-contains", values: [todo] });
+    const q = row(setScope(emptyQuery(), { kind: "on-page", page: { uuid: "u", title: "Book" } }), { property: status, op: "not-contains", values: [todo] });
     expect(guard(q).ok).toBe(true);
   });
 });

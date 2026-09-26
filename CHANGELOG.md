@@ -34,9 +34,9 @@ All notable changes to this plugin are recorded here. The format follows
 - **Scope** zone above the tags, choosing where the query looks:
   - *anywhere* (default);
   - *in the Library*: pages inside Logseq's built-in Library page, at any depth, and the blocks on them;
-  - *on page…*: the blocks that live on a page picked by title;
-  - *referenced in page…*: nodes referenced from the blocks of a page picked by title, e.g. every `artist` mentioned in a `Book` page. Properties and tags a block uses count as references, so add a tag or filter to narrow.
-  A scope counts as a positive clause, so a scope with only NOT filters can run. The read-back says "referenced in X" or "in the Library"; queries saved before scopes existed reopen as *anywhere*.
+  - *on page…*: the blocks that live on a page picked by title.
+  A scope counts as a positive clause, so a scope with only NOT filters can run. The read-back says "on X" or "in the Library"; queries saved before scopes existed reopen as *anywhere*.
+- **References** zone between the filters and the content search, one row per relationship: *links to*, *is linked from*, *ancestor links to* or *on page under*, then a target that is one node or *any \<tag\>* (sub-tags included), optionally narrowed by a name fragment. Rows combine with AND / OR and can be NOT; a reference row counts as a positive clause. *Is linked from* a page reads the page and its blocks; a tag's own objects and a block's property keys are not treated as links; blocks on Logseq's hidden view pages are left out. The short-lived *referenced in page…* scope is gone: it is *is linked from · page*. Queries saved before reference rows existed reopen without any.
 - `Page` is offered in the tag selector, so "all pages" and "pages tagged X" can be built.
 - The round-trip property is named `query-builder-state` instead of `state`, so it cannot be mistaken for a user's own property; blocks inserted under the old name still reopen.
 - Date values use the same picker as everything else: focus shows the relative shortcuts with their meaning (`-7d · 7 days ago`), typing filters them, and free text accepts an ISO day or any `±Nd/w/m/y`. A calendar button beside it fills in a day. The browser datalist is gone; its arrow only listed entries matching the current text.

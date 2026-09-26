@@ -188,12 +188,6 @@ describe("block text without inputs or rules", () => {
 
 describe("scopes", () => {
   const artist: TagRef = { ident: ":user.class/artist-1", title: "artist" };
-  it("referenced-in: the user's book/artist case, scope clause first", () => {
-    const q = addTag(setScope(emptyQuery(), { kind: "referenced-in", page: { uuid: "b00k", title: "Book" } }), artist);
-    const e = emit(q);
-    expect(e.where[0]).toBe(`[?src :block/uuid #uuid "b00k"] [?sb :block/page ?src] [?sb :block/refs ?b]`);
-    expect(e.where[1]).toBe(INHERIT(artist));
-  });
   it("on-page: the blocks that live on the page", () => {
     const e = emit(setScope(emptyQuery(), { kind: "on-page", page: { uuid: "b00k", title: "Book" } }));
     expect(e.where).toEqual([`[?src :block/uuid #uuid "b00k"] [?b :block/page ?src]`]);

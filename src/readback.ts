@@ -84,7 +84,6 @@ function scope(q: Query): string {
   switch (q.scope.kind) {
     case "anywhere": return "";
     case "on-page": return ` on ${q.scope.page.title}`;
-    case "referenced-in": return ` referenced in ${q.scope.page.title}`;
     case "library": return " in the Library";
   }
 }

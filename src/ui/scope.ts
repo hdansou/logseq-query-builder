@@ -2,11 +2,7 @@ import { setScope } from "../model";
 import { createPicker } from "./picker";
 import type { ZoneRenderer } from "./render";
 
-/**
- * Scope zone: anywhere · in the Library · on a page · referenced in a page. One choice, shown as
- * toggles; the two page scopes share the page picker, which applies to whichever is active
- * (default: on page).
- */
+/** Scope zone: anywhere · in the Library · on a page. One choice, shown as toggles; the page picker fills *on page*. */
 export const renderScope: ZoneRenderer = (root, s, { store, graph }) => {
   root.innerHTML = "";
   const label = document.createElement("div"); label.className = "zone-label"; label.textContent = "Scope";
@@ -24,16 +20,10 @@ export const renderScope: ZoneRenderer = (root, s, { store, graph }) => {
   line.appendChild(tog("scope-any", "anywhere", kind === "anywhere", () => store.update((q) => setScope(q, { kind: "anywhere" }))));
   line.appendChild(tog("scope-library", "in the Library", kind === "library", () => store.update((q) => setScope(q, { kind: "library" }))));
   const sc = s.q.scope;
-  const pageKind = sc.kind === "referenced-in" ? "referenced-in" : "on-page";
-  const withPage = (k: "on-page" | "referenced-in", page: { uuid: string; title: string }) => store.update((q) => setScope(q, { kind: k, page }));
+  const withPage = (page: { uuid: string; title: string }) => store.update((q) => setScope(q, { kind: "on-page", page }));
   const focusPage = () => document.querySelector<HTMLElement>("[data-fid=scope-page]")?.focus();
-  line.appendChild(tog("scope-on", "on page…", kind === "on-page", () => {
-    if (sc.kind === "referenced-in") withPage("on-page", sc.page); else focusPage();
-  }));
-  line.appendChild(tog("scope-ref", "referenced in page…", kind === "referenced-in", () => {
-    if (sc.kind === "on-page") withPage("referenced-in", sc.page); else focusPage();
-  }));
-  if (sc.kind === "on-page" || sc.kind === "referenced-in") {
+  line.appendChild(tog("scope-on", "on page…", kind === "on-page", focusPage));
+  if (sc.kind === "on-page") {
     const chip = document.createElement("span"); chip.className = "chip";
     chip.appendChild(document.createTextNode(sc.page.title));
     const x = document.createElement("button"); x.className = "x"; x.textContent = "×"; x.dataset.fid = "scope-x"; x.title = "Back to anywhere";
@@ -42,9 +32,9 @@ export const renderScope: ZoneRenderer = (root, s, { store, graph }) => {
     line.appendChild(chip);
   }
   line.appendChild(createPicker<{ uuid: string; title: string }>({
-    fid: "scope-page", placeholder: sc.kind === "on-page" || sc.kind === "referenced-in" ? "change page…" : "page…", width: "180px",
+    fid: "scope-page", placeholder: sc.kind === "on-page" ? "change page…" : "page…", width: "180px",
     search: async (t) => (await graph.pages(t)).map((p) => ({ id: p.uuid, label: p.title, value: p })),
-    onPick: (o) => withPage(pageKind, o.value),
+    onPick: (o) => withPage(o.value),
   }));
   root.appendChild(line);
 };
