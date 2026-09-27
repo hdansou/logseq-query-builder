@@ -68,7 +68,7 @@ function main() {
     // focusing our own window pulls it back into the frame before focusing the control.
     if (force) window.focus();
     target?.focus();
-    console.info("[qb focus]", force ? "forced" : "on window focus", "was:", active?.dataset.fid ?? active?.tagName, "now:", (document.activeElement as HTMLElement | null)?.dataset.fid);
+    if (import.meta.env.DEV) console.info("[qb focus]", force ? "forced" : "on window focus", "was:", active?.dataset.fid ?? active?.tagName, "now:", (document.activeElement as HTMLElement | null)?.dataset.fid);
   };
   // The host focuses the iframe window when it shows the panel; focus must be placed after that.
   window.addEventListener("focus", () => setTimeout(focusFirst, 0));

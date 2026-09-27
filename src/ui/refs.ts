@@ -1,5 +1,6 @@
 import type { NodeInfo, TagInfo } from "../graph";
 import { addTargetRow, patchTargetRows, removeRef, removeTargetRow, rowsSetJoin, rowsToggleNot, setRef, setTargetRow, type RefDirection, type RefRow, type RefTarget, type TagRef } from "../model";
+import { el } from "./dom";
 import { createPicker, filterOptions, type Option } from "./picker";
 import type { Ctx, ZoneRenderer } from "./render";
 import { focusRow, joinToggle, renderFilterRow, type RowHost } from "./rows";
@@ -32,7 +33,6 @@ export function targetOptions(tags: TagInfo[], nodes: NodeInfo[], text = ""): Op
   return [...filterOptions(tagOpts, text), ...nodeOpts];
 }
 
-const el = (tag: string, cls?: string, text?: string) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; };
 
 /** Condition rows of a tag target: the filter-row controls, changing the target's own row list. */
 const targetHost = (refId: string, tag: TagRef): RowHost => ({

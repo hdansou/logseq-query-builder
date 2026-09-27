@@ -3,6 +3,7 @@ import { formatContext } from "../context";
 import { canInsert } from "../insert";
 import { navigateTo } from "../nav";
 import { page } from "../preview";
+import { el } from "./dom";
 import { nameFor, type State, type Store } from "./store";
 
 /**
@@ -11,13 +12,6 @@ import { nameFor, type State, type Store } from "./store";
  */
 export interface Ctx { store: Store; graph: Graph; insert: () => Promise<void> }
 export type ZoneRenderer = (root: HTMLElement, s: State, ctx: Ctx) => void;
-
-const el = (tag: string, cls?: string, text?: string) => {
-  const n = document.createElement(tag);
-  if (cls) n.className = cls;
-  if (text !== undefined) n.textContent = text;
-  return n;
-};
 
 /**
  * Remember which control had focus (its text and caret) across a full re-render. A picker's typed

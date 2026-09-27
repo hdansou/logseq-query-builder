@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { withRef } from "./test-helpers";
 import { addRef, addRow, addTag, emptyQuery, setContent, setJoin, setRef, setRow, setScope, setTag, toggleNot, type PropertyRef, type Query, type RefRow, type RefTarget, type TagRef, type Value } from "./model";
 import { readback } from "./readback";
 
@@ -63,10 +64,6 @@ describe("readback with a scope", () => {
 });
 
 describe("readback with reference rows", () => {
-  const withRef = (q: Query, patch: Partial<Omit<RefRow, "id">>) => {
-    const q2 = addRef(q);
-    return setRef(q2, q2.refs[q2.refs.length - 1].id, patch);
-  };
   const iris = { kind: "node", uuid: "u", title: "Project Iris" } as const;
   it("phrases the four directions after the subject, before the filters", () => {
     expect(readback(withRef(addTag(emptyQuery(), project), { dir: "links-to", target: iris }))).toBe("project nodes that link to Project Iris");
@@ -95,10 +92,6 @@ describe("readback with reference rows", () => {
 });
 
 describe("readback of a filtered target set", () => {
-  const withRef = (q: Query, patch: Partial<Omit<RefRow, "id">>) => {
-    const q2 = addRef(q);
-    return setRef(q2, q2.refs[q2.refs.length - 1].id, patch);
-  };
   const trow = (patch: Parameters<typeof setRow>[2], join: "and" | "or" = "and") => ({ id: `t${Math.random()}`, property: null, op: null, values: [], not: false, join, ...patch });
   it("reads 'any <tag> whose <condition> and <condition>', after the name condition; incomplete rows skipped", () => {
     const rows = [trow({ property: status, op: "contains-any", values: [text("Todo")] }), trow({ property: points, op: "gt", values: [{ kind: "number", n: 3 }] }, "or"), trow({ property: status })];

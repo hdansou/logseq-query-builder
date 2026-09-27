@@ -65,6 +65,17 @@ E15 private repo `hdansou/logseq-query-builder` created and `main` pushed; E16 R
 scratch graph (`docs/screenshot.jpg`); E17 handoff folder kept and named as the design record in the README.
 Open: replace the screenshot with a real-graph capture before the marketplace PR; make the repo public then.
 
+## Production-hardening pass 2 (2026-09-26, evening)
+
+Delta over the morning pass, after the references work. Applied: one `el()` factory (`src/ui/dom.ts`)
+instead of three copies; shared test helpers (`src/test-helpers.ts` pure, `src/ui/test-panel.ts` DOM
+harness) instead of duplicated `withRef`/`panel()`; the `[qb focus]` diagnostic gated to dev builds.
+Checked and clean: `npm audit` 0 with `happy-dom` added; CI runs typecheck, test, build; README,
+CHANGELOG, cheatsheet, privacy and security-audit match `src/`; new `probes/`, `scripts/`,
+`docs/probes-cli.json` intentional. Deferred: `"web": true` in the manifest, since neither the
+host source nor the skills confirm the field is read; revisit at the manifest PR. Release prep
+(version, tag) stays with the marketplace path.
+
 ## Now — reference rows (rescope of FEAT-38, 2026-09-26)
 
 The requirement doc gained a *Reference querying* section (SPEC.md, grounded in §10) and the

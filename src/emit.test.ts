@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { withRef } from "./test-helpers";
 import { RULES, emit } from "./emit";
 import { addRef, addRow, addTag, emptyQuery, setContent, setInherit, setJoin, setName, setRef, setRow, setScope, setTag, toggleNot, type PropertyRef, type Query, type RefRow, type TagRef, type Value } from "./model";
 
@@ -202,10 +203,6 @@ describe("scopes", () => {
 });
 
 describe("reference rows (SPEC §10)", () => {
-  const withRef = (q: Query, patch: Partial<Omit<RefRow, "id">>) => {
-    const q2 = addRef(q);
-    return setRef(q2, q2.refs[q2.refs.length - 1].id, patch);
-  };
   const iris = { kind: "node", uuid: "1r15", title: "Project Iris" } as const;
   const NODE = `[?r1 :block/uuid #uuid "1r15"]`;
   const TAG = `[?rtag1 :db/ident ${project.ident}] [?r1 :block/tags ?rtv1] (or [(= ?rtv1 ?rtag1)] (class-extends ?rtag1 ?rtv1))`;
@@ -255,10 +252,6 @@ describe("reference rows (SPEC §10)", () => {
 });
 
 describe("filtered target set (SPEC: a tag plus property or name conditions)", () => {
-  const withRef = (q: Query, patch: Partial<Omit<RefRow, "id">>) => {
-    const q2 = addRef(q);
-    return setRef(q2, q2.refs[q2.refs.length - 1].id, patch);
-  };
   const TAG = `[?rtag1 :db/ident ${project.ident}] [?r1 :block/tags ?rtv1] (or [(= ?rtv1 ?rtag1)] (class-extends ?rtag1 ?rtv1))`;
   const HIDDEN = `(not [?b :block/page ?hp1] [?hp1 :block/name ?hn1] [(clojure.string/starts-with? ?hn1 "$$$")])`;
   const trow = (patch: Parameters<typeof setRow>[2], join: "and" | "or" = "and") => ({ id: `t${Math.random()}`, property: null, op: null, values: [], not: false, join, ...patch });

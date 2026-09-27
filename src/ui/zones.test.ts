@@ -1,14 +1,8 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it } from "vitest";
-import { Graph } from "../graph";
 import { setRef, setRow, type PropertyRef, type TagRef } from "../model";
-import { renderContent } from "./content";
-import { renderRefs } from "./refs";
-import { createRenderer } from "./render";
-import { renderRows } from "./rows";
-import { renderScope } from "./scope";
-import { Store } from "./store";
-import { renderTags } from "./tags";
+import { renderPanel } from "./test-panel";
+import type { Store } from "./store";
 
 /**
  * The panel rendered into a headless DOM from a store, so what is on screen can be asserted
@@ -21,27 +15,16 @@ const q = (sel: string) => document.querySelector<HTMLElement>(sel);
 const fid = (id: string) => q(`[data-fid="${id}"]`) as HTMLInputElement | null;
 const text = () => document.getElementById("root")!.textContent ?? "";
 
-function panel() {
-  document.body.innerHTML = '<div id="root"></div>';
-  (globalThis as { CSS?: unknown }).CSS ??= { escape: (s: string) => s };
-  const root = document.getElementById("root")!;
-  const store = new Store({ preview: async () => [], debounceMs: 0 });
-  const graph = new Graph(async () => []);
-  const render = createRenderer(root, { store, graph, insert: async () => {} }, { scope: renderScope, tags: renderTags, rows: renderRows, refs: renderRefs, content: renderContent });
-  store.subscribe(render);
-  render(store.state);
-  return { root, store };
-}
 
 describe("frame", () => {
   it("keeps the footer as the last child of the root and the results inside the scrolling body (BUG-5)", () => {
-    const { root } = panel();
+    const { root } = renderPanel();
     expect(root.lastElementChild?.id).toBe("footer");
     expect(q("#body #results")).not.toBeNull();
     expect((fid("insert") as HTMLButtonElement).disabled).toBe(true);
   });
   it("shows the raw typed name, spaces included, and the suggestion only when nothing is typed (BUG-7)", () => {
-    const { store } = panel();
+    const { store } = renderPanel();
     expect(fid("name")!.value).toBe("");
     store.setName("Open ");
     expect(fid("name")!.value).toBe("Open ");
@@ -54,7 +37,7 @@ describe("frame", () => {
 
 describe("references zone", () => {
   let store: Store;
-  beforeEach(() => { ({ store } = panel()); });
+  beforeEach(() => { ({ store } = renderPanel()); });
 
   it("starts with an add button; a row has a direction picker, a target picker and a remove button", () => {
     expect(fid("add-ref")!.textContent).toBe("+ add a reference");

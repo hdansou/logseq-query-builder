@@ -3,6 +3,7 @@ import type { PropertyInfo } from "../graph";
 import { removeRow, setJoin, setRow, toggleNot, type FilterRow, type Join, type OperatorId, type Query, type TagRef, type Value } from "../model";
 import { OPERATORS, arityOf, controlFor, operatorsFor } from "../operators";
 import { valueText } from "../readback";
+import { el } from "./dom";
 import { createPicker, type Option } from "./picker";
 import type { Ctx, ZoneRenderer } from "./render";
 
@@ -34,7 +35,6 @@ export const queryRowHost = (tags: TagRef[]): RowHost => ({
   tags, fid: "row", first: "where",
 });
 
-const el = (tag: string, cls?: string, text?: string) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; };
 
 /** AND/OR as a toggle button: Enter or click flips it, no native popup to fight the keyboard. */
 export function joinToggle(fid: string, join: "and" | "or", onChange: (j: "and" | "or") => void) {
