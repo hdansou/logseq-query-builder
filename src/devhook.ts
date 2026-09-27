@@ -8,7 +8,8 @@ import type { Query } from "./model";
  *   { qb: "set", id, query }        → replace the builder state
  *   { qb: "click", id, fid }        → click a control by its data-fid
  *   { qb: "type", id, fid, text }   → focus a control, set its text, fire `input` (a picker opens)
- *   { qb: "key", id, fid, key }     → dispatch a keydown (Enter, ArrowDown, Tab, Escape…)
+ *   { qb: "key", id, fid, key }     → dispatch a keydown (Enter, ArrowDown, Tab, Escape…); on a picker,
+ *                                      Enter/ArrowDown first wait (≤ 3 s) for its list to hold options
  *   { qb: "fids", id }              → every data-fid on screen
  * Every message is answered with { qbReply: id, ... }. Installed only when `import.meta.env.DEV`.
  */
@@ -22,7 +23,19 @@ export type DevMessage =
 
 const control = (fid: string) => document.querySelector<HTMLElement>(`[data-fid="${CSS.escape(fid)}"]`);
 
-export function handleDevMessage(store: Store, m: DevMessage): Record<string, unknown> {
+/** A picker's option list, once its (debounced, async) search has painted something. */
+async function awaitOptions(input: HTMLElement, ms = 3000): Promise<boolean> {
+  const list = input.parentElement?.querySelector("ul");
+  if (!list) return true;
+  const deadline = Date.now() + ms;
+  while (Date.now() < deadline) {
+    if (!list.hidden && list.querySelector('li[role="option"]')) return true;
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  return false;
+}
+
+export async function handleDevMessage(store: Store, m: DevMessage): Promise<Record<string, unknown>> {
   switch (m.qb) {
     case "state": {
       const s = store.state;
@@ -38,8 +51,10 @@ export function handleDevMessage(store: Store, m: DevMessage): Record<string, un
     }
     case "key": {
       const el = control(m.fid); if (!el) return { error: `no control ${m.fid}` };
-      el.focus(); el.dispatchEvent(new KeyboardEvent("keydown", { key: m.key, bubbles: true, cancelable: true }));
-      return { ok: true };
+      el.focus();
+      const ready = m.key === "Enter" || m.key === "ArrowDown" ? await awaitOptions(el) : true;
+      el.dispatchEvent(new KeyboardEvent("keydown", { key: m.key, bubbles: true, cancelable: true }));
+      return ready ? { ok: true } : { ok: true, warning: "the picker's list never opened; the key went to an empty list" };
     }
     case "fids": return { fids: [...document.querySelectorAll<HTMLElement>("[data-fid]")].map((e) => e.dataset.fid) };
   }
@@ -49,8 +64,9 @@ export function installDevHook(store: Store) {
   window.addEventListener("message", (e) => {
     const m = e.data as Partial<DevMessage> | null;
     if (!m || typeof m !== "object" || !("qb" in m) || !e.source) return;
-    let reply: Record<string, unknown>;
-    try { reply = handleDevMessage(store, m as DevMessage); } catch (err) { reply = { error: String(err) }; }
-    (e.source as Window).postMessage({ qbReply: m.id, ...reply }, "*");
+    const source = e.source as Window;
+    handleDevMessage(store, m as DevMessage)
+      .catch((err) => ({ error: String(err) }))
+      .then((reply) => source.postMessage({ qbReply: m.id, ...reply }, "*"));
   });
 }

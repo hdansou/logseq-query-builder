@@ -325,3 +325,12 @@ Findings:
   afterwards. Check the panel is open (screenshot) before typing.
 - After a pick, `Tab` from the name condition goes to the row's remove × before the *+ condition*
   button: the button sits after the row line in DOM order.
+
+## Driving the panel through the dev hook (2026-09-26, TASK-7)
+
+From the host page console, one script built *is linked from · any Task · whose Status is Todo*
+end to end: add-ref → type "is linked" + Enter on the direction picker → type "task" + Enter on
+the target picker → click *+ condition on the target* → type "status" + Enter → type "todo" +
+Enter. Read-back "all nodes that are linked from any Task whose Status is Todo", result
+`Task Testing Page`, matching the host-engine check in the FEAT-45 section. Enter on a picker
+waits for its async option list, which is what the keyboard path could not do reliably.
