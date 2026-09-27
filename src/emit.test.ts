@@ -284,3 +284,15 @@ describe("filtered target set (SPEC: a tag plus property or name conditions)", (
     expect(e.where[0]).toContain(`[?r1 ${P(deadline)} ?xr1_1] [(<= ?xr1_1 ?in1)]`);
   });
 });
+
+describe("identifiers from the graph or a saved state cannot break out of the query text (SEC-001)", () => {
+  it("refuses a uuid or an ident outside the safe character set", () => {
+    const bad = { kind: "node", uuid: 'x"] [?b :block/title ?t', title: "evil" } as const;
+    const q = addRef(emptyQuery());
+    expect(() => emit(setRef(q, q.refs[0].id, { dir: "links-to", target: bad }))).toThrow(/invalid uuid/);
+    expect(() => emit(setScope(emptyQuery(), { kind: "on-page", page: { uuid: "a b", title: "x" } }))).toThrow(/invalid uuid/);
+    expect(() => emit(addTag(emptyQuery(), { ident: ":user.class/x] [?b", title: "x" }))).toThrow(/invalid ident/);
+    expect(() => emit(row(emptyQuery(), { property: { ...status, ident: "status" }, op: "has" }))).toThrow(/invalid ident/);
+    expect(() => emit(row(emptyQuery(), { property: assignee, op: "contains-any", values: [ref("6ab8332f-ece6-4b85-a59e-b9fa705a4eca", "Maria")] }))).not.toThrow();
+  });
+});

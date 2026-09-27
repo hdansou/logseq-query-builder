@@ -21,6 +21,7 @@ All notable changes to this plugin are recorded here. The format follows
 - Headless DOM tests for the panel (happy-dom), a dev-only `postMessage` test hook for driving the panel from the host page, and `npm run probe -- <graph>` to check emitted Datalog counts on a CLI graph (`docs/probes-cli.json`).
 
 ### Security
+- Security audit (`docs/security-audit.md`): idents and uuids from the graph or a saved state are validated before they are embedded in the emitted Datalog; the dev-only test hook answers only the host page; the plugin id is validated before it enters a CSS selector.
 - Cleared all eight `npm audit` advisories: `dompurify` and `lodash-es` (transitive through `@logseq/libs`) are pinned to patched versions with `overrides`; `esbuild` and `vite-node` are cleared by moving the toolchain to vite 7 and vitest 4.
 
 ### Fixed

@@ -64,6 +64,7 @@ export function installDevHook(store: Store) {
   window.addEventListener("message", (e) => {
     const m = e.data as Partial<DevMessage> | null;
     if (!m || typeof m !== "object" || !("qb" in m) || !e.source) return;
+    if (e.source !== window.parent) return;   // only the host page that embeds the frame may drive it
     const source = e.source as Window;
     handleDevMessage(store, m as DevMessage)
       .catch((err) => ({ error: String(err) }))

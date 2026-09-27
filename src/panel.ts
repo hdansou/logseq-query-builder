@@ -13,8 +13,10 @@ let sized = false;
  * transparent. Injected into the host document, scoped to this plugin's container, it keeps the
  * panel opaque; the handle's tint remains as the drag cue.
  */
-export const dragStyle = (pid: string) =>
-  `.lsp-iframe-sandbox-container[data-pid="${pid}"].is-dragging { opacity: 1; }`;
+export const dragStyle = (pid: string) => {
+  if (!/^[\w-]+$/.test(pid)) throw new Error(`invalid plugin id for a CSS selector: ${JSON.stringify(pid)}`);   // host-assigned, but it lands in a selector
+  return `.lsp-iframe-sandbox-container[data-pid="${pid}"].is-dragging { opacity: 1; }`;
+};
 
 export function installPanelStyle() {
   logseq.provideStyle(dragStyle(logseq.baseInfo.id));

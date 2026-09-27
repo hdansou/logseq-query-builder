@@ -30,6 +30,20 @@ const previewPull = (q: Query) => {
 const BLOCK_PULL = "(pull ?b [*])";
 
 /**
+ * Identifiers embedded verbatim in the query text come from the graph (idents, uuids) or from a
+ * block's saved state, which travels with a shared graph. Only a safe character set is accepted,
+ * so a crafted value cannot close the literal and append clauses (fail fast, no repair).
+ */
+const uuidLit = (u: string): string => {
+  if (!/^[0-9A-Za-z-]+$/.test(u)) throw new Error(`invalid uuid: ${JSON.stringify(u)}`);
+  return `#uuid "${u}"`;
+};
+const ident = (i: string): string => {
+  if (!/^:[\w.*+!?$%&=<>/-]+$/.test(i)) throw new Error(`invalid ident: ${JSON.stringify(i)}`);
+  return i;
+};
+
+/**
  * Variables are numbered by clause: tag i uses ?tagI/?tI, row n uses ?vN/?xN/?eN (contains-all
  * values ?vN_K). Input vars ?in1.. are shared and deduplicated by keyword.
  */
@@ -63,7 +77,7 @@ function literal(v: Value): string {
   switch (v.kind) {
     case "text": return str(v.text);
     case "number": return String(v.n);
-    case "ref": return `#uuid "${v.uuid}"`;
+    case "ref": return uuidLit(v.uuid);
     case "date": throw new Error("date values go through dateTerm");
   }
 }
@@ -75,18 +89,18 @@ function dateTerm(d: DateValue, boundary: Boundary, ctx: Ctx): string {
 function tagClause(t: TagClause, i: number, inherit: boolean, ctx: Ctx): Clause {
   let text: string;
   if (!t.tag) text = "[?b :block/tags _]";
-  else if (!inherit) text = `[?b :block/tags ${t.tag.ident}]`;
+  else if (!inherit) text = `[?b :block/tags ${ident(t.tag.ident)}]`;
   else {
     const tag = `?tag${i}`, tv = `?t${i}`;
     ctx.rules = true;
-    text = `[${tag} :db/ident ${t.tag.ident}] [?b :block/tags ${tv}] (or [(= ${tv} ${tag})] (class-extends ${tag} ${tv}))`;
+    text = `[${tag} :db/ident ${ident(t.tag.ident)}] [?b :block/tags ${tv}] (or [(= ${tv} ${tag})] (class-extends ${tag} ${tv}))`;
   }
   return { text: t.not ? `(not ${text})` : text, positive: tagPositive(t), join: t.join };
 }
 
 /** `n` tags the row's variables (`1`, or `r1_2` for a target's second condition); `s` is the subject. */
 function rowClause(r: FilterRow, n: string, ctx: Ctx, s = "?b"): Clause {
-  const p = r.property!, P = p.ident, op = r.op!;
+  const p = r.property!, P = ident(p.ident), op = r.op!;
   const v = `?v${n}`, x = `?x${n}`, e = `?e${n}`;
   const set = (vals: Value[]) => `#{${vals.map(literal).join(" ")}}`;
   let text: string;
@@ -122,7 +136,7 @@ function dateClause(r: FilterRow, n: string, ctx: Ctx, s: string): string {
   const p = r.property!, dates = r.values.map((val) => (val as { kind: "date"; date: DateValue }).date);
   const g = p.type === "date" ? "day" : "ms";
   const v = `?v${n}`, x = `?x${n}`;
-  const bind = g === "day" ? `[${s} ${p.ident} ${v}] [${v} :block/journal-day ${x}]` : `[${s} ${p.ident} ${x}]`;
+  const bind = g === "day" ? `[${s} ${ident(p.ident)} ${v}] [${v} :block/journal-day ${x}]` : `[${s} ${ident(p.ident)} ${x}]`;
   const cmps = bounds(r.op!, dates, g).map((b) => `[(${b.cmp} ${x} ${dateTerm(b.value, b.boundary, ctx)})]`);
   return [bind, ...cmps].join(" ");
 }
@@ -138,7 +152,7 @@ function scopeClause(scope: Scope, ctx: Ctx): Clause | null {
   switch (scope.kind) {
     case "anywhere": return null;
     case "on-page":
-      return { text: `[?src :block/uuid #uuid "${scope.page.uuid}"] [?b :block/page ?src]`, positive: true, join: "and" };
+      return { text: `[?src :block/uuid ${uuidLit(scope.page.uuid)}] [?b :block/page ?src]`, positive: true, join: "and" };
     case "library":
       return { text: `[?lib :block/name "library"] [?lib :logseq.property/built-in? true] ${underClause("?lib", ctx)}`, positive: true, join: "and" };
   }
@@ -156,12 +170,12 @@ const hiddenClause = (n: number) => `(not [?b :block/page ?hp${n}] [?hp${n} :blo
 function refClause(r: RefRow, n: number, inherit: boolean, ctx: Ctx): Clause {
   const t = `?r${n}`, target = r.target!;
   let bind: string;
-  if (target.kind === "node") bind = `[${t} :block/uuid #uuid "${target.uuid}"]`;
+  if (target.kind === "node") bind = `[${t} :block/uuid ${uuidLit(target.uuid)}]`;
   else {
-    if (!inherit) bind = `[${t} :block/tags ${target.tag.ident}]`;
+    if (!inherit) bind = `[${t} :block/tags ${ident(target.tag.ident)}]`;
     else {
       ctx.rules = true;
-      bind = `[?rtag${n} :db/ident ${target.tag.ident}] [${t} :block/tags ?rtv${n}] (or [(= ?rtv${n} ?rtag${n})] (class-extends ?rtag${n} ?rtv${n}))`;
+      bind = `[?rtag${n} :db/ident ${ident(target.tag.ident)}] [${t} :block/tags ?rtv${n}] (or [(= ?rtv${n} ?rtag${n})] (class-extends ?rtag${n} ?rtv${n}))`;
     }
     if (target.name.trim()) bind += ` [${t} :block/title ?rt${n}] [(clojure.string/lower-case ?rt${n}) ?rl${n}] [(clojure.string/includes? ?rl${n} ${str(target.name.trim().toLowerCase())})]`;
     // Property conditions on the target set: the row emitter with ?rN as subject, positive ones first.
