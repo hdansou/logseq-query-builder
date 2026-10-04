@@ -22,7 +22,12 @@ const dq = (q: string, ...ins: unknown[]) => logseq.DB.datascriptQuery(q, ...ins
 function main() {
   const store = new Store({ preview: (q) => runPreview(emit(q), dq) });
   const graph = new Graph(dq);
-  watchTheme();
+  watchTheme({
+    later: (fn, ms) => void setTimeout(fn, ms),
+    resolveThemeCssPropsVals: (names) => logseq.UI.resolveThemeCssPropsVals(names),
+    onThemeModeChanged: (cb) => void logseq.App.onThemeModeChanged(cb),
+    onThemeChanged: (cb) => void logseq.App.onThemeChanged(cb),
+  });
   installPanelStyle();
   logseq.DB.onChanged(() => graph.invalidate());
   const root = document.getElementById("root")!;

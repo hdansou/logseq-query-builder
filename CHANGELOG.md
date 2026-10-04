@@ -25,6 +25,7 @@ All notable changes to this plugin are recorded here. The format follows
 - Cleared all eight `npm audit` advisories: `dompurify` and `lodash-es` (transitive through `@logseq/libs`) are pinned to patched versions with `overrides`; `esbuild` and `vite-node` are cleared by moving the toolchain to vite 7 and vitest 4.
 
 ### Fixed
+- Theme switch could leave the panel on the previous theme's colours: the host fires theme-changed while it injects the new stylesheet, before it has loaded, so the tokens were read too early. They are now read again 250 ms and 1000 ms after each theme or mode change, and the last read wins. Not yet confirmed live.
 - The result count sits at the right end of the name row instead of under the list.
 - `Page` is offered in the tag selector, so "all pages" and "pages tagged X" can be built; it had been hidden with the structural tags.
 - Text typed into a picker is no longer lost when live results arrive and the panel re-renders; only text being composed is carried over, so a freshly picked property keeps its label.
