@@ -18,6 +18,7 @@ All notable changes to this plugin are recorded here. The format follows
 - Host theme tokens copied into the panel, refreshed on theme change (light and dark verified).
 
 ### Internal
+- Persona end-to-end run: `scripts/seed-persona.mjs` builds a realistic graph with the CLI and checks the engine's count for every scenario against the design; `docs/e2e-persona.md` holds the scenarios, flows and run log. CLI probe fixtures can now name tags, properties, pages and node targets by title (idents and uuids are resolved on the graph).
 - Headless DOM tests for the panel (happy-dom), a dev-only `postMessage` test hook for driving the panel from the host page, and `npm run probe -- <graph>` to check emitted Datalog counts on a CLI graph (`docs/probes-cli.json`).
 
 ### Security
@@ -25,6 +26,13 @@ All notable changes to this plugin are recorded here. The format follows
 - Cleared all eight `npm audit` advisories: `dompurify` and `lodash-es` (transitive through `@logseq/libs`) are pinned to patched versions with `overrides`; `esbuild` and `vite-node` are cleared by moving the toolchain to vite 7 and vitest 4.
 
 ### Fixed
+- A content search, the *on page* scope and *on page under* no longer return property values as nodes: a text value such as "Active" is an entity on the node's page and a closed value such as Priority's "High" has a title, so `contains "active"` listed the value itself (BUG-10, found in the persona run on 2026-10-09).
+- A content operator chosen before the text is typed is kept; it used to snap back to "contains" (BUG-15).
+- "Any tag" now means the user's tagged nodes: property and tag pages, built-in pages and closed values no longer count (BUG-14; 185 → 27 on the persona graph).
+- Picking a tag or value with the mouse no longer pops the whole option list back open over the next zone; a list that was open when results arrived stays open (BUG-9).
+- Opening the panel no longer pulls focus back into the tag picker from a control the user has already reached in the first second (BUG-11).
+- The tag list no longer opens by itself when the panel opens; it opens on typing or ↓, so the Filters and References buttons under it are clickable at once (BUG-12). The Insert button's label no longer wraps (BUG-13).
+- The panel stays inside the window: a layout saved on a large screen could put the footer, Insert included, below a smaller window; the panel is now capped to the viewport each time it opens (FEAT-50).
 - Theme switch could leave the panel on the previous theme's colours: the host fires theme-changed while it injects the new stylesheet, before it has loaded, so the tokens were read too early. They are now read again 250 ms and 1000 ms after each theme or mode change, and the last read wins. Confirmed live 2026-10-04 on Logseq-DB 2.0.1 (second instance): switching between two dark themes, the tokens read at the event were the old theme's; 1.8 s later they matched the host.
 - The result count sits at the right end of the name row instead of under the list.
 - `Page` is offered in the tag selector, so "all pages" and "pages tagged X" can be built; it had been hidden with the structural tags.
