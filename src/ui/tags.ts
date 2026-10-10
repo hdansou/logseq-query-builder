@@ -31,6 +31,7 @@ export const renderTags: ZoneRenderer = (root, s, { store, graph }) => {
   line.appendChild(createPicker<TagClause["tag"]>({
     fid: "tag-picker",
     placeholder: s.q.tags.length ? "add tag…" : "tag…",
+    openOnFocus: false,   // BUG-12: the panel opens with this control focused; an open list here covers Filters and References
     options: async () => {
       const tags = await graph.tags();
       const opts: Option<TagClause["tag"]>[] = tags.map((t) => ({ id: t.ident, label: t.title, hint: `${t.count}`, value: { ident: t.ident, title: t.title } }));

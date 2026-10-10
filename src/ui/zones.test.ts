@@ -58,6 +58,19 @@ describe("pickers across a re-render (BUG-9)", () => {
     expect(document.activeElement).toBe(after);
     expect(listOf(after).hidden).toBe(true);
   });
+  it("the tag picker opens its list on typing or ArrowDown, not on focus alone (BUG-12: the open list covered the zones below)", async () => {
+    renderPanel(graph);
+    const input = fid("tag-picker")!;
+    input.focus(); await settle();
+    expect(listOf(input).hidden).toBe(true);
+    input.value = "pro"; input.dispatchEvent(new Event("input", { bubbles: true })); await settle();
+    expect(listOf(input).hidden).toBe(false);
+    expect(listOf(input).textContent).toContain("project");
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
+    expect(listOf(input).hidden).toBe(true);
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, cancelable: true })); await settle();
+    expect(listOf(input).hidden).toBe(false);
+  });
   it("a list that was open stays open when results arrive mid-choice", async () => {
     const { store } = renderPanel(graph);
     store.update((qq) => setRow({ ...qq, rows: [{ id: "r1", property: null, op: null, values: [], not: false, join: "and" }] }, "r1", { property: status, op: "contains-any" }));

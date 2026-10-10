@@ -42,6 +42,8 @@ export interface PickerOpts<T> {
   keepOnPick?: boolean;
   /** Show every option when focused, ignoring the current text until the user types. */
   showAllOnFocus?: boolean;
+  /** False: focus alone keeps the list closed; typing or ArrowDown opens it (the tag picker sits above two zones its list would cover). */
+  openOnFocus?: boolean;
   autoFocus?: boolean;
   width?: string;
 }
@@ -102,6 +104,7 @@ export function createPicker<T>(o: PickerOpts<T>): HTMLElement {
   input.addEventListener("focus", () => {
     typed = false;
     if (input.dataset.quiet === "1") { delete input.dataset.quiet; return; }
+    if (o.openOnFocus === false) return;
     st = { ...st, open: true }; if (o.showAllOnFocus) input.select(); void refresh();
   });
   // `data-typing` marks text the user is composing, so a full re-render (render.ts) can carry it over.
