@@ -44,6 +44,13 @@ const ident = (i: string): string => {
 };
 
 /**
+ * Property values are entities with a title and a page of their own (a text value lives on the
+ * node's page; a closed value such as Priority's "High" lives on the property's). Any clause that
+ * binds ?b by place or by text, rather than by tag or property, has to leave them out.
+ */
+const NO_VALUES = `(not [?b :logseq.property/created-from-property _])`;
+
+/**
  * Variables are numbered by clause: tag i uses ?tagI/?tI, row n uses ?vN/?xN/?eN (contains-all
  * values ?vN_K). Input vars ?in1.. are shared and deduplicated by keyword.
  */
@@ -144,7 +151,7 @@ function dateClause(r: FilterRow, n: string, ctx: Ctx, s: string): string {
 /** Everything beneath `page` in the `:block/parent` tree: child pages and their blocks, any depth. */
 function underClause(page: string, ctx: Ctx): string {
   ctx.rules = true;
-  return `(parent ${page} ?b) (not [?b :logseq.property/created-from-property _])`;
+  return `(parent ${page} ?b) ${NO_VALUES}`;
 }
 
 /** Scope clauses bind ?b, so they are positive. `on-page`: ?b lives on the page. `library`: ?b is under the built-in Library page. */
@@ -152,7 +159,7 @@ function scopeClause(scope: Scope, ctx: Ctx): Clause | null {
   switch (scope.kind) {
     case "anywhere": return null;
     case "on-page":
-      return { text: `[?src :block/uuid ${uuidLit(scope.page.uuid)}] [?b :block/page ?src]`, positive: true, join: "and" };
+      return { text: `[?src :block/uuid ${uuidLit(scope.page.uuid)}] [?b :block/page ?src] ${NO_VALUES}`, positive: true, join: "and" };
     case "library":
       return { text: `[?lib :block/name "library"] [?lib :logseq.property/built-in? true] ${underClause("?lib", ctx)}`, positive: true, join: "and" };
   }
@@ -207,7 +214,7 @@ function contentClause(c: ContentClause): Clause {
     case "starts-with": text = `${lower} [(clojure.string/starts-with? ?lt ${v})]`; break;
     case "matches": text = `[?b :block/title ?title] [(re-pattern ${str(c.value)}) ?re] [(re-find ?re ?title)]`; break;
   }
-  return { text, positive: true, join: "and" };
+  return { text: `${text} ${NO_VALUES}`, positive: true, join: "and" };
 }
 
 const inputVars = (s: string) => [...new Set(s.match(/\?in\d+/g) ?? [])].sort();

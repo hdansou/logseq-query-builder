@@ -72,7 +72,7 @@ describe("spec scenarios", () => {
     const e = emit(q);
     expect(e.where).toEqual([
       INHERIT(task),
-      `[?b :block/title ?title] [(clojure.string/lower-case ?title) ?lt] [(clojure.string/includes? ?lt "invoice")]`,
+      `[?b :block/title ?title] [(clojure.string/lower-case ?title) ?lt] [(clojure.string/includes? ?lt "invoice")] (not [?b :logseq.property/created-from-property _])`,
       `[?b ${P(scheduled)} ?x1] [(>= ?x1 ?in1)] [(<= ?x1 ?in2)]`,
     ]);
     expect(e.inputs).toEqual([":start-of-today-ms", ":+7d-end"]);
@@ -168,11 +168,14 @@ describe("operators, one form each (the rows verified live in docs/probes.md)", 
 
 describe("content search", () => {
   const c = (op: any, value: string) => emit(setContent(addTag(emptyQuery(), task), { op, value })).where[1];
-  it("contains / does not contain / starts with are case-insensitive; matches is a re-pattern", () => {
-    expect(c("contains", "Invoice")).toBe(`[?b :block/title ?title] [(clojure.string/lower-case ?title) ?lt] [(clojure.string/includes? ?lt "invoice")]`);
-    expect(c("not-contains", "x")).toBe(`[?b :block/title ?title] [(clojure.string/lower-case ?title) ?lt] (not [(clojure.string/includes? ?lt "x")])`);
-    expect(c("starts-with", "Alpha")).toBe(`[?b :block/title ?title] [(clojure.string/lower-case ?title) ?lt] [(clojure.string/starts-with? ?lt "alpha")]`);
-    expect(c("matches", "inv.*ce")).toBe(`[?b :block/title ?title] [(re-pattern "inv.*ce") ?re] [(re-find ?re ?title)]`);
+  // Property values are entities with a title too (text values, closed values such as Priority's
+  // "High"); a content search over the graph must not surface them as nodes (e2e S5, 2026-10-09).
+  const NO_VALUES = `(not [?b :logseq.property/created-from-property _])`;
+  it("contains / does not contain / starts with are case-insensitive; matches is a re-pattern; property values are excluded", () => {
+    expect(c("contains", "Invoice")).toBe(`[?b :block/title ?title] [(clojure.string/lower-case ?title) ?lt] [(clojure.string/includes? ?lt "invoice")] ${NO_VALUES}`);
+    expect(c("not-contains", "x")).toBe(`[?b :block/title ?title] [(clojure.string/lower-case ?title) ?lt] (not [(clojure.string/includes? ?lt "x")]) ${NO_VALUES}`);
+    expect(c("starts-with", "Alpha")).toBe(`[?b :block/title ?title] [(clojure.string/lower-case ?title) ?lt] [(clojure.string/starts-with? ?lt "alpha")] ${NO_VALUES}`);
+    expect(c("matches", "inv.*ce")).toBe(`[?b :block/title ?title] [(re-pattern "inv.*ce") ?re] [(re-find ?re ?title)] ${NO_VALUES}`);
   });
 });
 
@@ -189,9 +192,9 @@ describe("block text without inputs or rules", () => {
 
 describe("scopes", () => {
   const artist: TagRef = { ident: ":user.class/artist-1", title: "artist" };
-  it("on-page: the blocks that live on the page", () => {
+  it("on-page: the blocks that live on the page, property values excluded", () => {
     const e = emit(setScope(emptyQuery(), { kind: "on-page", page: { uuid: "b00k", title: "Book" } }));
-    expect(e.where).toEqual([`[?src :block/uuid #uuid "b00k"] [?b :block/page ?src]`]);
+    expect(e.where).toEqual([`[?src :block/uuid #uuid "b00k"] [?b :block/page ?src] (not [?b :logseq.property/created-from-property _])`]);
     expect(e.rules).toBe(false);
   });
   it("library: everything under the built-in Library page via the parent rule (child pages and their blocks), property values excluded", () => {
