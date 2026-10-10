@@ -27,9 +27,36 @@ const uuidByTitle = (g: string, title: string): string => {
   return m[1];
 };
 
-/** Fixtures name targets by title; the uuid lives on the graph, so resolve it before emitting. */
+const identByTitle = (g: string, cls: string, title: string): string => {
+  const out = cli(g, `[:find ?i :where [?e :block/tags ${cls}] [?e :block/title ${JSON.stringify(title)}] [?e :db/ident ?i]]`);
+  const m = /\[(:[\w.*+!?$%&=<>/-]+)\]/.exec(out);   // `:result #{[:user.class/Project-Xy12]}`
+  if (!m) throw new Error(`no ${cls} titled ${title} on ${g}`);
+  return m[1];
+};
+
+/**
+ * Fixtures name tags, properties and pages by title and leave the ident / uuid empty: user idents
+ * carry a random suffix that changes whenever a graph is reseeded, so they live on the graph only.
+ */
 function resolve(g: string, q: Query): Query {
-  return { ...q, refs: q.refs.map((r) => (r.target?.kind === "node" && !r.target.uuid ? { ...r, target: { ...r.target, uuid: uuidByTitle(g, r.target.title) } } : r)) };
+  const tag = <T extends { ident: string; title: string }>(t: T): T => (t.ident ? t : { ...t, ident: identByTitle(g, ":logseq.class/Tag", t.title) });
+  const prop = <T extends { ident: string; title: string }>(p: T): T => (p.ident ? p : { ...p, ident: identByTitle(g, ":logseq.class/Property", p.title) });
+  const rows = (rs: Query["rows"]) => rs.map((r) => ({
+    ...r,
+    property: r.property ? prop(r.property) : r.property,
+    values: r.values.map((v) => (v.kind === "ref" && !v.uuid ? { ...v, uuid: uuidByTitle(g, v.title) } : v)),
+  }));
+  return {
+    ...q,
+    scope: q.scope.kind === "on-page" && !q.scope.page.uuid ? { ...q.scope, page: { ...q.scope.page, uuid: uuidByTitle(g, q.scope.page.title) } } : q.scope,
+    tags: q.tags.map((t) => (t.tag ? { ...t, tag: tag(t.tag) } : t)),
+    rows: rows(q.rows),
+    refs: q.refs.map((r) => {
+      if (r.target?.kind === "node" && !r.target.uuid) return { ...r, target: { ...r.target, uuid: uuidByTitle(g, r.target.title) } };
+      if (r.target?.kind === "tag") return { ...r, target: { ...r.target, tag: tag(r.target.tag), rows: rows(r.target.rows) } };
+      return r;
+    }),
+  };
 }
 
 describe.skipIf(!graph)("emitter clauses on a CLI graph", () => {

@@ -1,0 +1,395 @@
+[
+ {
+  "id": "S3a",
+  "expect": 2,
+  "steps": {
+   "refs": [
+    {
+     "dir": "links to",
+     "target": "Project Atlas"
+    }
+   ]
+  }
+ },
+ {
+  "id": "S3b",
+  "expect": 4,
+  "steps": {
+   "refs": [
+    {
+     "dir": "ancestor links to",
+     "target": "Project Atlas"
+    }
+   ]
+  }
+ },
+ {
+  "id": "S3c",
+  "expect": 4,
+  "steps": {
+   "refs": [
+    {
+     "dir": "on page under",
+     "target": "Project Atlas"
+    }
+   ]
+  }
+ },
+ {
+  "id": "S4",
+  "expect": 2,
+  "steps": {
+   "tags": [
+    {
+     "t": "Meeting"
+    }
+   ],
+   "rows": [
+    {
+     "p": "With",
+     "op": "contains any",
+     "v": [
+      "alice"
+     ],
+     "pickLabel": "Alice Nguyen"
+    }
+   ]
+  }
+ },
+ {
+  "id": "S5",
+  "expect": 3,
+  "steps": {
+   "content": {
+    "op": "starts with",
+    "v": "Decision:"
+   }
+  }
+ },
+ {
+  "id": "S6",
+  "expect": 1,
+  "steps": {
+   "tags": [
+    {
+     "t": "Book"
+    }
+   ],
+   "rows": [
+    {
+     "p": "Rating",
+     "op": "greater than",
+     "v": [
+      3
+     ]
+    },
+    {
+     "p": "Finished",
+     "op": "is false"
+    }
+   ]
+  }
+ },
+ {
+  "id": "S6b",
+  "expect": 1,
+  "steps": {
+   "tags": [
+    {
+     "t": "Book"
+    }
+   ],
+   "rows": [
+    {
+     "p": "Rating",
+     "op": "is empty"
+    }
+   ]
+  }
+ },
+ {
+  "id": "S7a",
+  "expect": 3,
+  "steps": {
+   "tags": [
+    {
+     "t": "Project"
+    }
+   ],
+   "rows": [
+    {
+     "p": "ProjStatus",
+     "op": "contains any",
+     "v": [
+      "Active"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "S7b",
+  "expect": 2,
+  "steps": {
+   "inherit": false,
+   "tags": [
+    {
+     "t": "Project"
+    }
+   ],
+   "rows": [
+    {
+     "p": "ProjStatus",
+     "op": "contains any",
+     "v": [
+      "Active"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "S7c",
+  "expect": 2,
+  "steps": {
+   "tags": [
+    {
+     "t": "Client Project"
+    }
+   ]
+  }
+ },
+ {
+  "id": "S8a",
+  "expect": 1,
+  "steps": {
+   "tags": [
+    {
+     "t": "Project"
+    }
+   ],
+   "rows": [
+    {
+     "p": "DueDate",
+     "op": "is empty"
+    }
+   ]
+  }
+ },
+ {
+  "id": "S8b",
+  "expect": 2,
+  "steps": {
+   "tags": [
+    {
+     "t": "Project"
+    }
+   ],
+   "rows": [
+    {
+     "p": "Budget",
+     "op": "greater than",
+     "v": [
+      10000
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "S9a",
+  "expect": 3,
+  "steps": {
+   "tags": [
+    {
+     "t": "Project"
+    }
+   ],
+   "rows": [
+    {
+     "p": "DueDate",
+     "op": "before",
+     "v": [
+      "2026-11-01"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "S9b",
+  "expect": 3,
+  "steps": {
+   "tags": [
+    {
+     "t": "Project"
+    }
+   ],
+   "rows": [
+    {
+     "p": "DueDate",
+     "op": "after",
+     "v": [
+      "today"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "S10",
+  "expect": 1,
+  "steps": {
+   "tags": [
+    {
+     "t": "Idea"
+    }
+   ],
+   "refs": [
+    {
+     "dir": "links to",
+     "target": "project",
+     "targetLabel": "any Project",
+     "not": true
+    }
+   ]
+  }
+ },
+ {
+  "id": "S11a",
+  "expect": 2,
+  "steps": {
+   "tags": [
+    {
+     "t": "Person"
+    }
+   ],
+   "rows": [
+    {
+     "p": "Company",
+     "op": "contains any",
+     "v": [
+      "Northwind"
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "id": "S11b",
+  "expect": 1,
+  "steps": {
+   "tags": [
+    {
+     "t": "Person"
+    }
+   ],
+   "rows": [
+    {
+     "p": "Company",
+     "op": "is empty"
+    }
+   ]
+  }
+ },
+ {
+  "id": "S12",
+  "expect": 3,
+  "steps": {
+   "refs": [
+    {
+     "dir": "links to",
+     "target": "person",
+     "targetLabel": "any Person",
+     "conds": [
+      {
+       "p": "Company",
+       "op": "contains any",
+       "v": [
+        "Northwind"
+       ]
+      }
+     ]
+    }
+   ],
+   "dsl": true
+  }
+ },
+ {
+  "id": "S13",
+  "expect": 2,
+  "steps": {
+   "refs": [
+    {
+     "dir": "is linked from",
+     "target": "Project Atlas"
+    }
+   ]
+  }
+ },
+ {
+  "id": "S14",
+  "expect": 1,
+  "steps": {
+   "tags": [
+    {
+     "t": "Task"
+    }
+   ],
+   "refs": [
+    {
+     "dir": "on page under",
+     "target": "Project Atlas"
+    }
+   ]
+  }
+ },
+ {
+  "id": "S15a",
+  "expect": 5,
+  "steps": {
+   "scope": {
+    "page": "Oct 8th, 2026"
+   }
+  }
+ },
+ {
+  "id": "S15b",
+  "expect": 2,
+  "steps": {
+   "scope": {
+    "page": "Oct 8th, 2026"
+   },
+   "tags": [
+    {
+     "t": "Task"
+    }
+   ]
+  }
+ },
+ {
+  "id": "S16",
+  "expect": 1,
+  "steps": {
+   "content": {
+    "op": "matches regex",
+    "v": "^Idea:"
+   }
+  }
+ },
+ {
+  "id": "S17",
+  "expect": 27,
+  "steps": {
+   "tags": [
+    {
+     "t": null
+    },
+    {
+     "t": "Task",
+     "not": true
+    }
+   ]
+  }
+ }
+]

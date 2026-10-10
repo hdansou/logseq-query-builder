@@ -1,5 +1,5 @@
 {
-  "_doc": "Emitter clauses checked read-only against CLI graphs with `npm run probe -- <graph>`; `--record` rewrites `expected`. Targets with a title and no uuid are resolved by title on the graph. Date inputs are not supported by the CLI.",
+  "_doc": "Emitter clauses checked read-only against CLI graphs with `npm run probe -- <graph>`; `--record` rewrites `expected`. Tags, properties, pages and node targets given by title (empty ident / null uuid) are resolved on the graph. Date inputs are not supported by the CLI. Run the qb-e2e-persona probes on a fresh seed (node scripts/seed-persona.mjs): blocks inserted by a UI run change the counts.",
   "probes": [
     {
       "name": "links to Quick Start",
@@ -184,6 +184,928 @@
             "join": "and"
           }
         ]
+      }
+    },
+    {
+      "name": "S1 open tasks",
+      "graph": "qb-e2e-persona",
+      "expected": 6,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [
+          {
+            "tag": {
+              "ident": ":logseq.class/Task",
+              "title": "Task"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "inherit": true,
+        "rows": [
+          {
+            "id": "row1",
+            "property": {
+              "ident": ":logseq.property/status",
+              "title": "Status",
+              "type": "default",
+              "cardinality": "one"
+            },
+            "op": "not-contains",
+            "values": [
+              {
+                "kind": "text",
+                "text": "Done"
+              }
+            ],
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "content": null,
+        "name": "",
+        "refs": []
+      }
+    },
+    {
+      "name": "S3a links to Project Atlas",
+      "graph": "qb-e2e-persona",
+      "expected": 2,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [],
+        "inherit": true,
+        "rows": [],
+        "content": null,
+        "name": "",
+        "refs": [
+          {
+            "id": "ref2",
+            "dir": "links-to",
+            "target": {
+              "kind": "node",
+              "uuid": null,
+              "title": "Project Atlas"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ]
+      }
+    },
+    {
+      "name": "S3b ancestor links to Project Atlas",
+      "graph": "qb-e2e-persona",
+      "expected": 4,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [],
+        "inherit": true,
+        "rows": [],
+        "content": null,
+        "name": "",
+        "refs": [
+          {
+            "id": "ref3",
+            "dir": "ancestor-links-to",
+            "target": {
+              "kind": "node",
+              "uuid": null,
+              "title": "Project Atlas"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ]
+      }
+    },
+    {
+      "name": "S3c on page under Project Atlas",
+      "graph": "qb-e2e-persona",
+      "expected": 4,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [],
+        "inherit": true,
+        "rows": [],
+        "content": null,
+        "name": "",
+        "refs": [
+          {
+            "id": "ref4",
+            "dir": "under",
+            "target": {
+              "kind": "node",
+              "uuid": null,
+              "title": "Project Atlas"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ]
+      }
+    },
+    {
+      "name": "S4 meetings with Alice",
+      "graph": "qb-e2e-persona",
+      "expected": 2,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [
+          {
+            "tag": {
+              "ident": "",
+              "title": "Meeting"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "inherit": true,
+        "rows": [
+          {
+            "id": "row5",
+            "property": {
+              "ident": "",
+              "title": "With",
+              "type": "node",
+              "cardinality": "many"
+            },
+            "op": "contains-any",
+            "values": [
+              {
+                "kind": "ref",
+                "uuid": null,
+                "title": "Alice Nguyen"
+              }
+            ],
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "content": null,
+        "name": "",
+        "refs": []
+      }
+    },
+    {
+      "name": "S5 content starts with Decision:",
+      "graph": "qb-e2e-persona",
+      "expected": 3,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [],
+        "inherit": true,
+        "rows": [],
+        "content": {
+          "op": "starts-with",
+          "value": "Decision:"
+        },
+        "name": "",
+        "refs": []
+      }
+    },
+    {
+      "name": "S5x content contains active (a property value, not a node)",
+      "graph": "qb-e2e-persona",
+      "expected": 0,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [],
+        "inherit": true,
+        "rows": [],
+        "content": {
+          "op": "contains",
+          "value": "active"
+        },
+        "name": "",
+        "refs": []
+      }
+    },
+    {
+      "name": "S5y content contains urgent (a built-in closed value, not a node)",
+      "graph": "qb-e2e-persona",
+      "expected": 0,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [],
+        "inherit": true,
+        "rows": [],
+        "content": {
+          "op": "contains",
+          "value": "urgent"
+        },
+        "name": "",
+        "refs": []
+      }
+    },
+    {
+      "name": "S6 good unfinished books",
+      "graph": "qb-e2e-persona",
+      "expected": 1,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [
+          {
+            "tag": {
+              "ident": "",
+              "title": "Book"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "inherit": true,
+        "rows": [
+          {
+            "id": "row6",
+            "property": {
+              "ident": "",
+              "title": "Rating",
+              "type": "number",
+              "cardinality": "one"
+            },
+            "op": "gt",
+            "values": [
+              {
+                "kind": "number",
+                "n": 3
+              }
+            ],
+            "not": false,
+            "join": "and"
+          },
+          {
+            "id": "row7",
+            "property": {
+              "ident": "",
+              "title": "Finished",
+              "type": "checkbox",
+              "cardinality": "one"
+            },
+            "op": "false",
+            "values": [],
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "content": null,
+        "name": "",
+        "refs": []
+      }
+    },
+    {
+      "name": "S6b unrated books",
+      "graph": "qb-e2e-persona",
+      "expected": 1,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [
+          {
+            "tag": {
+              "ident": "",
+              "title": "Book"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "inherit": true,
+        "rows": [
+          {
+            "id": "row8",
+            "property": {
+              "ident": "",
+              "title": "Rating",
+              "type": "number",
+              "cardinality": "one"
+            },
+            "op": "empty",
+            "values": [],
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "content": null,
+        "name": "",
+        "refs": []
+      }
+    },
+    {
+      "name": "S7a active projects incl. client projects",
+      "graph": "qb-e2e-persona",
+      "expected": 3,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [
+          {
+            "tag": {
+              "ident": "",
+              "title": "Project"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "inherit": true,
+        "rows": [
+          {
+            "id": "row9",
+            "property": {
+              "ident": "",
+              "title": "ProjStatus",
+              "type": "default",
+              "cardinality": "one"
+            },
+            "op": "contains-any",
+            "values": [
+              {
+                "kind": "text",
+                "text": "Active"
+              }
+            ],
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "content": null,
+        "name": "",
+        "refs": []
+      }
+    },
+    {
+      "name": "S7b active projects, no inheritance",
+      "graph": "qb-e2e-persona",
+      "expected": 2,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [
+          {
+            "tag": {
+              "ident": "",
+              "title": "Project"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "inherit": false,
+        "rows": [
+          {
+            "id": "row10",
+            "property": {
+              "ident": "",
+              "title": "ProjStatus",
+              "type": "default",
+              "cardinality": "one"
+            },
+            "op": "contains-any",
+            "values": [
+              {
+                "kind": "text",
+                "text": "Active"
+              }
+            ],
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "content": null,
+        "name": "",
+        "refs": []
+      }
+    },
+    {
+      "name": "S7c client projects",
+      "graph": "qb-e2e-persona",
+      "expected": 2,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [
+          {
+            "tag": {
+              "ident": "",
+              "title": "Client Project"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "inherit": true,
+        "rows": [],
+        "content": null,
+        "name": "",
+        "refs": []
+      }
+    },
+    {
+      "name": "S8a projects without a due date",
+      "graph": "qb-e2e-persona",
+      "expected": 1,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [
+          {
+            "tag": {
+              "ident": "",
+              "title": "Project"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "inherit": true,
+        "rows": [
+          {
+            "id": "row11",
+            "property": {
+              "ident": "",
+              "title": "DueDate",
+              "type": "date",
+              "cardinality": "one"
+            },
+            "op": "empty",
+            "values": [],
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "content": null,
+        "name": "",
+        "refs": []
+      }
+    },
+    {
+      "name": "S8b projects over 10000",
+      "graph": "qb-e2e-persona",
+      "expected": 2,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [
+          {
+            "tag": {
+              "ident": "",
+              "title": "Project"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "inherit": true,
+        "rows": [
+          {
+            "id": "row12",
+            "property": {
+              "ident": "",
+              "title": "Budget",
+              "type": "number",
+              "cardinality": "one"
+            },
+            "op": "gt",
+            "values": [
+              {
+                "kind": "number",
+                "n": 10000
+              }
+            ],
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "content": null,
+        "name": "",
+        "refs": []
+      }
+    },
+    {
+      "name": "S10 ideas not linked to any project",
+      "graph": "qb-e2e-persona",
+      "expected": 1,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [
+          {
+            "tag": {
+              "ident": "",
+              "title": "Idea"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "inherit": true,
+        "rows": [],
+        "content": null,
+        "name": "",
+        "refs": [
+          {
+            "id": "ref13",
+            "dir": "links-to",
+            "target": {
+              "kind": "tag",
+              "tag": {
+                "ident": "",
+                "title": "Project"
+              },
+              "name": "",
+              "rows": []
+            },
+            "not": true,
+            "join": "and"
+          }
+        ]
+      }
+    },
+    {
+      "name": "S11a people at Northwind",
+      "graph": "qb-e2e-persona",
+      "expected": 2,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [
+          {
+            "tag": {
+              "ident": "",
+              "title": "Person"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "inherit": true,
+        "rows": [
+          {
+            "id": "row14",
+            "property": {
+              "ident": "",
+              "title": "Company",
+              "type": "default",
+              "cardinality": "one"
+            },
+            "op": "contains-any",
+            "values": [
+              {
+                "kind": "text",
+                "text": "Northwind"
+              }
+            ],
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "content": null,
+        "name": "",
+        "refs": []
+      }
+    },
+    {
+      "name": "S11b people with no company",
+      "graph": "qb-e2e-persona",
+      "expected": 1,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [
+          {
+            "tag": {
+              "ident": "",
+              "title": "Person"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "inherit": true,
+        "rows": [
+          {
+            "id": "row15",
+            "property": {
+              "ident": "",
+              "title": "Company",
+              "type": "default",
+              "cardinality": "one"
+            },
+            "op": "empty",
+            "values": [],
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "content": null,
+        "name": "",
+        "refs": []
+      }
+    },
+    {
+      "name": "S12 links to any Person whose Company contains Northwind",
+      "graph": "qb-e2e-persona",
+      "expected": 3,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [],
+        "inherit": true,
+        "rows": [],
+        "content": null,
+        "name": "",
+        "refs": [
+          {
+            "id": "ref17",
+            "dir": "links-to",
+            "target": {
+              "kind": "tag",
+              "tag": {
+                "ident": "",
+                "title": "Person"
+              },
+              "name": "",
+              "rows": [
+                {
+                  "id": "row16",
+                  "property": {
+                    "ident": "",
+                    "title": "Company",
+                    "type": "default",
+                    "cardinality": "one"
+                  },
+                  "op": "contains-any",
+                  "values": [
+                    {
+                      "kind": "text",
+                      "text": "Northwind"
+                    }
+                  ],
+                  "not": false,
+                  "join": "and"
+                }
+              ]
+            },
+            "not": false,
+            "join": "and"
+          }
+        ]
+      }
+    },
+    {
+      "name": "S13 linked from Project Atlas",
+      "graph": "qb-e2e-persona",
+      "expected": 2,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [],
+        "inherit": true,
+        "rows": [],
+        "content": null,
+        "name": "",
+        "refs": [
+          {
+            "id": "ref18",
+            "dir": "linked-from",
+            "target": {
+              "kind": "node",
+              "uuid": null,
+              "title": "Project Atlas"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ]
+      }
+    },
+    {
+      "name": "S14 tasks on the Atlas page",
+      "graph": "qb-e2e-persona",
+      "expected": 1,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [
+          {
+            "tag": {
+              "ident": ":logseq.class/Task",
+              "title": "Task"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "inherit": true,
+        "rows": [],
+        "content": null,
+        "name": "",
+        "refs": [
+          {
+            "id": "ref19",
+            "dir": "under",
+            "target": {
+              "kind": "node",
+              "uuid": null,
+              "title": "Project Atlas"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ]
+      }
+    },
+    {
+      "name": "S15a on page Oct 8th, 2026",
+      "graph": "qb-e2e-persona",
+      "expected": 5,
+      "query": {
+        "scope": {
+          "kind": "on-page",
+          "page": {
+            "uuid": null,
+            "title": "Oct 8th, 2026"
+          }
+        },
+        "tags": [],
+        "inherit": true,
+        "rows": [],
+        "content": null,
+        "name": "",
+        "refs": []
+      }
+    },
+    {
+      "name": "S15b tasks on page Oct 8th, 2026",
+      "graph": "qb-e2e-persona",
+      "expected": 2,
+      "query": {
+        "scope": {
+          "kind": "on-page",
+          "page": {
+            "uuid": null,
+            "title": "Oct 8th, 2026"
+          }
+        },
+        "tags": [
+          {
+            "tag": {
+              "ident": ":logseq.class/Task",
+              "title": "Task"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "inherit": true,
+        "rows": [],
+        "content": null,
+        "name": "",
+        "refs": []
+      }
+    },
+    {
+      "name": "S16 content matches ^Idea:",
+      "graph": "qb-e2e-persona",
+      "expected": 1,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [],
+        "inherit": true,
+        "rows": [],
+        "content": {
+          "op": "matches",
+          "value": "^Idea:"
+        },
+        "name": "",
+        "refs": []
+      }
+    },
+    {
+      "name": "S17 any tag but not Task",
+      "graph": "qb-e2e-persona",
+      "expected": 27,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [
+          {
+            "tag": null,
+            "not": false,
+            "join": "and"
+          },
+          {
+            "tag": {
+              "ident": ":logseq.class/Task",
+              "title": "Task"
+            },
+            "not": true,
+            "join": "and"
+          }
+        ],
+        "inherit": true,
+        "rows": [],
+        "content": null,
+        "name": "",
+        "refs": []
+      }
+    },
+    {
+      "name": "S2 high-priority open tasks (date-free part)",
+      "graph": "qb-e2e-persona",
+      "expected": 3,
+      "query": {
+        "scope": {
+          "kind": "anywhere"
+        },
+        "tags": [
+          {
+            "tag": {
+              "ident": ":logseq.class/Task",
+              "title": "Task"
+            },
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "inherit": true,
+        "rows": [
+          {
+            "id": "row20",
+            "property": {
+              "ident": ":logseq.property/priority",
+              "title": "Priority",
+              "type": "default",
+              "cardinality": "one"
+            },
+            "op": "contains-any",
+            "values": [
+              {
+                "kind": "text",
+                "text": "High"
+              }
+            ],
+            "not": false,
+            "join": "and"
+          },
+          {
+            "id": "row21",
+            "property": {
+              "ident": ":logseq.property/status",
+              "title": "Status",
+              "type": "default",
+              "cardinality": "one"
+            },
+            "op": "not-contains",
+            "values": [
+              {
+                "kind": "text",
+                "text": "Done"
+              }
+            ],
+            "not": false,
+            "join": "and"
+          }
+        ],
+        "content": null,
+        "name": "",
+        "refs": []
       }
     }
   ]
