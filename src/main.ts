@@ -16,6 +16,7 @@ import { watchTheme } from "./theme";
 import { renderTags } from "./ui/tags";
 import { renderScope } from "./ui/scope";
 import { renderRefs } from "./ui/refs";
+import { focusTarget } from "./ui/focus";
 
 const dq = (q: string, ...ins: unknown[]) => logseq.DB.datascriptQuery(q, ...ins);
 
@@ -67,12 +68,12 @@ function main() {
 
   const focusFirst = (force = false) => {
     const active = document.activeElement as HTMLElement | null;
-    if (!force && active && active !== document.body) return;
-    const target = root.querySelector<HTMLElement>("[data-fid=tag-picker]") ?? root.querySelector<HTMLElement>("[data-fid]");
+    const target = focusTarget(root, active, force);
+    if (!target) return;
     // The host editor may re-take top-level focus after the frame is shown (slash-command path);
     // focusing our own window pulls it back into the frame before focusing the control.
     if (force) window.focus();
-    target?.focus();
+    target.focus();
     if (import.meta.env.DEV) console.info("[qb focus]", force ? "forced" : "on window focus", "was:", active?.dataset.fid ?? active?.tagName, "now:", (document.activeElement as HTMLElement | null)?.dataset.fid);
   };
   // The host focuses the iframe window when it shows the panel; focus must be placed after that.
