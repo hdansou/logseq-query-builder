@@ -12,13 +12,12 @@ export const renderContent: ZoneRenderer = (root, s, { store }) => {
 
   const line = document.createElement("div"); line.className = "row";
   const sel = document.createElement("select"); sel.dataset.fid = "content-op";
-  for (const [v, text] of OPS) { const o = document.createElement("option"); o.value = v; o.textContent = text; o.selected = (s.q.content?.op ?? "contains") === v; sel.appendChild(o); }
+  for (const [v, text] of OPS) { const o = document.createElement("option"); o.value = v; o.textContent = text; sel.appendChild(o); }
+  sel.value = s.q.content?.op ?? "contains";   // after the options exist: `option.selected` before append is ignored by happy-dom
   const input = document.createElement("input"); input.dataset.fid = "content-text"; input.className = "date"; input.style.width = "260px";
   input.placeholder = "text… (empty = no content filter)"; input.value = s.q.content?.value ?? ""; input.autocomplete = "off";
-  const apply = () => {
-    const value = input.value.trim();
-    store.update((q) => setContent(q, value ? { op: sel.value as ContentOp, value } : null));
-  };
+  // The operator is kept even with no text yet, so choosing it first survives the re-render (BUG-15).
+  const apply = () => store.update((q) => setContent(q, { op: sel.value as ContentOp, value: input.value.trim() }));
   sel.addEventListener("change", apply);
   input.addEventListener("change", apply);
   line.append(sel, input);

@@ -1,4 +1,4 @@
-import type { FilterRow, OperatorId, Query, RefRow, TagClause } from "./model";
+import { contentActive, type FilterRow, type OperatorId, type Query, type RefRow, type TagClause } from "./model";
 import { arityOf } from "./operators";
 
 /**
@@ -31,11 +31,11 @@ export function guard(q: Query): GuardResult {
   const rows = q.rows.filter(rowComplete);
   const refs = q.refs.filter(refComplete);
   const scoped = q.scope.kind !== "anywhere";
-  if (!scoped && q.tags.length === 0 && rows.length === 0 && refs.length === 0 && !q.content) return { ok: false, reason: EMPTY };
+  if (!scoped && q.tags.length === 0 && rows.length === 0 && refs.length === 0 && !contentActive(q.content)) return { ok: false, reason: EMPTY };
 
   if (q.tags.slice(1).some((t) => t.join === "or" && !tagPositive(t))) return { ok: false, reason: OR };
   if (rows.slice(1).some((r) => r.join === "or" && !rowPositive(r))) return { ok: false, reason: OR };
   if (refs.slice(1).some((r) => r.join === "or" && !refPositive(r))) return { ok: false, reason: OR };
-  const positive = scoped || q.tags.some(tagPositive) || q.content !== null || rows.some(rowPositive) || refs.some(refPositive);
+  const positive = scoped || q.tags.some(tagPositive) || contentActive(q.content) || rows.some(rowPositive) || refs.some(refPositive);
   return positive ? { ok: true } : { ok: false, reason: POSITIVE };
 }

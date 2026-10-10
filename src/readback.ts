@@ -1,6 +1,6 @@
 import { describeRelative } from "./dates";
 import { refComplete, rowComplete } from "./guard";
-import type { ContentClause, FilterRow, OperatorId, Query, RefRow, RefTarget, TagClause, Value } from "./model";
+import { contentActive, type ContentClause, type FilterRow, type OperatorId, type Query, type RefRow, type RefTarget, type TagClause, type Value } from "./model";
 
 /** The plain-English line above the results, so a query can be checked without reading Datalog. */
 
@@ -94,7 +94,7 @@ function scope(q: Query): string {
 export function readback(q: Query): string {
   const rows = q.rows.filter(rowComplete);
   const clauses = rows.map((r, i) => (i === 0 ? rowText(r) : `${r.join} ${rowText(r)}`));
-  if (q.content) clauses.push(`${clauses.length ? "and " : ""}${content(q.content)}`);
+  if (contentActive(q.content)) clauses.push(`${clauses.length ? "and " : ""}${content(q.content)}`);
   const refs = q.refs.filter(refComplete).map((r, i) => (i === 0 ? refText(r) : `${r.join} ${refText(r)}`));
   const subject = tags(q.tags) + scope(q) + (refs.length ? ` that ${refs.join(" ")}` : "");
   return clauses.length ? `${subject} where ${clauses.join(" ")}` : subject;

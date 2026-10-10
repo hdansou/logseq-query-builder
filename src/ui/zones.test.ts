@@ -85,6 +85,23 @@ describe("pickers across a re-render (BUG-9)", () => {
   });
 });
 
+describe("content zone", () => {
+  it("keeps an operator chosen before any text is typed (BUG-15: it snapped back to 'contains' on the re-render)", () => {
+    const { store } = renderPanel();
+    const sel = fid("content-op") as unknown as HTMLSelectElement;
+    sel.value = "starts-with"; sel.dispatchEvent(new Event("change", { bubbles: true }));
+    expect((fid("content-op") as unknown as HTMLSelectElement).value).toBe("starts-with");
+    store.update((qq) => ({ ...qq, tags: [{ tag: project, not: false, join: "and" }] }));   // any other re-render
+    expect((fid("content-op") as unknown as HTMLSelectElement).value).toBe("starts-with");
+    expect(store.state.guard.ok).toBe(true);
+    expect(fid("name")!.value).toBe("project nodes");   // an operator without text is not a filter yet
+    const input = fid("content-text")!;
+    input.value = "Decision:"; input.dispatchEvent(new Event("change", { bubbles: true }));
+    expect(store.state.q.content).toEqual({ op: "starts-with", value: "Decision:" });
+    expect(fid("name")!.value).toBe('project nodes where text starts with "Decision:"');
+  });
+});
+
 describe("references zone", () => {
   let store: Store;
   beforeEach(() => { ({ store } = renderPanel()); });

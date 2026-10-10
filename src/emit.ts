@@ -2,7 +2,7 @@ import { absoluteLiteral, bounds, relativeInput, type Boundary } from "./dates";
 import { guard, refComplete, refPositive, rowComplete, rowPositive, tagPositive } from "./guard";
 import { contextPull } from "./context";
 import { str } from "./edn";
-import type { ContentClause, DateValue, FilterRow, Join, PropertyRef, Query, RefRow, Scope, TagClause, Value } from "./model";
+import { contentActive, type ContentClause, type DateValue, type FilterRow, type Join, type PropertyRef, type Query, type RefRow, type Scope, type TagClause, type Value } from "./model";
 
 /**
  * Builder state → Datalog. One emitter for the preview (narrow pull, inputs passed as strings,
@@ -240,7 +240,7 @@ export function emit(q: Query): Emitted {
   const ctx = new Ctx();
   const scope = scopeClause(q.scope, ctx);
   const tags = fold(q.tags.map((t, i) => tagClause(t, i + 1, q.inherit, ctx)));
-  const content = q.content ? [contentClause(q.content)] : [];
+  const content = contentActive(q.content) ? [contentClause(q.content)] : [];
   const rows = fold(q.rows.filter(rowComplete).map((r, i) => rowClause(r, String(i + 1), ctx)));
   const refs = fold(q.refs.filter(refComplete).map((r, i) => refClause(r, i + 1, q.inherit, ctx)));
   // Positive clauses bind ?b; negations must follow them. Order within a conjunction is free.

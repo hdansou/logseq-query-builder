@@ -39,6 +39,8 @@ export interface FilterRow {
 
 export type ContentOp = "contains" | "not-contains" | "starts-with" | "matches";
 export interface ContentClause { op: ContentOp; value: string }
+/** An operator chosen before any text is typed lives in state (so a re-render keeps it) but is not a filter yet (BUG-15). */
+export const contentActive = (c: ContentClause | null): c is ContentClause => c !== null && c.value.trim() !== "";
 
 /**
  * Where to look. `on-page`: the blocks that live on one page. `library`: pages inside the
