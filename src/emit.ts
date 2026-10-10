@@ -95,7 +95,9 @@ function dateTerm(d: DateValue, boundary: Boundary, ctx: Ctx): string {
 
 function tagClause(t: TagClause, i: number, inherit: boolean, ctx: Ctx): Clause {
   let text: string;
-  if (!t.tag) text = "[?b :block/tags _]";
+  // "Any tag": the user's tagged nodes. Property and tag pages carry a tag themselves, built-in
+  // pages too, and closed values are tagged entities; negated, plain presence is what "untagged" means.
+  if (!t.tag) text = t.not ? "[?b :block/tags _]" : `[?b :block/tags ?any${i}] (not [?b :block/tags :logseq.class/Property]) (not [?b :block/tags :logseq.class/Tag]) (not [?b :logseq.property/built-in? true]) ${NO_VALUES}`;
   else if (!inherit) text = `[?b :block/tags ${ident(t.tag.ident)}]`;
   else {
     const tag = `?tag${i}`, tv = `?t${i}`;

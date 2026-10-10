@@ -91,7 +91,7 @@ describe("spec scenarios", () => {
 describe("tags", () => {
   it("exact match when inheritance is off; presence with a null tag", () => {
     expect(emit(setInherit(addTag(emptyQuery(), project), false)).where).toEqual([`[?b :block/tags ${project.ident}]`]);
-    expect(emit(addTag(emptyQuery(), null)).where).toEqual([`[?b :block/tags _]`]);
+    expect(emit(addTag(emptyQuery(), null)).where[0]).toMatch(/^\[\?b :block\/tags \?any1\] /);   // see "any tag (presence)"
   });
   it("AND concatenates, OR wraps in or-join, NOT wraps in not", () => {
     let q = addTag(addTag(emptyQuery(), task), project);
@@ -163,6 +163,20 @@ describe("operators, one form each (the rows verified live in docs/probes.md)", 
   });
   it("escapes quotes and backslashes in text values", () => {
     expect(one(status, "contains-any", [text('say "hi" \\ bye')])).toContain(`#{"say \\"hi\\" \\\\ bye"}`);
+  });
+});
+
+describe("any tag (presence)", () => {
+  // "Any tag" means the user's tagged nodes. Every property and tag page carries a tag itself
+  // (Property, Tag), built-in pages are tagged too, and closed values are tagged entities: on a
+  // graph with 27 tagged user nodes the bare clause returned 185 (e2e S17, BUG-14).
+  const ANY = `[?b :block/tags ?any1] (not [?b :block/tags :logseq.class/Property]) (not [?b :block/tags :logseq.class/Tag]) (not [?b :logseq.property/built-in? true]) (not [?b :logseq.property/created-from-property _])`;
+  it("binds the user's tagged nodes, not the schema", () => {
+    expect(emit(addTag(emptyQuery(), null)).where).toEqual([ANY]);
+  });
+  it("NOT any tag = untagged, once something positive binds ?b", () => {
+    const q = setTag(addTag(addTag(emptyQuery(), task), null), 1, { not: true });
+    expect(emit(q).where[1]).toBe(`(not [?b :block/tags _])`);
   });
 });
 
