@@ -28,10 +28,16 @@ function captureFocus() {
   const fid = a?.dataset.fid;
   const sel = isText(a) ? [a.selectionStart, a.selectionEnd] : null;
   const val = isText(a) && a.dataset.typing === "1" ? a.value : null;
+  // A picker's list is re-created closed; reopen it only if it was open. After a pick the list is
+  // closed, and focusing the fresh input must not pop the whole list back over the next zone
+  // (BUG-9: the tag list covered the Filters row after every tag pick).
+  const list = a?.parentElement?.querySelector("ul");
+  const listOpen = !!list && !list.hidden;
   return () => {
     if (!fid) return;
     const n = document.querySelector<HTMLElement>(`[data-fid="${CSS.escape(fid)}"]`);
     if (!n) return;
+    if (list && !listOpen) n.dataset.quiet = "1";
     n.focus();
     if (isText(n)) {
       if (val !== null && n.value !== val) { n.value = val; n.dispatchEvent(new Event("input")); }

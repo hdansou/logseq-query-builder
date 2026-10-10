@@ -35,6 +35,43 @@ describe("frame", () => {
   });
 });
 
+describe("pickers across a re-render (BUG-9)", () => {
+  // One tag on the graph, so the tag picker has something to pick.
+  const graph = async (query: string) =>
+    query.includes("(count ?b)") ? [[":user.class/project-1", 12]]
+    : query.includes(":logseq.class/Tag]") ? [[":user.class/project-1", "project", "u-proj"]]
+    : [];
+  const settle = () => new Promise((r) => setTimeout(r, 0));
+  const listOf = (el: HTMLElement) => el.parentElement!.querySelector("ul")!;
+
+  it("a tag picked with the mouse does not reopen the tag list over the Filters zone", async () => {
+    renderPanel(graph);
+    const input = fid("tag-picker")!;
+    input.focus();
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, cancelable: true })); await settle();
+    expect(listOf(input).hidden).toBe(false);
+    listOf(input).querySelector("li")!.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+    await settle();   // the restored picker's focus handler refreshes asynchronously
+    // The store re-rendered (chip on screen); focus stayed in the fresh picker, but its list is closed.
+    expect(text()).toContain("project");
+    const after = fid("tag-picker")!;
+    expect(document.activeElement).toBe(after);
+    expect(listOf(after).hidden).toBe(true);
+  });
+  it("a list that was open stays open when results arrive mid-choice", async () => {
+    const { store } = renderPanel(graph);
+    store.update((qq) => setRow({ ...qq, rows: [{ id: "r1", property: null, op: null, values: [], not: false, join: "and" }] }, "r1", { property: status, op: "contains-any" }));
+    const op = fid("row-op-r1")!;
+    op.focus(); await settle();
+    expect(listOf(op).hidden).toBe(false);
+    store.update((qq) => ({ ...qq }));   // a re-render for an unrelated reason (the preview came back)
+    await settle();
+    const after = fid("row-op-r1")!;
+    expect(document.activeElement).toBe(after);
+    expect(listOf(after).hidden).toBe(false);
+  });
+});
+
 describe("references zone", () => {
   let store: Store;
   beforeEach(() => { ({ store } = renderPanel()); });

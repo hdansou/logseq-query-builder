@@ -98,7 +98,12 @@ export function createPicker<T>(o: PickerOpts<T>): HTMLElement {
 
   const pick = (opt: Option<T>) => { st = { open: false, index: 0 }; input.value = o.keepOnPick ? opt.label : ""; delete input.dataset.typing; paint(); o.onPick(opt); };
 
-  input.addEventListener("focus", () => { typed = false; st = { ...st, open: true }; if (o.showAllOnFocus) input.select(); void refresh(); });
+  // `data-quiet` (set by render.ts when it restores focus after a re-render) means: take focus, keep the list as it was (closed).
+  input.addEventListener("focus", () => {
+    typed = false;
+    if (input.dataset.quiet === "1") { delete input.dataset.quiet; return; }
+    st = { ...st, open: true }; if (o.showAllOnFocus) input.select(); void refresh();
+  });
   // `data-typing` marks text the user is composing, so a full re-render (render.ts) can carry it over.
   input.addEventListener("input", () => { typed = true; input.dataset.typing = "1"; st = { ...st, open: true, index: 0 }; void refresh(); });
   input.addEventListener("blur", () => { st = { ...st, open: false }; delete input.dataset.typing; paint(); });
