@@ -77,6 +77,19 @@ CHANGELOG, cheatsheet, privacy and security-audit match `src/`; new `probes/`, `
 host source nor the skills confirm the field is read; revisit at the manifest PR. Release prep
 (version, tag) stays with the marketplace path.
 
+## Production-hardening pass 3 (2026-10-11)
+
+Two weeks and eight source fixes after pass 2. `src/` clean on A/B (no dialogs, logging, `any`
+or stubs; dev hooks gated). Applied: D1 `source-map-js` 1.2.2 (transitive via vite → postcss,
+lockfile refresh; `npm audit` 0); E1 `batch.sh` finds the skill's `frame.mjs` through `$FRAME`
+with the `~/.claude/skills` default and fails loudly if missing; E2 one `scripts/e2e/common.js`
+(panel shown, close, open from palette) instead of four copies; C1 README *Install* section
+(release zip, load unpacked, DB graph only). Toolchain: CI and `engines` on Node 24 (`.nvmrc`),
+suite, typecheck, build green on 24.9.0 and 22.20.0; `@logseq/libs` 0.3.4 is the newest published
+(npm's `latest` tag still points at 0.0.17; 0.3.x is on `next`). Checked and matching: CHANGELOG
+`[Unreleased]` and README carry every fix since pass 2. Deferred: E3 real-graph screenshot before
+the marketplace PR; version, tag and the manifest PR stay with the release path; FEAT-51 open.
+
 ## Now — reference rows (rescope of FEAT-38, 2026-09-26)
 
 The requirement doc gained a *Reference querying* section (SPEC.md, grounded in §10) and the

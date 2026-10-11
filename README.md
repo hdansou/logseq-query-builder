@@ -11,6 +11,13 @@ into a page as a named, live query node. No Datalog written by hand.
 > Design record: [`PLAN.md`](./PLAN.md), the spec and prototype in `logseq-query-builder-handoff/`,
 > live findings in [`docs/probes.md`](./docs/probes.md). Changes: [`CHANGELOG.md`](./CHANGELOG.md).
 
+## Install
+
+Not on the marketplace yet. Download `logseq-query-builder.zip` from the
+[latest release](https://github.com/hdansou/logseq-query-builder/releases), unzip it, turn on
+*Developer mode* in Logseq's settings (Advanced), then *Plugins → Load unpacked plugin* and pick the
+unzipped folder. The plugin needs a DB graph; it does nothing in a file graph.
+
 ## Using it
 
 Open the builder with **⌘⇧F** (also "Query Builder: open" in the command palette), or type
