@@ -69,6 +69,7 @@ client. Ask that as **links to · any project · whose Client is Acme** instead.
 | ---------- | ------------------------------ |
 | ⌘⇧F        | open / close the builder       |
 | Tab · ⇧Tab | next / previous control        |
+| type · ↓   | open a picker's list           |
 | ↩          | pick the highlighted option    |
 | ⇧↩         | add a filter row               |
 | ⌘↩         | insert the query into the page |
@@ -77,8 +78,8 @@ client. Ask that as **links to · any project · whose Client is Acme** instead.
 ## Insert, then edit later
 
 **Insert** writes a live `#Query` block named after the sentence in the name field (edit the name
-first if you like). The block keeps your choices, so opening the builder while editing that block
-brings the same chips back. The **datalog** toggle in the footer shows the query text if you are
+first if you like). The block keeps your choices, so pressing ⌘⇧F while editing that block brings
+the same chips back (use the shortcut, not the command palette, for this). The **datalog** toggle in the footer shows the query text if you are
 curious; you never need to read it.
 
 ## When nothing shows up

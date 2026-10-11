@@ -16,13 +16,14 @@ into a page as a named, live query node. No Datalog written by hand.
 Open the builder with **⌘⇧F** (also "Query Builder: open" in the command palette), or type
 **/Query Builder** inside a block. While the plugin is enabled, ⌘⇧F
 takes over Logseq's toggle-favorite shortcut; rebind either in Logseq's keymap settings. The panel floats: drag it by its title bar, resize it from the
-corner, click the graph behind it.
+corner, click the graph behind it. It remembers where you left it and stays inside the window if
+that was a bigger screen.
 
 | Zone | What it does |
 |---|---|
 | **Scope** | Where to look: *anywhere* (default), *in the Library*, or *on page…*. See [Scopes](#scopes). |
 | **Name** | The query's title once inserted. Prefilled with a plain-English reading of your filters; edit or replace it. |
-| **Tags** | Autocomplete over your graph's tags, most-used first. Several tags combine with AND / OR; each can be NOT. "any tag" is a presence test. *Include sub-tags* (on by default) also matches tags that extend the chosen one. |
+| **Tags** | Autocomplete over your graph's tags, most-used first. Several tags combine with AND / OR; each can be NOT. "any tag" means your tagged nodes (tag and property pages, built-ins and property values do not count); NOT any tag means untagged. The list opens as you type or with ↓. *Include sub-tags* (on by default) also matches tags that extend the chosen one. |
 | **Filters** | One row per property: property → operator → value. Operators follow the property's type (text, number, URL, node, asset, date, date-time, checkbox). Rows combine with AND / OR left to right, each can be NOT. Values are picked from what the graph actually holds, with counts; text and numbers also accept free entry; dates accept `today`, `tomorrow`, `yesterday`, `±Nd/w/m/y` or `YYYY-MM-DD`, typed or picked from the calendar button beside the field. |
 | **References** | One row per relationship: *links to*, *is linked from*, *ancestor links to*, or *on page under*, then a target: one node, or *any \<tag\>* (sub-tags included) optionally narrowed by a name fragment and by property conditions. Rows combine with AND / OR, each can be NOT. See [References](#references). |
 | **Content** | Search the node's own text: contains, does not contain, starts with, or a regular expression. |
@@ -74,8 +75,9 @@ and a page does not "link to" the properties it uses.
 
 *Insert* writes a `#Query` node: from the shortcut, a new sibling after the block you were editing;
 from the slash command, into that block. The node renders as a live query table like a hand-written
-one. Relative dates are stored as expressions, so the query stays current. Reopening the builder
-while editing that block brings its filters back.
+one. Relative dates are stored as expressions, so the query stays current. Pressing ⌘⇧F while
+editing that block reopens the builder with its filters (the command palette opens a fresh builder:
+it takes focus from the editor before the command runs, so it cannot see which block you were in).
 
 ## Privacy
 
