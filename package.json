@@ -20,7 +20,7 @@
     "query"
   ],
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "packageManager": "npm@11.12.1",
   "main": "dist/index.html",
