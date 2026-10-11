@@ -4,7 +4,7 @@
 //            "refs":[{"dir":"links to","target":"Project Atlas","not":true,"conds":[...]}], "content":{"op":"starts with","v":"Decision:"},
 //            "scope":{"page":"Oct 8th, 2026"}|"library", "inherit":false, "dsl":true, "name":"…", "shot":"x.png"}
 // mode "mouse": click controls, click options. mode "keys": reach controls with Tab/⇧Tab, type to filter,
-// ↓ to the option, ↩ to pick, ⇧↩ for a new filter row, ↩ on buttons, arrows on the content select. The
+// ↓ to the option, ↩ to pick, ⇧↩ for a new filter row, ↩ on buttons. The
 // two fail differently (Enter moves focus forward, a click does not), so a zone is checked in both.
 async ({ page, frame }) => {
   const S = JSON.parse(process.env.STEPS || "{}");
@@ -43,7 +43,6 @@ async ({ page, frame }) => {
     },
     async text(fid, value) { const el = ctl(fid); await el.fill(String(value)); await el.press("Tab"); },
     async addRow() { await ctl("add-row").click(); },
-    async select(fid, label) { await ctl(fid).selectOption({ label }); },
   };
 
   // ---- primitives: keyboard ------------------------------------------------------------------
@@ -80,14 +79,6 @@ async ({ page, frame }) => {
     },
     async text(fid, value) { if (await reach(fid)) { await kb.type(String(value), { delay: 15 }); await kb.press("Tab"); } },
     async addRow() { await kb.press("Shift+Enter"); },
-    // The content operator is a native <select>: on macOS its popup is an NSMenu that synthetic
-    // keys never reach (checked 2026-10-10: ↓, Space ↓ ↩, Alt+↓, type-ahead all left the value).
-    // Reach it by Tab like a keyboard user would, then set the value as the popup would have.
-    async select(fid, label) {
-      if (!(await reach(fid))) return;
-      await ctl(fid).selectOption({ label });
-      log.push(`native select ${fid}: value set directly (CDP cannot drive the macOS popup)`);
-    },
   };
   const M = keys ? keysP : mouse;
   const lastId = async (prefix) => { const all = await fids(); const m = all.filter((x) => x.startsWith(prefix)).pop(); return m ? m.slice(prefix.length) : null; };
@@ -142,7 +133,7 @@ async ({ page, frame }) => {
 
   // ---- content ---------------------------------------------------------------------------------
   if (S.content) {
-    await M.select("content-op", S.content.op);
+    await M.pick("content-op", S.content.op, S.content.op);
     if (keys) { await reach("content-text"); await kb.type(S.content.v, { delay: 15 }); await kb.press("Tab"); } else { await ctl("content-text").fill(S.content.v); await ctl("content-text").press("Tab"); }
     await sleep(100);
   }

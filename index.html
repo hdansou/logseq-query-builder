@@ -24,7 +24,7 @@
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
   body { font-family: var(--qb-font); font-size: 13px; color: var(--qb-fg); }
-  button, input, select { font: inherit; color: inherit; }
+  button, input { font: inherit; color: inherit; }
   button { cursor: pointer; }
 
   /* The host sizes and positions the iframe container (draggable, resizable); the panel fills it. */
@@ -60,8 +60,6 @@
   .picker li .hint { color: var(--qb-fg2); font-size: 11.5px; }
   .picker .empty { color: var(--qb-fg2); padding: 5px 8px; }
 
-  select { height: 28px; border: 1px solid var(--qb-border); border-radius: var(--qb-r1); background: var(--qb-bg2); padding: 0 6px; outline: 0; }
-  select:focus { border-color: var(--qb-accent); }
   input.num, input.date { height: 28px; width: 110px; padding: 0 8px; border: 1px solid var(--qb-border); border-radius: var(--qb-r1); background: var(--qb-bg2); outline: 0; }
   input.date { width: 150px; }
   .datewrap { display: inline-flex; align-items: center; gap: 4px; }

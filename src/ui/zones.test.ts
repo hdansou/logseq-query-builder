@@ -14,6 +14,8 @@ const status: PropertyRef = { ident: ":user.property/status-1", title: "Status",
 const q = (sel: string) => document.querySelector<HTMLElement>(sel);
 const fid = (id: string) => q(`[data-fid="${id}"]`) as HTMLInputElement | null;
 const text = () => document.getElementById("root")!.textContent ?? "";
+const settle = () => new Promise((r) => setTimeout(r, 0));
+const listOf = (el: HTMLElement) => el.parentElement!.querySelector("ul")!;
 
 
 describe("frame", () => {
@@ -41,8 +43,6 @@ describe("pickers across a re-render (BUG-9)", () => {
     query.includes("(count ?b)") ? [[":user.class/project-1", 12]]
     : query.includes(":logseq.class/Tag]") ? [[":user.class/project-1", "project", "u-proj"]]
     : [];
-  const settle = () => new Promise((r) => setTimeout(r, 0));
-  const listOf = (el: HTMLElement) => el.parentElement!.querySelector("ul")!;
 
   it("a tag picked with the mouse does not reopen the tag list over the Filters zone", async () => {
     renderPanel(graph);
@@ -86,19 +86,44 @@ describe("pickers across a re-render (BUG-9)", () => {
 });
 
 describe("content zone", () => {
-  it("keeps an operator chosen before any text is typed (BUG-15: it snapped back to 'contains' on the re-render)", () => {
+  const optionLabels = (el: HTMLElement) => [...listOf(el).querySelectorAll('li[role="option"] > span:first-child')].map((e) => e.textContent);
+  it("offers the four operators in a picker that lists them on focus, like every other operator (FEAT-51)", async () => {
+    renderPanel();
+    const op = fid("content-op")!;
+    expect(op.tagName).toBe("INPUT");
+    expect(op.value).toBe("contains");
+    op.focus(); await settle();
+    expect(optionLabels(op)).toEqual(["contains", "does not contain", "starts with", "matches regex"]);
+  });
+  it("keeps an operator picked by keyboard before any text is typed (BUG-15: it snapped back to 'contains' on the re-render)", async () => {
     const { store } = renderPanel();
-    const sel = fid("content-op") as unknown as HTMLSelectElement;
-    sel.value = "starts-with"; sel.dispatchEvent(new Event("change", { bubbles: true }));
-    expect((fid("content-op") as unknown as HTMLSelectElement).value).toBe("starts-with");
+    const op = fid("content-op")!;
+    op.focus(); await settle();
+    op.value = "starts"; op.dispatchEvent(new Event("input", { bubbles: true })); await settle();
+    op.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true }));
+    expect(fid("content-op")!.value).toBe("starts with");
     store.update((qq) => ({ ...qq, tags: [{ tag: project, not: false, join: "and" }] }));   // any other re-render
-    expect((fid("content-op") as unknown as HTMLSelectElement).value).toBe("starts-with");
+    expect(fid("content-op")!.value).toBe("starts with");
     expect(store.state.guard.ok).toBe(true);
     expect(fid("name")!.value).toBe("project nodes");   // an operator without text is not a filter yet
     const input = fid("content-text")!;
     input.value = "Decision:"; input.dispatchEvent(new Event("change", { bubbles: true }));
     expect(store.state.q.content).toEqual({ op: "starts-with", value: "Decision:" });
     expect(fid("name")!.value).toBe('project nodes where text starts with "Decision:"');
+  });
+  it("picks an operator with the mouse and keeps the text already typed", async () => {
+    const { store } = renderPanel();
+    const input = fid("content-text")!;
+    input.value = "Decision:"; input.dispatchEvent(new Event("change", { bubbles: true }));
+    expect(store.state.q.content).toEqual({ op: "contains", value: "Decision:" });
+    const op = fid("content-op")!;
+    op.focus(); await settle();
+    const li = [...listOf(op).querySelectorAll('li[role="option"]')].find((l) => l.textContent === "does not contain")!;
+    li.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true }));
+    expect(store.state.q.content).toEqual({ op: "not-contains", value: "Decision:" });
+    expect(fid("content-op")!.value).toBe("does not contain");
+    expect(fid("content-text")!.value).toBe("Decision:");
+    expect(fid("name")!.value).toBe('all nodes where text does not contain "Decision:"');
   });
 });
 
