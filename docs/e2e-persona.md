@@ -263,6 +263,25 @@ second Esc closes the panel (observed on S9b; documented behaviour).
 - **F10.** Rows carry the page and the filtered properties' values (S2 shows priority, status and
   deadline; S1 the status).
 
+### Keyboard pass (2026-10-10)
+
+`MODE=keys ./batch.sh`: every scenario rebuilt with keys alone — Tab/⇧Tab to reach a control (the
+driver follows DOM order, since a NOT toggle sits before its picker), type to filter, ↓ to the
+option, ↩ to pick, ⇧↩ for a filter row, ↩ on buttons. 25 / 25 counts match the mouse pass; the
+read-backs are identical. Two facts the pass surfaced:
+
+- **The content operator is the panel's only native `<select>`.** On macOS its popup is an NSMenu,
+  so a keyboard user presses Space, arrows, ↩ — which works by hand but no synthetic key reaches it
+  (↓, Space ↓ ↩, Alt+↓ and type-ahead all left the value). The driver reaches it by Tab and then
+  sets the value directly, and says so in its log. Whether it should become a picker like every
+  other operator is FEAT-51, a product call, not a defect.
+- **S17 counts today's journal in the app.** The desktop app creates the day's journal page when it
+  opens; the date rolled to Oct 10th during the run, so *any tag and not Task* is 27 on the CLI and
+  27 + 1 in the app. Date-dependent counts belong in the CLI probes, not the UI table.
+
+Tabbing past the footer leaves the plugin frame for the host, as in any iframe; Esc closes the
+panel from anywhere inside it, so this is documented, not changed.
+
 ### Summary
 
 26 scenarios and 10 flows, all passing after fixes. Found and fixed, each with a failing test first:

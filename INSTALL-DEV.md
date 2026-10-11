@@ -129,6 +129,24 @@ npm run probe -- Demo-Graph            # runs docs/probes-cli.json fixtures for 
 npm run probe -- Library-Test --record # rewrites the expected counts with what the graph returns
 ```
 
-Read-only; fixtures name targets by title and are resolved on the graph. Date inputs are not
-supported by the CLI, keep fixtures date-free. Unit tests stay green without any graph (the probe
-file is skipped unless `QB_PROBE_GRAPH` is set).
+Read-only. Fixtures name tags, properties, pages and node targets by title (empty ident, null
+uuid) and the harness resolves them on the graph: user idents carry a random suffix that changes
+whenever a graph is reseeded. Date inputs are not supported by the CLI, keep fixtures date-free.
+Unit tests stay green without any graph (the probe file is skipped unless `QB_PROBE_GRAPH` is set).
+
+## The persona run (desktop app, before a release)
+
+`docs/e2e-persona.md` is the acceptance run: a seeded graph, 26 questions with the count each must
+return, 10 flows, and the log of every run. It found eight defects that the unit suite and the
+hand-driven checks had passed (2026-10-09), so it is the gate before a release, run in this order:
+
+```bash
+node scripts/seed-persona.mjs            # fresh qb-e2e-persona; prints engine count vs design per scenario
+npm run probe -- qb-e2e-persona          # the emitter's clauses on that graph (reseed first: UI runs insert blocks)
+# second desktop instance (test-logseq-desktop skill): launch.sh 9333, cdp.mjs graph qb-e2e-persona
+cd scripts/e2e && ./batch.sh             # every scenario through the real panel, by mouse
+#   flows.js (slash insert + reopen), keyboard.js (keyboard-only build + ⌘↩), flows2.js (navigation, theme, viewport cap)
+```
+
+Mouse and keyboard fail differently: `Enter` moves focus forward, a click does not, so a zone that
+passes by keyboard can still trap a mouse user (BUG-9, 11, 12 were all of that kind). Check both.

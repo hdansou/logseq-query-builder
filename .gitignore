@@ -28,3 +28,4 @@ docs/probes.jsonl
 
 # bundles
 *.zip
+scripts/e2e/results-*.jsonl
