@@ -144,7 +144,8 @@ hand-driven checks had passed (2026-10-09), so it is the gate before a release, 
 node scripts/seed-persona.mjs            # fresh qb-e2e-persona; prints engine count vs design per scenario
 npm run probe -- qb-e2e-persona          # the emitter's clauses on that graph (reseed first: UI runs insert blocks)
 # second desktop instance (test-logseq-desktop skill): launch.sh 9333, cdp.mjs graph qb-e2e-persona
-cd scripts/e2e && ./batch.sh             # every scenario through the real panel, by mouse
+cd scripts/e2e && ./batch.sh             # every scenario through the real panel, by mouse; MODE=keys for the keyboard pass
+#   FRAME=/path/to/frame.mjs if the skill's runner is not at ~/.claude/skills/test-logseq-desktop/scripts/frame.mjs
 #   flows.js (slash insert + reopen), keyboard.js (keyboard-only build + ⌘↩), flows2.js (navigation, theme, viewport cap)
 ```
 

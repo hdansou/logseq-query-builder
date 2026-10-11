@@ -2,10 +2,9 @@
 // keys alone (type to filter, ↩ to pick, Tab to move, ⇧↩ for a new filter row); ⌘↩ inserts a sibling.
 async ({ page, frame }) => {
   const log = [];
-  const sleep = (ms) => page.waitForTimeout(ms);
-  const shown = () => page.evaluate(() => { const c = document.querySelector('iframe[src*="query-builder"]')?.closest(".lsp-iframe-sandbox-container"); return c ? getComputedStyle(c).display !== "none" : null; });
+  const { sleep, shown, closePanel } = require(require("node:path").join(process.cwd(), "common.js"))({ page, frame });
   await page.setViewportSize({ width: 1400, height: 1000 });
-  if (await shown()) { await frame().locator("body").press("Escape"); await sleep(300); }
+  await closePanel();
   // a block to open from
   const uuid = await page.evaluate(async () => { await logseq.api.push_state("page", { name: "Oct 9th, 2026" }); await new Promise((r) => setTimeout(r, 800)); const b = await logseq.api.append_block_in_page("Oct 9th, 2026", "Keyboard run anchor"); await logseq.api.edit_block(b.uuid); return b.uuid; });
   await sleep(600);

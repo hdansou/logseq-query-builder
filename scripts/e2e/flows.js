@@ -4,10 +4,9 @@
 async ({ page, frame }) => {
   const F = JSON.parse(process.env.FLOW || "{}");
   const log = [];
-  const sleep = (ms) => page.waitForTimeout(ms);
-  const shown = () => page.evaluate(() => { const c = document.querySelector('iframe[src*="query-builder"]')?.closest(".lsp-iframe-sandbox-container"); return c ? getComputedStyle(c).display !== "none" : null; });
+  const { sleep, shown, closePanel } = require(require("node:path").join(process.cwd(), "common.js"))({ page, frame });
   await page.setViewportSize({ width: 1400, height: 1000 });
-  if (await shown()) { await frame().locator("body").press("Escape"); await sleep(300); }
+  await closePanel();
   await page.mouse.click(700, 300); await page.keyboard.press("Escape");
 
   // ---- go to the page and start a fresh last block (through the API: robust to the page DOM) ----
@@ -25,7 +24,7 @@ async ({ page, frame }) => {
   } else {
     // "palette-editing": the block is being edited; the palette command should capture it (shortcut path)
     await page.keyboard.press("Meta+Shift+P"); await sleep(700);
-    const pal = page.locator('input[placeholder*="ommand" i], .cp__cmdk input').first();
+    const pal = page.locator('input[placeholder*="ommand" i], .cp__cmdk input').first();   // not openFromPalette: the editing block must keep focus until the palette opens
     await pal.fill("Query Builder: open"); await sleep(500); await page.keyboard.press("Enter");
   }
   for (let i = 0; i < 40 && !(await shown()); i++) await sleep(100);

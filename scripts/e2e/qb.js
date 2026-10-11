@@ -10,23 +10,13 @@ async ({ page, frame }) => {
   const S = JSON.parse(process.env.STEPS || "{}");
   const keys = S.mode === "keys";
   const log = [];
-  const sleep = (ms) => page.waitForTimeout(ms);
-  const shown = () => page.evaluate(() => { const c = document.querySelector('iframe[src*="query-builder"]')?.closest(".lsp-iframe-sandbox-container"); return c ? getComputedStyle(c).display !== "none" : null; });
+  const { sleep, shown, closePanel, openFromPalette } = require(require("node:path").join(process.cwd(), "common.js"))({ page, frame });
 
   // ---- open / reset ---------------------------------------------------------------------------
   if (S.viewport !== false) await page.setViewportSize({ width: 1400, height: 1000 });   // the instance window is 980×700
   if (S.reset !== false) {
-    if (await shown()) { await frame().locator("body").press("Escape"); await sleep(300); }   // closes an open list first…
-    if (await shown()) { await frame().locator("body").press("Escape"); await sleep(300); }   // …then the panel
-    if (await shown()) log.push("panel did not close on Escape");
-    const pal = page.locator('input[placeholder*="ommand" i], .cp__cmdk input').first();
-    for (let attempt = 0; attempt < 3 && !(await pal.count()); attempt++) {
-      await page.mouse.click(700, 300); await page.keyboard.press("Escape");   // focus back on the host
-      await page.keyboard.press("Meta+Shift+P"); await sleep(700);
-    }
-    await pal.fill("Query Builder: open"); await sleep(500); await page.keyboard.press("Enter");
-    for (let i = 0; i < 30 && !(await shown()); i++) await sleep(100);
-    await sleep(600);
+    await closePanel(log);
+    await openFromPalette();
   }
   const f = () => frame();
   const ctl = (fid) => f().locator(`[data-fid="${fid}"]`);

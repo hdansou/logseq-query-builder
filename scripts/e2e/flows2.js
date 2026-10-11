@@ -1,15 +1,7 @@
 async ({ page, frame }) => {
   const out = {};
-  const sleep = (ms) => page.waitForTimeout(ms);
-  const shown = () => page.evaluate(() => { const c = document.querySelector('iframe[src*="query-builder"]')?.closest(".lsp-iframe-sandbox-container"); return c ? getComputedStyle(c).display !== "none" : null; });
-  const open = async () => {
-    if (await shown()) { await frame().locator("body").press("Escape"); await sleep(300); }
-    const pal = page.locator('input[placeholder*="ommand" i], .cp__cmdk input').first();
-    for (let a = 0; a < 3 && !(await pal.count()); a++) { await page.mouse.click(700, 300); await page.keyboard.press("Escape"); await page.keyboard.press("Meta+Shift+P"); await sleep(700); }
-    await pal.fill("Query Builder: open"); await sleep(500); await page.keyboard.press("Enter");
-    for (let i = 0; i < 40 && !(await shown()); i++) await sleep(100);
-    await sleep(700);
-  };
+  const { sleep, shown, closePanel, openFromPalette } = require(require("node:path").join(process.cwd(), "common.js"))({ page, frame });
+  const open = async () => { await closePanel(); await openFromPalette(); };
   const rect = () => page.evaluate(() => { const c = document.querySelector(".lsp-iframe-sandbox-container[data-pid=logseq-query-builder]"); const r = c.getBoundingClientRect(); return { y: Math.round(r.y), h: Math.round(r.height), bottom: Math.round(r.bottom), win: innerHeight, fit: document.querySelector('style[data-injected-style*="qb-fit"], style[data-ref*="qb-fit"]')?.textContent ?? [...document.querySelectorAll("style")].map((s) => s.textContent).find((t) => t.includes("max-height") && t.includes("logseq-query-builder")) ?? null }; });
 
   // ---- F8 / FEAT-50: the real 980×700 window -------------------------------------------------

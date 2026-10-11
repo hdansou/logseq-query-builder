@@ -306,5 +306,6 @@ need "Show more", a real-mouse drag of the panel.
 3. `cd scripts/e2e && ./batch.sh` runs every scenario through the real panel (`qb.js` is the runner,
    `scenarios.json` the inputs); `FLOW='…' node frame.mjs flows.js` for insert/reopen,
    `keyboard.js` for the keyboard-only path, `flows2.js` for navigation, theme and the viewport cap.
-   `frame.mjs` is the skill's; pass `--port 9333 --frame logseq-query-builder`.
+   `frame.mjs` is the skill's (`batch.sh` finds it under `~/.claude/skills`, or at `$FRAME`); pass
+   `--port 9333 --frame logseq-query-builder`. The scripts share `common.js` (panel shown, close, open).
 4. `stop.sh 9333`; reseed before trusting the probes again (a UI run inserts blocks).
