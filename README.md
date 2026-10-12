@@ -4,9 +4,10 @@ Build a Logseq DB query visually — choose where to look, pick tags, add typed 
 optionally search node text — see the matching nodes as you go, jump to one, or insert the query
 into a page as a named, live query node. No Datalog written by hand.
 
-![Query Builder panel: a tag chip, three typed filter rows, the plain-English read-back and a matching node with its property values](docs/screenshot.jpg)
+![Query Builder panel on a sample graph: the Idea tag, three typed filter rows, the read-back "Idea nodes where impact is High and effort is not High and idea status is not Dropped", and the two matching nodes with their property values](docs/screenshot.jpg)
 
-> **Status: first implementation complete, used on a scratch graph only.** State and next steps:
+> **Status: release candidate.** Every zone is exercised on real graphs, by mouse and by keyboard,
+> against the engine's own counts (`docs/e2e-persona.md`). State and next steps:
 > [`TASKS.md`](./TASKS.md). Loading it for testing: [`INSTALL-DEV.md`](./INSTALL-DEV.md).
 > Design record: [`PLAN.md`](./PLAN.md), the spec and prototype in `logseq-query-builder-handoff/`,
 > live findings in [`docs/probes.md`](./docs/probes.md). Changes: [`CHANGELOG.md`](./CHANGELOG.md).
@@ -38,6 +39,24 @@ that was a bigger screen.
 
 The **datalog** toggle in the footer shows what would be inserted. New to queries? Start with the
 [cheatsheet](docs/cheatsheet.md).
+
+### Examples
+
+Three questions asked of the Logseq KM sample graph. Each read-back is the name the query gets
+when inserted.
+
+**What needs attention**: overdue or in progress, and not finished. Rows combine left to right, so
+the final AND applies to the whole OR before it.
+
+![Task nodes where Deadline is on or before today or Status is Doing and Status is not Done: 25 nodes](docs/example-or.jpg)
+
+**Open work on one project**: a reference row does the linking, a filter row the status.
+
+![Task nodes that link to Project Atlas where Status is not Done: 10 nodes](docs/example-reference.jpg)
+
+**Everything that mentions a client**, whatever it is tagged: no tag, no filter, just the text.
+
+![all nodes where text contains "Northwind": 11 nodes, tasks, calls, the organization and deal pages and notes](docs/example-content.jpg)
 
 ### Scopes
 
@@ -76,7 +95,7 @@ and a page does not "link to" the properties it uses.
 
 ### Keys
 
-`↩` pick · `Tab` next control · `⇧↩` add a filter · `⌘↩` insert · `Esc` close a list, then the panel
+typing or `↓` opens a list · `↩` pick · `Tab` next control · `⇧↩` add a filter · `⌘↩` insert · `Esc` close a list, then the panel
 
 ### Insert
 

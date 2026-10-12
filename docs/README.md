@@ -17,5 +17,5 @@ This folder holds developer-facing notes written as the build proceeds:
 | `ui-testing-approaches.md` | Headless vs CDP+desktop vs Claude-in-Chrome vs Playwright on the web app: what each found here, when to use which |
 | `security-audit.md` | TASK-9: the audit, its findings and what was fixed |
 | `bug-1-report.md` | Draft report on the upstream index bug (BUG-1), for review before filing |
-| `screenshot.jpg` | The README image (replace with a real-graph capture before the marketplace PR) |
+| `screenshot.jpg`, `example-*.jpg` | The README images: the panel and three examples, captured on the Logseq KM sample graph (2026-10-11) |
 | `core.md` | The pure core modules (P1): what each does and how `npm test` covers it |

@@ -64,7 +64,7 @@ vitest 4.1.11; `npm audit` reports 0 vulnerabilities; suite, typecheck and build
 Then: A2 raw probe log untracked; B4 `sdk.ts` holds the SDK casts; B5 `graph.ts` rows typed at one boundary;
 E15 private repo `hdansou/logseq-query-builder` created and `main` pushed; E16 README screenshot from the
 scratch graph (`docs/screenshot.jpg`); E17 handoff folder kept and named as the design record in the README.
-Open: replace the screenshot with a real-graph capture before the marketplace PR; make the repo public then.
+Open: make the repo public at the marketplace PR. (The screenshot was replaced with a Logseq-KM-Sample capture on 2026-10-11, with three example images.)
 
 ## Production-hardening pass 2 (2026-09-26, evening)
 
@@ -87,8 +87,8 @@ with the `~/.claude/skills` default and fails loudly if missing; E2 one `scripts
 (release zip, load unpacked, DB graph only). Toolchain: CI and `engines` on Node 24 (`.nvmrc`),
 suite, typecheck, build green on 24.9.0 and 22.20.0; `@logseq/libs` 0.3.4 is the newest published
 (npm's `latest` tag still points at 0.0.17; 0.3.x is on `next`). Checked and matching: CHANGELOG
-`[Unreleased]` and README carry every fix since pass 2. Deferred: E3 real-graph screenshot before
-the marketplace PR; version, tag and the manifest PR stay with the release path; FEAT-51 decided and done the same day.
+`[Unreleased]` and README carry every fix since pass 2. Deferred: E3 real-graph screenshot (done
+2026-10-11, README Examples); version, tag and the manifest PR stay with the release path; FEAT-51 decided and done the same day.
 
 ## Now — reference rows (rescope of FEAT-38, 2026-09-26)
 
