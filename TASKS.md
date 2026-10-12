@@ -90,6 +90,14 @@ suite, typecheck, build green on 24.9.0 and 22.20.0; `@logseq/libs` 0.3.4 is the
 `[Unreleased]` and README carry every fix since pass 2. Deferred: E3 real-graph screenshot (done
 2026-10-11, README Examples); version, tag and the manifest PR stay with the release path; FEAT-51 decided and done the same day.
 
+## Release 1.0.0 (2026-10-11)
+
+Version 1.0.0, changelog cut from `[Unreleased]`, tag `v1.0.0` (first run of `publish.yml`), repo made
+public, marketplace manifest PR opened (`packages/logseq-query-builder/manifest.json`: title, description,
+author, repo, icon, `theme: false`, `supportsDB`, `supportsDBOnly`). `web` left at its default (false):
+the marketplace README defines it as browser-platform support, and the plugin has only been tested on the
+desktop app. Install section of the README now leads with the marketplace.
+
 ## Now — reference rows (rescope of FEAT-38, 2026-09-26)
 
 The requirement doc gained a *Reference querying* section (SPEC.md, grounded in §10) and the

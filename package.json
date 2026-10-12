@@ -1,6 +1,6 @@
 {
   "name": "logseq-query-builder",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Build Logseq DB queries visually",
   "author": "Danzu",
   "license": "MIT",

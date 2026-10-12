@@ -5,6 +5,10 @@ All notable changes to this plugin are recorded here. The format follows
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-11
+
+First release, submitted to the Logseq marketplace. Everything below is new in this version.
+
 ### Added
 - Floating, draggable, resizable builder panel opened with `⌘⇧F`, from the command palette, or with the `/Query Builder` slash command.
 - Tag selector with autocomplete over the graph's tags (most-used first), AND / OR / NOT, an "any tag" presence test, and sub-tag inheritance on by default.

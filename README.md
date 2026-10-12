@@ -6,7 +6,7 @@ into a page as a named, live query node. No Datalog written by hand.
 
 ![Query Builder panel on a sample graph: the Idea tag, three typed filter rows, the read-back "Idea nodes where impact is High and effort is not High and idea status is not Dropped", and the two matching nodes with their property values](docs/screenshot.jpg)
 
-> **Status: release candidate.** Every zone is exercised on real graphs, by mouse and by keyboard,
+> **Status: released (v1.0.0).** Every zone is exercised on real graphs, by mouse and by keyboard,
 > against the engine's own counts (`docs/e2e-persona.md`). State and next steps:
 > [`TASKS.md`](./TASKS.md). Loading it for testing: [`INSTALL-DEV.md`](./INSTALL-DEV.md).
 > Design record: [`PLAN.md`](./PLAN.md), the spec and prototype in `logseq-query-builder-handoff/`,
@@ -14,10 +14,15 @@ into a page as a named, live query node. No Datalog written by hand.
 
 ## Install
 
-Not on the marketplace yet. Download `logseq-query-builder.zip` from the
+From the marketplace: *Plugins → Marketplace*, search for *Query Builder*, install. The listing is
+submitted and shows up once the marketplace PR is merged.
+
+By hand, or before that: download `logseq-query-builder.zip` from the
 [latest release](https://github.com/hdansou/logseq-query-builder/releases), unzip it, turn on
 *Developer mode* in Logseq's settings (Advanced), then *Plugins → Load unpacked plugin* and pick the
-unzipped folder. The plugin needs a DB graph; it does nothing in a file graph.
+unzipped folder.
+
+The plugin needs a DB graph; it does nothing in a file graph.
 
 ## Using it
 
