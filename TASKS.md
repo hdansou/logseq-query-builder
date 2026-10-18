@@ -94,9 +94,11 @@ suite, typecheck, build green on 24.9.0 and 22.20.0; `@logseq/libs` 0.3.4 is the
 
 Version 1.0.0, changelog cut from `[Unreleased]`, tag `v1.0.0` (first run of `publish.yml`), repo made
 public, marketplace manifest PR opened (`packages/logseq-query-builder/manifest.json`: title, description,
-author, repo, icon, `theme: false`, `supportsDB`, `supportsDBOnly`). `web` left at its default (false):
-the marketplace README defines it as browser-platform support, and the plugin has only been tested on the
-desktop app. Install section of the README now leads with the marketplace.
+author, repo, icon, `theme: false`, `supportsDB`, `supportsDBOnly`). `web` left at its default (false) in
+the first manifest, since the plugin had only been tested on the desktop app. Listing PR logseq/marketplace#930
+merged 2026-10-12. The user confirmed the plugin works in the web app on 2026-10-18; logseq/marketplace#940 adds
+`"web": true`. Install section of the README now leads with the marketplace. Still open: install once from the
+marketplace in the owner's app and check the panel (dev install and marketplace install load from different origins).
 
 ## Now — reference rows (rescope of FEAT-38, 2026-09-26)
 

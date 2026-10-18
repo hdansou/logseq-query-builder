@@ -14,10 +14,10 @@ into a page as a named, live query node. No Datalog written by hand.
 
 ## Install
 
-From the marketplace: *Plugins → Marketplace*, search for *Query Builder*, install. The listing is
-submitted and shows up once the marketplace PR is merged.
+From the marketplace: *Plugins → Marketplace*, search for *Query Builder*, install. Works in the
+desktop app and in the web app.
 
-By hand, or before that: download `logseq-query-builder.zip` from the
+By hand: download `logseq-query-builder.zip` from the
 [latest release](https://github.com/hdansou/logseq-query-builder/releases), unzip it, turn on
 *Developer mode* in Logseq's settings (Advanced), then *Plugins → Load unpacked plugin* and pick the
 unzipped folder.
