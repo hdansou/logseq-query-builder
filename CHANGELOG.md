@@ -5,6 +5,10 @@ All notable changes to this plugin are recorded here. The format follows
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-14
+
+Edit the queries you built, and three filter improvements. **The open shortcut changed to `⌘⌥F`** (Ctrl+Alt+F on Windows and Linux): `⌘⇧F` is Logseq's *Toggle favorite*, which wins in current Logseq builds.
+
 ### Added
 - **Editing an existing query.** *Open in Query Builder* in a block's context menu, and a *saved* list in the panel footer with every query the builder wrote in the graph, so a query can be reopened without first putting the cursor in its block. A reopened query's button reads *Update query* and rewrites that block.
 - A `#Query` block the builder did not write (hand-written, or from another tool) opens empty with *Replace this query*: build the query again and it is written over the old one, after a second press.
@@ -19,6 +23,7 @@ All notable changes to this plugin are recorded here. The format follows
 ### Changed
 - **The open shortcut is now `⌘⌥F`** (Ctrl+Alt+F on Windows and Linux). `⌘⇧F` is Logseq's *Toggle favorite*; in Logseq 2.0.2 that binding wins, so the builder never opened and the page was favorited instead. Rebind it in Logseq's keymap settings if you prefer another key.
 - The panel's title bar reads "Query Builder" instead of the package name `logseq-query-builder` (the host titles it with the package name; a scoped stylesheet replaces the text).
+- `dompurify` (pulled in by `@logseq/libs`) is pinned to 3.4.18, past a critical advisory covering 3.4.16 and earlier.
 - A reopened query takes its name from the block's title, so a block renamed in the graph keeps its new name on update (from the slash command the saved name is still used).
 
 ## [1.0.0] - 2026-10-11

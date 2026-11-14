@@ -1,6 +1,6 @@
 {
   "name": "logseq-query-builder",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Build Logseq DB queries visually",
   "author": "Danzu",
   "license": "MIT",
@@ -51,7 +51,7 @@
     "@logseq/libs": "^0.3.4"
   },
   "overrides": {
-    "dompurify": "^3.4.16",
+    "dompurify": "^3.4.18",
     "lodash-es": "^4.18.1"
   }
 }
