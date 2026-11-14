@@ -21,7 +21,9 @@ async ({ page, frame }) => {
   const f = () => frame();
   const ctl = (fid) => f().locator(`[data-fid="${fid}"]`);
   const fids = async () => f().locator("[data-fid]").evaluateAll((els) => els.map((e) => e.dataset.fid));
-  const active = () => f().evaluate(() => document.activeElement?.dataset?.fid ?? null);
+  // A control's fid; "" for a focused element without one (the open datalog box is a scrollable,
+  // so keyboard-focusable, <pre>); null only when focus has left the frame.
+  const active = () => f().evaluate(() => { const a = document.activeElement; return a && a !== document.body ? (a.dataset?.fid ?? "") : null; });
   const listOf = (fid) => ctl(fid).locator("xpath=following-sibling::ul");
   const waitList = async (fid) => { const deadline = Date.now() + 4000; while (Date.now() < deadline) { if (await listOf(fid).locator('li[role="option"]').count().catch(() => 0)) return true; await sleep(80); } return false; };
   const labelsOf = (fid) => listOf(fid).locator('li[role="option"] > span:first-child').allInnerTexts().catch(() => []);

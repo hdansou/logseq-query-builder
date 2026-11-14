@@ -298,9 +298,30 @@ What the run did not cover: the Library scope on this graph (no Library pages se
 probes on `Library-Test` cover the clause), assets, datetime *between*, a graph large enough to
 need "Show more", a real-mouse drag of the panel.
 
+### Re-run after PR #2 (2026-11-14)
+
+After the edit flow, default values, time and text filters and the ⌘⌥F shortcut were merged.
+Fresh seed ("seed matches the design"), `npm run probe -- qb-e2e-persona` 28 / 28, desktop app
+(Logseq 2.0.2) in a second instance.
+
+- **Scenarios:** 22 / 24 by mouse and 22 / 24 by keys. The two differences are the date-relative
+  ones, not regressions. S9b (*DueDate after today*) is 1: the expected 3 was written for Oct 9,
+  and only Comet (Nov 15) is still ahead. S17 is 28: today's journal page, as on Oct 10.
+- **Flows:** F1 (keyboard only, now opened with ⌘⌥F) inserted the sibling, 3 rows. F3 (slash) and
+  F4 (reopen with ⌘⌥F: target and its condition restored, *Update query*) pass. F2 is covered by
+  `edit.js`, which passed end to end, including ⌘⌥F on an editing query block. F5, F6, F7 and F8
+  pass as before (980×700: the panel is capped and Insert stays visible).
+- **Driver fixes, no plugin change:** `qb.js` treated a focused element without a `data-fid` as
+  "focus left the frame"; the open *datalog* box is a scrollable `<pre>`, which Chromium makes
+  keyboard-focusable, so the S12 keys run could not Tab to the toggle. `flows.js` reopened through
+  the command palette, which cannot see the editing block; it uses ⌘⌥F now. `keyboard.js` read the
+  state property from a block-tree entry, which carries no properties; it queries it now.
+- **To do:** S9b's expectation depends on the date. Move it to the CLI probes with a fixed day,
+  or compute the expectation from today.
+
 ## Re-running
 
-1. `node scripts/seed-persona.mjs` (fresh `qb-e2e-persona`), then `npm run probe -- qb-e2e-persona`.
+1. `node scripts/seed-persona.mjs` (fresh `qb-e2e-persona`), then `npm run probe -- qb-e2e-persona`. The builder opens with ⌘⌥F (`Meta+Alt+KeyF`); ⌘⇧F is Logseq's Toggle favorite.
 2. Second desktop instance (`test-logseq-desktop`): `launch.sh 9333`, `cdp.mjs graph qb-e2e-persona`,
    confirm with `eval -e 'return logseq.api.get_current_graph().name'`.
 3. `cd scripts/e2e && ./batch.sh` runs every scenario through the real panel (`qb.js` is the runner,

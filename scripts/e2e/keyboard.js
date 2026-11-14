@@ -44,12 +44,12 @@ async ({ page, frame }) => {
   await sleep(2500);
   const host = await page.evaluate(async (anchor) => {
     const a = await logseq.api.get_block(anchor);
-    const page_ = await logseq.api.get_page_blocks_tree("Oct 9th, 2026");
+    const page_ = await logseq.api.get_page_blocks_tree("Oct 9th, 2026");   // block-tree entries carry no properties: the state is read with a query
     const idx = page_.findIndex((b) => b.uuid === anchor);
     const next = page_[idx + 1];
     const el = next && document.querySelector(`[blockid="${next.uuid}"]`);
     const m = el && /Live query \((\d+)\)/.exec(el.innerText);
-    return { anchorTitle: a?.title, sibling: next && { title: next.title, tags: (next.tags ?? []).map((t) => t.title), hasState: typeof next.properties?.[":plugin.property.logseq-query-builder/query-builder-state"] === "string" }, count: m ? Number(m[1]) : null };
+    return { anchorTitle: a?.title, sibling: next && { title: next.title, tags: (next.tags ?? []).map((t) => t.title), hasState: (await logseq.api.datascript_query(`[:find ?v :where [?b :block/uuid #uuid "${next.uuid}"] [?b :plugin.property.logseq-query-builder/query-builder-state ?v]]`)).length === 1 }, count: m ? Number(m[1]) : null };
   }, uuid);
   await page.screenshot({ path: "f1.png" });
   return { log, insertLabel, closed: !(await shown()), host };

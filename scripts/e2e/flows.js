@@ -60,12 +60,10 @@ async ({ page, frame }) => {
   out.host = host;
   if (!F.reopen || !host.found) return out;
 
-  // ---- reopen on that block: edit it, then the command palette (restore path) ------------------
+  // ---- reopen on that block: edit it, then the shortcut (the palette cannot see the editing block) --
   await page.evaluate(async (u) => { await logseq.api.edit_block(u); }, host.uuid);
   await sleep(600);
-  await page.keyboard.press("Meta+Shift+P"); await sleep(700);
-  const pal = page.locator('input[placeholder*="ommand" i], .cp__cmdk input').first();
-  await pal.fill("Query Builder: open"); await sleep(500); await page.keyboard.press("Enter");
+  await page.keyboard.press("Meta+Alt+KeyF");
   for (let i = 0; i < 40 && !(await shown()); i++) await sleep(100);
   await sleep(1500);
   const f = frame();
