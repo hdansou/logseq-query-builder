@@ -1,6 +1,6 @@
 # Query Builder cheatsheet
 
-For people who have never written a Logseq query. Open the builder with **⌘⇧F** (or `/Query
+For people who have never written a Logseq query. Open the builder with **⌘⌥F** (or `/Query
 Builder` inside a block), read the panel top to bottom, and watch the sentence in the name field
 and the result count change as you go.
 
@@ -67,7 +67,7 @@ client. Ask that as **links to · any project · whose Client is Acme** instead.
 
 | Key        | Does                           |
 | ---------- | ------------------------------ |
-| ⌘⇧F        | open / close the builder       |
+| ⌘⌥F        | open the builder (Esc closes)  |
 | Tab · ⇧Tab | next / previous control        |
 | type · ↓   | open a picker's list           |
 | ↩          | pick the highlighted option    |
@@ -78,7 +78,7 @@ client. Ask that as **links to · any project · whose Client is Acme** instead.
 ## Insert, then edit later
 
 **Insert** writes a live `#Query` block named after the sentence in the name field (edit the name
-first if you like). The block keeps your choices, so pressing ⌘⇧F while editing that block brings
+first if you like). The block keeps your choices, so pressing ⌘⌥F while editing that block brings
 the same chips back (use the shortcut, not the command palette, for this). The **datalog** toggle in the footer shows the query text if you are
 curious; you never need to read it.
 

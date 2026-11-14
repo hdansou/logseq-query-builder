@@ -12,12 +12,12 @@ import { renderTags } from "./tags";
  * Kept apart from test-helpers.ts because importing the UI pulls in the SDK, which needs a window.
  */
 /** The whole panel rendered into a headless DOM from a fresh store (happy-dom suites). `dq` fakes the graph's datascriptQuery. */
-export function renderPanel(dq: Dq = async () => []): { root: HTMLElement; store: Store } {
+export function renderPanel(dq: Dq = async () => [], hooks: { toggleSaved?: () => void; openSaved?: (uuid: string) => void } = {}): { root: HTMLElement; store: Store } {
   document.body.innerHTML = '<div id="root"></div>';
   (globalThis as { CSS?: unknown }).CSS ??= { escape: (s: string) => s };
   const root = document.getElementById("root")!;
   const store = new Store({ preview: async () => [], debounceMs: 0 });
-  const render = createRenderer(root, { store, graph: new Graph(dq), insert: async () => {} },
+  const render = createRenderer(root, { store, graph: new Graph(dq), insert: async () => {}, toggleSaved: hooks.toggleSaved ?? (() => {}), openSaved: hooks.openSaved ?? (() => {}) },
     { scope: renderScope, tags: renderTags, rows: renderRows, refs: renderRefs, content: renderContent });
   store.subscribe(render);
   render(store.state);

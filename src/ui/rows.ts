@@ -1,7 +1,7 @@
 import { describeRelative, parseRelative } from "../dates";
 import type { PropertyInfo } from "../graph";
 import { removeRow, setJoin, setRow, toggleNot, type FilterRow, type Join, type OperatorId, type Query, type TagRef, type Value } from "../model";
-import { OPERATORS, arityOf, controlFor, operatorsFor } from "../operators";
+import { OPERATORS, arityOf, controlFor, isTextOp, operatorsFor } from "../operators";
 import { valueText } from "../readback";
 import { el } from "./dom";
 import { createPicker, type Option } from "./picker";
@@ -100,6 +100,14 @@ function valueControls(r: FilterRow, { store, graph }: Ctx, h: RowHost): HTMLEle
   const setAt = (i: number) => (v: Value | null) => { const values = [...r.values]; if (v) values[i] = v; else values.splice(i, 1); setValues(values); };
   if (arity === 0 || control === "none") return [];
 
+  if (isTextOp(op)) {
+    const input = document.createElement("input");
+    input.dataset.fid = `${h.fid}-val-${r.id}`;
+    input.type = "text"; input.className = "num txt"; input.placeholder = "text…";
+    input.value = r.values[0]?.kind === "text" ? r.values[0].text : "";
+    input.addEventListener("change", () => setAt(0)(input.value.trim() === "" ? null : { kind: "text", text: input.value.trim() }));
+    return [input];
+  }
   if (arity === 1 || arity === 2) {
     const kind = control === "date" ? "date" : "number";
     const out: HTMLElement[] = [scalarInput(kind, `${h.fid}-val-${r.id}`, r.values[0], setAt(0))];
@@ -164,7 +172,7 @@ export function renderFilterRow(r: FilterRow, i: number, ctx: Ctx, h: RowHost): 
     })),
     // Picking a property also picks the type's first operator, so the value control appears at once.
     onPick: (o) => {
-      store.update(h.ops.set(r.id, { property: { ident: o.value.ident, title: o.value.title, type: o.value.type, cardinality: o.value.cardinality }, op: operatorsFor(o.value.type)[0], values: [] }));
+      store.update(h.ops.set(r.id, { property: { ident: o.value.ident, title: o.value.title, type: o.value.type, cardinality: o.value.cardinality, ...(o.value.defaults ? { defaults: true } : {}) }, op: operatorsFor(o.value.type, o.value.ident)[0], values: [] }));
       document.querySelector<HTMLElement>(`[data-fid="row-op-${r.id}"]`)?.focus();   // render is synchronous
     },
   }));
@@ -173,7 +181,7 @@ export function renderFilterRow(r: FilterRow, i: number, ctx: Ctx, h: RowHost): 
     const type = r.property.type;
     line.appendChild(createPicker<OperatorId>({
       fid: `${h.fid}-op-${r.id}`, placeholder: "operator…", initial: r.op ? OPERATORS[r.op].label : "", showAllOnFocus: true, width: "130px",
-      options: async () => operatorsFor(type).map((id) => ({ id, label: OPERATORS[id].label, value: id })),
+      options: async () => operatorsFor(type, r.property!.ident).map((id) => ({ id, label: OPERATORS[id].label, value: id })),
       onPick: (o) => {
         const keep = r.op && arityOf(r.op) === arityOf(o.value);
         store.update(h.ops.set(r.id, { op: o.value, values: keep ? r.values : [] }));

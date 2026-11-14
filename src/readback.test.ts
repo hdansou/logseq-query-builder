@@ -100,3 +100,14 @@ describe("readback of a filtered target set", () => {
     expect(readback(withRef(emptyQuery(), { dir: "links-to", target: { kind: "tag", tag: project, name: "", rows: [rows[2]] } }))).toBe("all nodes that link to any project");
   });
 });
+
+describe("readback: part of a text value", () => {
+  it("quotes the fragment", () => {
+    const company = { ident: ":user.property/company-1", title: "Company", type: "default", cardinality: "one" } as const;
+    const q = { ...emptyQuery(), rows: [
+      { id: "r1", property: company, op: "text-includes", values: [{ kind: "text", text: "north" }], not: false, join: "and" },
+      { id: "r2", property: company, op: "text-starts", values: [{ kind: "text", text: "ac" }], not: false, join: "or" },
+    ] } as any;
+    expect(readback(q)).toBe('all nodes where Company includes "north" or Company starts with "ac"');
+  });
+});

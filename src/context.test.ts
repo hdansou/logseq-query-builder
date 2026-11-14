@@ -35,3 +35,11 @@ describe("formatContext", () => {
     expect(formatContext([status, points], { ":user.property/points-1": { ":logseq.property/value": 2 } })).toBe("points: 2");
   });
 });
+
+describe("node timestamps in the result context", () => {
+  it("reads :block/created-at from its namespace-stripped key and shows the day", () => {
+    const created = { ident: ":block/created-at", title: "Node created at", type: "datetime", cardinality: "one" } as const;
+    expect(contextPull([created])).toBe(":block/created-at");
+    expect(formatContext([created], { "created-at": new Date(2026, 10, 13, 9).getTime() })).toBe("Node created at: 2026-11-13");
+  });
+});

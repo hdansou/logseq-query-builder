@@ -26,9 +26,9 @@ The plugin needs a DB graph; it does nothing in a file graph.
 
 ## Using it
 
-Open the builder with **⌘⇧F** (also "Query Builder: open" in the command palette), or type
-**/Query Builder** inside a block. While the plugin is enabled, ⌘⇧F
-takes over Logseq's toggle-favorite shortcut; rebind either in Logseq's keymap settings. The panel floats: drag it by its title bar, resize it from the
+Open the builder with **⌘⌥F** (Ctrl+Alt+F on Windows and Linux; also "Query Builder: open" in
+the command palette), or type **/Query Builder** inside a block. Rebind it in Logseq's keymap
+settings. The panel floats: drag it by its title bar, resize it from the
 corner, click the graph behind it. It remembers where you left it and stays inside the window if
 that was a bigger screen.
 
@@ -37,7 +37,7 @@ that was a bigger screen.
 | **Scope** | Where to look: *anywhere* (default), *in the Library*, or *on page…*. See [Scopes](#scopes). |
 | **Name** | The query's title once inserted. Prefilled with a plain-English reading of your filters; edit or replace it. |
 | **Tags** | Autocomplete over your graph's tags, most-used first. Several tags combine with AND / OR; each can be NOT. "any tag" means your tagged nodes (tag and property pages, built-ins and property values do not count); NOT any tag means untagged. The list opens as you type or with ↓. *Include sub-tags* (on by default) also matches tags that extend the chosen one. |
-| **Filters** | One row per property: property → operator → value. Operators follow the property's type (text, number, URL, node, asset, date, date-time, checkbox). Rows combine with AND / OR left to right, each can be NOT. Values are picked from what the graph actually holds, with counts; text and numbers also accept free entry; dates accept `today`, `tomorrow`, `yesterday`, `±Nd/w/m/y` or `YYYY-MM-DD`, typed or picked from the calendar button beside the field. |
+| **Filters** | One row per property: property → operator → value. Operators follow the property's type (text, number, URL, node, asset, date, date-time, checkbox). Rows combine with AND / OR left to right, each can be NOT. Values are picked from what the graph actually holds, with counts; text and numbers also accept free entry; dates accept `today`, `tomorrow`, `yesterday`, `±Nd/w/m/y` or `YYYY-MM-DD`, typed or picked from the calendar button beside the field. Text and URL properties also take *includes text* and *starts with*, which match part of a value, case-insensitive. *Node created at* and *Node updated at* are in the property list for "created this week" or "changed since yesterday". A property's default value counts as its value (a `#Task` with no status is Todo). |
 | **References** | One row per relationship: *links to*, *is linked from*, *ancestor links to*, or *on page under*, then a target: one node, or *any \<tag\>* (sub-tags included) optionally narrowed by a name fragment and by property conditions. Rows combine with AND / OR, each can be NOT. See [References](#references). |
 | **Content** | Search the node's own text: contains, does not contain, starts with, or a regular expression. |
 | **Results** | The first 10 matches with the values you filtered on and the page they live on; *Show more* reveals the rest. Click or select one to jump to it — the builder stays open. |
@@ -106,9 +106,18 @@ typing or `↓` opens a list · `↩` pick · `Tab` next control · `⇧↩` add
 
 *Insert* writes a `#Query` node: from the shortcut, a new sibling after the block you were editing;
 from the slash command, into that block. The node renders as a live query table like a hand-written
-one. Relative dates are stored as expressions, so the query stays current. Pressing ⌘⇧F while
-editing that block reopens the builder with its filters (the command palette opens a fresh builder:
-it takes focus from the editor before the command runs, so it cannot see which block you were in).
+one. Relative dates are stored as expressions, so the query stays current.
+### Edit a query
+
+Three ways back into a query the builder wrote: right-click its bullet → *Open in Query Builder*;
+⌘⌥F while editing the block; or open the builder anywhere and press *saved* in the footer, which
+lists every builder query in the graph. The filters come back as chips, the button reads *Update
+query*, and the block is rewritten in place. Tags, properties and nodes renamed since show their
+current names; anything deleted is named in a notice. If the query text was edited by hand, the
+builder says so and asks for a second press before overwriting it.
+
+On a `#Query` block the builder did not write, the builder opens empty and offers *Replace this
+query* (second press to confirm): it does not read hand-written queries, it replaces them.
 
 ## Privacy
 

@@ -33,7 +33,7 @@ export function canInsert(s: { guard: GuardResult; name: string; target: Target 
 }
 
 export function planInsert(target: Target, name: string, queryText: string, stateJson: string): Step[] {
-  const first: Step = target.mode === "shortcut"
+  const first: Step = target.mode === "shortcut" && !target.existing
     ? { op: "insert-sibling", after: target.uuid, content: name }
     : { op: "rename", uuid: target.uuid, content: name };
   return [
@@ -67,7 +67,48 @@ export async function runInsert(api: InsertApi, plan: Step[]): Promise<string> {
 }
 
 const VERSION = 1;
-export const serializeState = (q: Query) => JSON.stringify({ v: VERSION, query: q });
+
+/** FNV-1a over the trimmed text: a fingerprint, not a secret; synchronous on purpose. */
+export function textHash(text: string): string {
+  let h = 0x811c9dc5;
+  for (const ch of text.trim()) { h ^= ch.codePointAt(0)!; h = Math.imul(h, 0x01000193); }
+  return (h >>> 0).toString(16).padStart(8, "0");
+}
+
+/**
+ * The state envelope. `hash` fingerprints the query text written beside it, so a later open can
+ * tell whether somebody edited that text by hand. Comparing against a fresh emit instead would
+ * raise a false alarm after any plugin upgrade that changes the emitter.
+ */
+export const serializeState = (q: Query, queryText?: string) =>
+  JSON.stringify({ v: VERSION, query: q, ...(queryText === undefined ? {} : { hash: textHash(queryText) }) });
+
+/**
+ * True when the block's query text is no longer the one the builder wrote with this state.
+ * State saved before the fingerprint existed, or a block whose text could not be read: unknown, so false.
+ */
+export function handEdited(stateJson: string, currentText: string | null): boolean {
+  if (currentText === null) return false;
+  try {
+    const hash: unknown = JSON.parse(stateJson)?.hash;
+    return typeof hash === "string" && hash !== textHash(currentText);
+  } catch {
+    return false;
+  }
+}
+
+/** Why an Insert onto an existing query needs a second press, or null when it does not. */
+export function overwriteWarning(target: Target | null, edited: boolean): string | null {
+  if (target?.existing === "foreign") return "This block holds a query the builder did not write. Replacing it overwrites that query.";
+  if (target?.existing === "builder" && edited) return "This query's text was edited by hand after the builder wrote it. Updating overwrites those edits.";
+  return null;
+}
+
+export function insertLabel(target: Target | null): string {
+  if (target?.existing === "builder") return "Update query";
+  if (target?.existing === "foreign") return "Replace this query";
+  return target?.mode === "slash" ? "Write into this block" : "Insert as query block";
+}
 
 export function deserializeState(text: string): Query | null {
   try {

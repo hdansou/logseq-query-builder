@@ -1,13 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { OPERATORS, arityOf, controlFor, operatorsFor } from "./operators";
+import { OPERATORS, arityOf, controlFor, isTextOp, operatorsFor } from "./operators";
 import type { PropertyType } from "./model";
 
 const TYPES: PropertyType[] = ["default", "number", "url", "node", "asset", "date", "datetime", "checkbox"];
 
 describe("operatorsFor: the spec's table, one row per type", () => {
-  it("text, node, URL: contains any/all, does not contain, is empty, is not empty (+ has/not-has presence)", () => {
-    for (const t of ["default", "node", "url"] as const)
-      expect(operatorsFor(t)).toEqual(["contains-any", "contains-all", "not-contains", "empty", "not-empty", "has", "not-has"]);
+  it("node: contains any/all, does not contain, is empty, is not empty (+ has/not-has presence)", () => {
+    expect(operatorsFor("node")).toEqual(["contains-any", "contains-all", "not-contains", "empty", "not-empty", "has", "not-has"]);
+  });
+  it("text and URL add the two part-of-the-value operators, each taking one free text", () => {
+    for (const t of ["default", "url"] as const)
+      expect(operatorsFor(t)).toEqual(["contains-any", "contains-all", "not-contains", "text-includes", "text-starts", "empty", "not-empty", "has", "not-has"]);
+    expect(arityOf("text-includes")).toBe(1);
+    expect(isTextOp("text-starts")).toBe(true);
+    expect(isTextOp("gt")).toBe(false);
+  });
+  it("a node timestamp offers the date operators only", () => {
+    expect(operatorsFor("datetime", ":block/created-at")).toEqual(["eq", "before", "on-or-before", "after", "on-or-after", "between"]);
+    expect(operatorsFor("datetime", ":user.property/due-1")).toContain("empty");
   });
   it("number adds greater than, less than, between", () => {
     expect(operatorsFor("number")).toEqual(["contains-any", "contains-all", "not-contains", "gt", "lt", "between", "empty", "not-empty", "has", "not-has"]);

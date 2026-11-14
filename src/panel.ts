@@ -15,8 +15,21 @@ let sized = false;
  */
 export const dragStyle = (pid: string) => `${container(pid)}.is-dragging { opacity: 1; }`;   // the id is host-assigned, but it lands in a selector: validated in container()
 
-export function installPanelStyle() {
+/**
+ * The host titles the panel's drag bar with the package name (`pluginLocal.options.name`,
+ * LSPlugin.core.ts), so it read "logseq-query-builder". The bar is host DOM the plugin cannot
+ * reach from every install origin, but a stylesheet can: the name is hidden in place (keeping its
+ * font and box) and the plugin's title is drawn over it.
+ */
+export const titleStyle = (pid: string, title: string) => {
+  if (!/^[\w .-]+$/.test(title)) throw new Error(`invalid panel title for a CSS string: ${JSON.stringify(title)}`);
+  const h3 = `${container(pid)} .draggable-handle h3`;
+  return `${h3} { visibility: hidden; position: relative; white-space: nowrap; } ${h3}::after { content: "${title}"; visibility: visible; position: absolute; left: 0; top: 0; }`;
+};
+
+export function installPanelStyle(title: string) {
   logseq.provideStyle(dragStyle(logseq.baseInfo.id));
+  logseq.provideStyle({ key: "qb-title", style: titleStyle(logseq.baseInfo.id, title) });
 }
 
 const container = (pid: string) => {

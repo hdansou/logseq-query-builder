@@ -61,7 +61,7 @@
   .picker .empty { color: var(--qb-fg2); padding: 5px 8px; }
 
   input.num, input.date { height: 28px; width: 110px; padding: 0 8px; border: 1px solid var(--qb-border); border-radius: var(--qb-r1); background: var(--qb-bg2); outline: 0; }
-  input.date { width: 150px; }
+  input.date, input.txt { width: 150px; }
   .datewrap { display: inline-flex; align-items: center; gap: 4px; }
   input.datepick { height: 28px; width: 34px; padding: 0 4px; border: 1px solid var(--qb-border); border-radius: var(--qb-r1); background: var(--qb-bg2); color: var(--qb-fg); outline: 0; cursor: pointer; }
   input.datepick::-webkit-datetime-edit { display: none; }
@@ -83,6 +83,9 @@
 
   #guard { display: none; align-items: center; gap: 8px; padding: 8px 14px; background: var(--qb-amber-bg); border-bottom: 1px solid var(--qb-amber-br); color: var(--qb-fg); font-size: 12px; }
   #guard.on { display: flex; }
+  .notice { padding: 8px 14px; background: var(--qb-amber-bg); border-bottom: 1px solid var(--qb-amber-br); font-size: 12px; }
+  .zone.saved { padding: 10px 0 0; }
+  .zone.saved .zone-label { padding: 0 14px; }
   #results { flex: 1 0 auto; min-height: 120px; }
   .result {
     display: flex; align-items: center; gap: 12px; width: 100%; padding: 7px 14px; min-height: 36px;

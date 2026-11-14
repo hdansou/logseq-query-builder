@@ -144,3 +144,66 @@ describe("Graph.pages (scope picker)", () => {
     expect(log[0]).toContain(`[(clojure.string/includes? ?lt "o")]`);
   });
 });
+
+describe("Graph: reopening saved queries", () => {
+  it("identTitles drops deleted entities", async () => {
+    const g = new Graph(fake({ "[?e :db/ident ?i]": [[":user.class/a", "A", false], [":user.class/b", "B", 1760000000000], ["created-at", "Node created at", false]] }));
+    expect([...(await g.identTitles())]).toEqual([[":user.class/a", "A"], [":block/created-at", "Node created at"]]);
+  });
+  it("nodeTitles resolves links, and leaves out deleted or unknown uuids", async () => {
+    const g = new Graph(fake({
+      '#uuid "u-1"': [[{ uuid: "u-1", title: "About [[u-9]]", refs: [{ uuid: "u-9", title: "Iris" }] }, false]],
+      '#uuid "u-2"': [[{ uuid: "u-2", title: "Gone" }, 1760000000000]],
+      '#uuid "u-3"': [],
+    }));
+    expect([...(await g.nodeTitles(["u-1", "u-2", "u-3"]))]).toEqual([["u-1", "About [[Iris]]"]]);
+    await expect(g.nodeTitles(['x" [?b'])).rejects.toThrow(/invalid uuid/);
+  });
+  it("queryText is the #Query node's text, null for any other block", async () => {
+    expect(await new Graph(fake({ ":logseq.property/query ?q": [["(task Todo)"]] })).queryText("u-1")).toBe("(task Todo)");
+    expect(await new Graph(fake({ ":logseq.property/query ?q": [] })).queryText("u-1")).toBeNull();
+  });
+  it("savedQueries lists blocks carrying the state property by name, deleted ones left out", async () => {
+    const log: string[] = [];
+    const g = new Graph(fake({ "query-builder-state _]": [["u-2", "Open tasks", "Home", false], ["u-1", "All projects", "Home", false], ["u-3", "Old", "Home", 1]] }, log));
+    expect(await g.savedQueries(":plugin.property.qb/query-builder-state")).toEqual([
+      { uuid: "u-1", name: "All projects", page: "Home" },
+      { uuid: "u-2", name: "Open tasks", page: "Home" },
+    ]);
+    expect(log[0]).toContain("[?b :plugin.property.qb/query-builder-state _]");
+    await expect(g.savedQueries("x] [?b")).rejects.toThrow(/invalid ident/);
+  });
+});
+
+describe("Graph: default values", () => {
+  const prop = (ident: string, type: string, dv: unknown, sdv: unknown) => [ident, ident, "u-" + ident, type, ":db.cardinality/one", ":none", false, false, false, false, dv, sdv];
+  it("flags a property that declares a default: value entity, or scalar for a checkbox", async () => {
+    const g = new Graph(fake({
+      ":logseq.property/type ?type": [prop(":p/status", "default", 42, "qb/none"), prop(":p/plain", "default", "qb/none", "qb/none"), prop(":p/flag", "checkbox", "qb/none", false), prop(":p/box", "checkbox", "qb/none", "qb/none")],
+      ":logseq.property.class/properties ?p] [?p :db/ident ?pi]": [],
+    }));
+    const byIdent = Object.fromEntries((await g.properties()).map((p) => [p.ident, p.defaults]));
+    expect(byIdent).toEqual({ ":p/status": true, ":p/plain": undefined, ":p/flag": true, ":p/box": undefined });
+  });
+  it("counts nodes that show the default toward the default's label", async () => {
+    const status = { ident: ":p/status", title: "Status", type: "default", cardinality: "one", defaults: true } as const;
+    const g = new Graph(fake({
+      ":block/closed-value-property": [["u-todo", "Todo", "a0"], ["u-done", "Done", "a1"]],
+      ":logseq.property/default-value ?v]": [["Todo", 2, "u-todo"]],
+      "empty-placeholder": [["Todo", 5, "u-todo"], ["Done", 2, "u-done"]],
+    }));
+    expect(await g.values(status)).toEqual([{ label: "Todo", count: 7, uuid: "u-todo" }, { label: "Done", count: 2, uuid: "u-done" }]);
+  });
+});
+
+describe("Graph: node timestamps", () => {
+  it("lets the two hidden built-in timestamps through, and nothing else hidden", async () => {
+    const hidden = (ident: string, title: string) => [ident, title, "u" + ident, "datetime", ":db.cardinality/one", ":none", true, false, true, false, "qb/none", "qb/none"];
+    const g = new Graph(fake({
+      ":logseq.property/type ?type": [hidden("created-at", "Node created at"), hidden("updated-at", "Node updated at"),   // as the host returns them: `:block/` stripped
+      hidden(":logseq.property/secret", "Secret")],
+      ":logseq.property.class/properties ?p] [?p :db/ident ?pi]": [],
+    }));
+    expect((await g.properties()).map((p) => [p.ident, p.title])).toEqual([[":block/created-at", "Node created at"], [":block/updated-at", "Node updated at"]]);
+  });
+});

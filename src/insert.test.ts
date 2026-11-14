@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { STATE_KEY, canInsert, deserializeState, planInsert, serializeState, stateSchemaFor } from "./insert";
+import { STATE_KEY, canInsert, deserializeState, handEdited, insertLabel, overwriteWarning, planInsert, serializeState, stateSchemaFor, textHash } from "./insert";
 import { addRow, addTag, emptyQuery, setName, setRow, type PropertyRef, type Query, type TagRef } from "./model";
 
 const project: TagRef = { ident: ":user.class/project-1", title: "project" };
@@ -66,5 +66,42 @@ describe("stateSchemaFor", () => {
     expect(stateSchemaFor(null)).toEqual({ type: "string", hide: true });
     expect(stateSchemaFor({ type: "default" })).toEqual({ hide: true });
     expect(stateSchemaFor({ type: "string", hide: true })).toBeNull();
+  });
+});
+
+describe("editing an existing query", () => {
+  it("rewrites the block in place from any entry point", () => {
+    expect(planInsert({ uuid: "b-1", mode: "shortcut", existing: "builder" }, "n", "q", "s")[0]).toEqual({ op: "rename", uuid: "b-1", content: "n" });
+    expect(planInsert({ uuid: "b-1", mode: "shortcut", existing: "foreign" }, "n", "q", "s")[0]).toEqual({ op: "rename", uuid: "b-1", content: "n" });
+  });
+  it("labels the button by what the write will do", () => {
+    expect(insertLabel(null)).toBe("Insert as query block");
+    expect(insertLabel({ uuid: "u", mode: "shortcut" })).toBe("Insert as query block");
+    expect(insertLabel({ uuid: "u", mode: "slash" })).toBe("Write into this block");
+    expect(insertLabel({ uuid: "u", mode: "slash", existing: "builder" })).toBe("Update query");
+    expect(insertLabel({ uuid: "u", mode: "slash", existing: "foreign" })).toBe("Replace this query");
+  });
+  it("fingerprints the query text beside the state and still reads the state back", () => {
+    const q = built();
+    const json = serializeState(q, "{:query [:find ?b]}");
+    expect(JSON.parse(json).hash).toBe(textHash("{:query [:find ?b]}"));
+    expect(deserializeState(json)).toEqual(q);
+    expect(JSON.parse(serializeState(q))).not.toHaveProperty("hash");
+  });
+  it("detects a hand edit, ignoring surrounding whitespace; unknown is not an edit", () => {
+    const json = serializeState(built(), "{:query [:find ?b]}");
+    expect(handEdited(json, "{:query [:find ?b]}")).toBe(false);
+    expect(handEdited(json, "  {:query [:find ?b]}\n")).toBe(false);
+    expect(handEdited(json, "{:query [:find ?b ?c]}")).toBe(true);
+    expect(handEdited(json, null)).toBe(false);                          // text could not be read
+    expect(handEdited(serializeState(built()), "anything")).toBe(false);   // state saved before the fingerprint
+    expect(handEdited("not json", "anything")).toBe(false);
+  });
+  it("warns before overwriting a foreign query or a hand-edited one, and only then", () => {
+    expect(overwriteWarning({ uuid: "u", mode: "slash", existing: "foreign" }, false)).toMatch(/did not write/);
+    expect(overwriteWarning({ uuid: "u", mode: "slash", existing: "builder" }, true)).toMatch(/edited by hand/);
+    expect(overwriteWarning({ uuid: "u", mode: "slash", existing: "builder" }, false)).toBeNull();
+    expect(overwriteWarning({ uuid: "u", mode: "slash" }, true)).toBeNull();
+    expect(overwriteWarning(null, false)).toBeNull();
   });
 });

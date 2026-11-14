@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dragStyle, fitStyle } from "./panel";
+import { dragStyle, fitStyle, titleStyle } from "./panel";
 
 /**
  * The host restores the panel's saved layout (percent top/left, pixel size) whatever the window
@@ -30,5 +30,16 @@ describe("dragStyle", () => {
     expect(css).toContain('.lsp-iframe-sandbox-container[data-pid="_abc123"].is-dragging');
     expect(css).toContain("opacity: 1");
     expect(css).not.toContain("undefined");
+  });
+});
+
+describe("titleStyle", () => {
+  it("hides the host's package-name title in place and draws the plugin's title over it, scoped to this plugin", () => {
+    const css = titleStyle("logseq-query-builder", "Query Builder");
+    expect(css).toContain('.lsp-iframe-sandbox-container[data-pid="logseq-query-builder"] .draggable-handle h3 { visibility: hidden;');
+    expect(css).toContain('h3::after { content: "Query Builder"; visibility: visible;');
+  });
+  it("refuses a title that could close the CSS string", () => {
+    expect(() => titleStyle("p", 'x"; } body { display: none')).toThrow(/invalid panel title/);
   });
 });

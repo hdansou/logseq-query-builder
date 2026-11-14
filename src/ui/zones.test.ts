@@ -174,3 +174,59 @@ describe("references zone", () => {
     expect(fid(`row-prop-${rowId}`)!.value).toBe("Status");
   });
 });
+
+describe("editing an existing query", () => {
+  const tagged = (qq: any) => ({ ...qq, name: "Projects", tags: [{ tag: project, not: false, join: "and" }] });
+
+  it("a restored query reads Update query; a notice names what is gone", () => {
+    const { store } = renderPanel();
+    store.open({ uuid: "b-1", mode: "slash", existing: "builder" }, tagged(store.state.q), { notices: ["No longer in the graph: tag “x”."] });
+    expect(fid("insert")!.textContent).toBe("Update query");
+    expect(q(".notice")!.textContent).toContain("No longer in the graph");
+  });
+  it("an overwrite is announced, takes a second press, and a fresh open clears it", () => {
+    const { store } = renderPanel();
+    store.open({ uuid: "b-1", mode: "slash", existing: "foreign" }, tagged(store.state.q), { overwrite: "Replacing it overwrites that query." });
+    expect(fid("insert")!.textContent).toBe("Replace this query");
+    expect(q(".notice")!.textContent).toContain("overwrites");
+    store.confirm();
+    expect(fid("insert")!.textContent).toBe("Press again to overwrite");
+    store.open(null);
+    expect(q(".notice")).toBeNull();
+    expect(fid("insert")!.textContent).toBe("Insert as query block");
+    expect(store.state.confirmed).toBe(false);
+  });
+  it("the saved list toggles from the footer and opens the picked query", () => {
+    const opened: string[] = [];
+    let toggles = 0;
+    const { store } = renderPanel(undefined, { toggleSaved: () => void toggles++, openSaved: (u) => void opened.push(u) });
+    expect(q("#saved")).toBeNull();
+    fid("saved")!.click();
+    expect(toggles).toBe(1);
+    store.setSaved("loading");
+    expect(q("#saved")!.textContent).toContain("Looking");
+    store.setSaved([]);
+    expect(q("#saved")!.textContent).toContain("No query in this graph");
+    store.setSaved([{ uuid: "u-1", name: "All projects", page: "Home" }, { uuid: "u-2", name: "Open tasks", page: null }]);
+    expect(fid("saved-0")!.textContent).toBe("All projectsHome");
+    fid("saved-1")!.click();
+    expect(opened).toEqual(["u-2"]);
+    store.setSaved(null);
+    expect(q("#saved")).toBeNull();
+  });
+});
+
+describe("default values", () => {
+  it("a picked property keeps its default flag, so the emitted query matches defaulted nodes", async () => {
+    const graph = async (query: string) =>
+      query.includes(":logseq.property/type ?type") ? [[":logseq.property/status", "Status", "u-st", "default", ":db.cardinality/one", ":none", true, true, false, false, 76, "qb/none"]]
+      : [];
+    const { store } = renderPanel(graph);
+    const id = store.addRow();
+    const input = fid(`row-prop-${id}`)!;
+    input.focus();
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, cancelable: true })); await settle();
+    listOf(input).querySelector("li")!.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true })); await settle();
+    expect(store.state.q.rows[0].property).toEqual({ ident: ":logseq.property/status", title: "Status", type: "default", cardinality: "one", defaults: true });
+  });
+});

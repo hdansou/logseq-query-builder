@@ -7,17 +7,30 @@ export type Cardinality = "one" | "many";
 export type Join = "and" | "or";
 
 export interface TagRef { ident: string; title: string }
-export interface PropertyRef { ident: string; title: string; type: PropertyType; cardinality: Cardinality }
+/**
+ * `defaults`: the property declares a default value. The host shows that value on every node whose
+ * tag owns the property and that has no value of its own (a fresh #Task reads Todo), with nothing
+ * stored on the node, so the emitter has to match those nodes too.
+ */
+export interface PropertyRef { ident: string; title: string; type: PropertyType; cardinality: Cardinality; defaults?: boolean }
 
 /** `tag: null` = "any tag" (presence); with `not` it is "untagged". */
 export interface TagClause { tag: TagRef | null; not: boolean; join: Join }
 
 export type OperatorId =
   | "contains-any" | "contains-all" | "not-contains"
+  | "text-includes" | "text-starts"
   | "gt" | "lt" | "between"
   | "eq" | "before" | "on-or-before" | "after" | "on-or-after"
   | "empty" | "not-empty" | "has" | "not-has"
   | "true" | "false";
+
+/**
+ * When a node was created or last changed. The host keeps them as hidden built-in properties
+ * (`Node created at`, `Node updated at`); the builder offers them as datetime filters. Every node
+ * has both, so only the date operators make sense on them.
+ */
+export const TIMESTAMPS: ReadonlySet<string> = new Set([":block/created-at", ":block/updated-at"]);
 
 export type RelativeExpr = "today" | "tomorrow" | "yesterday" | { offset: number; unit: "d" | "w" | "m" | "y" };
 export type DateValue = { kind: "absolute"; day: number } | { kind: "relative"; expr: RelativeExpr };

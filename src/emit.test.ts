@@ -306,3 +306,70 @@ describe("identifiers from the graph or a saved state cannot break out of the qu
     expect(() => emit(row(emptyQuery(), { property: assignee, op: "contains-any", values: [ref("6ab8332f-ece6-4b85-a59e-b9fa705a4eca", "Maria")] }))).not.toThrow();
   });
 });
+
+describe("default values: a node whose tag owns the property and stores no value reads as the default", () => {
+  const task: TagRef = { ident: ":logseq.class/Task", title: "Task" };
+  const statusD: PropertyRef = { ident: ":logseq.property/status", title: "Status", type: "default", cardinality: "one", defaults: true };
+  const doneD: PropertyRef = { ident: ":user.property/done-1", title: "done", type: "checkbox", cardinality: "one", defaults: true };
+  const row = (property: PropertyRef, op: any, values: any[] = [], not = false) => {
+    let q = addRow(addTag(emptyQuery(), task));
+    q = setRow(q, q.rows[0].id, { property, op, values, not });
+    return emit(q);
+  };
+  const OWNED = "[?dp1 :db/ident :logseq.property/status] [?dc1 :logseq.property.class/properties ?dp1] [?b :block/tags ?dt1] (or [(= ?dt1 ?dc1)] (class-extends ?dc1 ?dt1))";
+  const UNSET = `${OWNED} (not [?b :logseq.property/status _])`;
+  const todo = [{ kind: "text", text: "Todo" }];
+
+  it("contains any: the stored value, or the default where nothing is stored", () => {
+    const e = row(statusD, "contains-any", todo);
+    expect(e.where[1]).toBe(`(or-join [?b] (and [?b :logseq.property/status ?v1] [?v1 :block/title ?x1] [(contains? #{"Todo"} ?x1)]) (and ${UNSET} [?dp1 :logseq.property/default-value ?v1] [?v1 :block/title ?x1] [(contains? #{"Todo"} ?x1)]))`);
+    expect(e.rules).toBe(true);
+  });
+  it("does not contain negates the same test, so a defaulted Todo is excluded", () => {
+    expect(row(statusD, "not-contains", todo).where[1]).toMatch(/^\(not \(or-join \[\?b\] .*:logseq.property\/default-value \?v1\].*\)\)$/);
+  });
+  it("contains all of one value behaves like contains any; of several, a default cannot supply them", () => {
+    expect(row(statusD, "contains-all", todo).where[1]).toBe(row(statusD, "contains-any", todo).where[1]);
+    expect(row(statusD, "contains-all", [...todo, { kind: "text", text: "Doing" }]).where[1]).not.toContain("default-value");
+  });
+  it("is empty leaves out nodes that show the default; is not empty takes them in", () => {
+    expect(row(statusD, "empty").where[1]).toBe(`(or (not [?b :logseq.property/status _]) [?b :logseq.property/status :logseq.property/empty-placeholder]) (not ${OWNED})`);
+    expect(row(statusD, "not-empty").where[1]).toBe(`(or-join [?b] (and [?e1 :db/ident :logseq.property/empty-placeholder] [?b :logseq.property/status ?v1] [(not= ?v1 ?e1)]) (and ${UNSET} [?dp1 :logseq.property/default-value _]))`);
+  });
+  it("a checkbox reads its scalar default", () => {
+    expect(row(doneD, "true").where[1]).toContain("(and [?b :user.property/done-1 true])");
+    expect(row(doneD, "true").where[1]).toContain("[?dp1 :logseq.property/scalar-default-value true]");
+  });
+  it("a property without a default emits exactly what it did before", () => {
+    const plain = { ...statusD, defaults: undefined };
+    expect(row(plain, "contains-any", todo).where[1]).toBe(`[?b :logseq.property/status ?v1] [?v1 :block/title ?x1] [(contains? #{"Todo"} ?x1)]`);
+    expect(row(plain, "empty").where[1]).not.toContain("?dp1");
+  });
+});
+
+describe("part of a text value, and node timestamps", () => {
+  const person: TagRef = { ident: ":user.class/person-1", title: "Person" };
+  const company: PropertyRef = { ident: ":user.property/company-1", title: "Company", type: "default", cardinality: "one" };
+  const created: PropertyRef = { ident: ":block/created-at", title: "Node created at", type: "datetime", cardinality: "one" };
+  const row = (property: PropertyRef, op: any, values: any[]) => {
+    let q = addRow(addTag(emptyQuery(), person));
+    q = setRow(q, q.rows[0].id, { property, op, values });
+    return emit(q);
+  };
+  it("includes text / starts with: lower-cased on both sides, on the value's title", () => {
+    expect(row(company, "text-includes", [{ kind: "text", text: "North" }]).where[1])
+      .toBe(`[?b :user.property/company-1 ?v1] [?v1 :block/title ?x1] [(clojure.string/lower-case ?x1) ?l1] [(clojure.string/includes? ?l1 "north")]`);
+    expect(row(company, "text-starts", [{ kind: "text", text: 'a"c' }]).where[1]).toContain(`[(clojure.string/starts-with? ?l1 "a\\"c")]`);
+  });
+  it("a default value is searched too", () => {
+    const w = row({ ...company, defaults: true }, "text-includes", [{ kind: "text", text: "x" }]).where[1];
+    expect(w).toMatch(/^\(or-join \[\?b\] /);
+    expect(w).toContain(`[?dp1 :logseq.property/default-value ?v1] [?v1 :block/title ?x1] [(clojure.string/lower-case ?x1) ?l1]`);
+  });
+  it("created at: the attribute itself, a relative day as an input, property-value entities left out", () => {
+    const e = row(created, "on-or-after", [{ kind: "date", date: { kind: "relative", expr: { offset: -7, unit: "d" } } }]);
+    expect(e.where[1]).toBe(`[?b :block/created-at ?x1] [(>= ?x1 ?in1)] (not [?b :logseq.property/created-from-property _])`);
+    expect(e.inputs).toEqual([":-7d-start"]);
+    expect(e.preview.query).toContain(":block/created-at");
+  });
+});
