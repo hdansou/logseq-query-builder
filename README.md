@@ -106,9 +106,18 @@ typing or `↓` opens a list · `↩` pick · `Tab` next control · `⇧↩` add
 
 *Insert* writes a `#Query` node: from the shortcut, a new sibling after the block you were editing;
 from the slash command, into that block. The node renders as a live query table like a hand-written
-one. Relative dates are stored as expressions, so the query stays current. Pressing ⌘⇧F while
-editing that block reopens the builder with its filters (the command palette opens a fresh builder:
-it takes focus from the editor before the command runs, so it cannot see which block you were in).
+one. Relative dates are stored as expressions, so the query stays current.
+### Edit a query
+
+Three ways back into a query the builder wrote: right-click its bullet → *Open in Query Builder*;
+⌘⇧F while editing the block; or open the builder anywhere and press *saved* in the footer, which
+lists every builder query in the graph. The filters come back as chips, the button reads *Update
+query*, and the block is rewritten in place. Tags, properties and nodes renamed since show their
+current names; anything deleted is named in a notice. If the query text was edited by hand, the
+builder says so and asks for a second press before overwriting it.
+
+On a `#Query` block the builder did not write, the builder opens empty and offers *Replace this
+query* (second press to confirm): it does not read hand-written queries, it replaces them.
 
 ## Privacy
 

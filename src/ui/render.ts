@@ -1,6 +1,6 @@
 import type { Graph } from "../graph";
 import { formatContext } from "../context";
-import { canInsert } from "../insert";
+import { canInsert, insertLabel } from "../insert";
 import { navigateTo } from "../nav";
 import { page } from "../preview";
 import { el } from "./dom";
@@ -10,7 +10,13 @@ import { nameFor, type State, type Store } from "./store";
  * Renders the whole panel from state on every change. Zones are filled in by their own modules
  * (tags.ts, rows.ts, content.ts); this file owns the frame, read-back, guard bar, results, footer.
  */
-export interface Ctx { store: Store; graph: Graph; insert: () => Promise<void> }
+export interface Ctx {
+  store: Store; graph: Graph; insert: () => Promise<void>;
+  /** Show or hide the list of queries the builder wrote in this graph. */
+  toggleSaved: () => void;
+  /** Open one of them for editing. */
+  openSaved: (uuid: string) => void;
+}
 export type ZoneRenderer = (root: HTMLElement, s: State, ctx: Ctx) => void;
 
 /**
@@ -80,6 +86,26 @@ export function createRenderer(root: HTMLElement, ctx: Ctx, zones: { scope: Zone
     body.appendChild(head);
     fit();
 
+    // What the user should know before touching a reopened query: stale chips, an overwrite ahead.
+    for (const text of [...s.notices, ...(s.overwrite ? [s.overwrite] : [])]) body.appendChild(el("div", "notice", text));
+
+    if (s.saved !== null) {
+      const saved = el("div", "zone saved"); saved.id = "saved";
+      saved.appendChild(el("div", "zone-label", "Saved queries"));
+      if (s.saved === "loading") saved.appendChild(el("div", "empty-results", "Looking…"));
+      else if (!s.saved.length) saved.appendChild(el("div", "empty-results", "No query in this graph was written by the builder yet."));
+      else s.saved.forEach((sq, i) => {
+        const b = el("button", "result") as HTMLButtonElement;
+        b.dataset.fid = `saved-${i}`;
+        b.title = "Open this query in the builder";
+        b.appendChild(el("span", "t", sq.name || "(untitled)"));
+        if (sq.page) b.appendChild(el("span", "m", sq.page));
+        b.addEventListener("click", () => ctx.openSaved(sq.uuid));
+        saved.appendChild(b);
+      });
+      body.appendChild(saved);
+    }
+
     const scope = el("div", "zone"); zones.scope(scope, s, ctx); body.appendChild(scope);
     const tags = el("div", "zone"); zones.tags(tags, s, ctx); body.appendChild(tags);
     const rows = el("div", "zone"); zones.rows(rows, s, ctx); body.appendChild(rows);
@@ -121,13 +147,19 @@ export function createRenderer(root: HTMLElement, ctx: Ctx, zones: { scope: Zone
 
     const foot = el("div"); foot.id = "footer";
     const can = canInsert({ guard: s.guard, name: nameFor(s), target: s.target });
-    const insertBtn = el("button", "btn primary", s.target?.mode === "slash" ? "Write into this block" : "Insert as query block") as HTMLButtonElement;
+    const armed = !!s.overwrite && s.confirmed;
+    const insertBtn = el("button", "btn primary", armed ? "Press again to overwrite" : insertLabel(s.target)) as HTMLButtonElement;
     insertBtn.dataset.fid = "insert";
     insertBtn.disabled = !can.ok;
     insertBtn.title = can.ok ? "⌘↩" : can.reason;
     insertBtn.addEventListener("click", () => void ctx.insert());
     foot.appendChild(insertBtn);
     foot.appendChild(el("span", "", can.ok ? "" : can.reason));
+    const savedBtn = el("button", "tog" + (s.saved !== null ? " on" : ""), "saved");
+    savedBtn.dataset.fid = "saved";
+    savedBtn.title = "Queries the builder wrote in this graph";
+    savedBtn.addEventListener("click", () => ctx.toggleSaved());
+    foot.appendChild(savedBtn);
     const showDsl = el("button", "tog" + (s.showDsl ? " on" : ""), "datalog");
     showDsl.dataset.fid = "showdsl";
     showDsl.addEventListener("click", () => store.toggleDsl());

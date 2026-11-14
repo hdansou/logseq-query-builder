@@ -9,7 +9,15 @@ import { readback } from "../readback";
  * re-renders on every change; the preview is debounced 300 ms and only runs when the guard passes.
  */
 export type Mode = "shortcut" | "slash";
-export interface Target { uuid: string; mode: Mode }
+/**
+ * `existing`: the target block already is a query. "builder": it carries builder state, restored
+ * as chips. "foreign": a #Query node written by hand or by another tool. Either way Insert
+ * rewrites that block, whatever the entry point.
+ */
+export type Existing = "builder" | "foreign";
+export interface Target { uuid: string; mode: Mode; existing?: Existing }
+/** A query block the builder wrote, as listed under "saved". */
+export interface SavedQuery { uuid: string; name: string; page: string | null }
 
 /** What the host hands a palette/shortcut or slash handler: `uuid` is the editing block, if any. */
 export function targetFromEvent(mode: Mode, e: { uuid?: string | null }): Target | null {
@@ -26,6 +34,13 @@ export interface State {
   loading: boolean;
   error: string | null;
   showDsl: boolean;
+  /** Something the user should know about the query just opened (stale chips, overwrite ahead). */
+  notices: string[];
+  /** Why Insert needs a second press, and whether the first one happened. */
+  overwrite: string | null;
+  confirmed: boolean;
+  /** The saved-queries list: null = closed, "loading", or the queries. */
+  saved: SavedQuery[] | "loading" | null;
 }
 
 /**
@@ -44,12 +59,12 @@ export class Store {
   private run = 0;
 
   constructor(private deps: StoreDeps) {
-    this.state = this.derive(emptyQuery(), { target: null, results: [], pages: 1, loading: false, error: null, showDsl: false });
+    this.state = this.derive(emptyQuery(), { target: null, results: [], pages: 1, loading: false, error: null, showDsl: false, notices: [], overwrite: null, confirmed: false, saved: null });
   }
 
   private derive(q: Query, rest: Omit<State, "q" | "guard" | "readback"> | State): State {
-    const { target, results, pages, loading, error, showDsl } = rest;
-    return { q, guard: guard(q), readback: readback(q), target, results, pages, loading, error, showDsl };
+    const { target, results, pages, loading, error, showDsl, notices, overwrite, confirmed, saved } = rest;
+    return { q, guard: guard(q), readback: readback(q), target, results, pages, loading, error, showDsl, notices, overwrite, confirmed, saved };
   }
 
   subscribe(fn: (s: State) => void) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
@@ -107,12 +122,15 @@ export class Store {
   loadMore() { this.state = { ...this.state, pages: this.state.pages + 1 }; this.notify(); }
 
   /** A fresh query for a new session, or a restored one; the target is where Insert will write. */
-  open(target: Target | null, q: Query = emptyQuery()) {
-    this.state = this.derive(q, { ...this.state, target, results: [], pages: 1, error: null });
+  open(target: Target | null, q: Query = emptyQuery(), info: { notices?: string[]; overwrite?: string | null } = {}) {
+    this.state = this.derive(q, { ...this.state, target, results: [], pages: 1, error: null, notices: info.notices ?? [], overwrite: info.overwrite ?? null, confirmed: false, saved: null });
     this.notify();
     this.schedulePreview();
   }
   close() { this.notify(); }
+  /** First press of Insert on a query that would be overwritten: arm it, the second press writes. */
+  confirm() { this.state = { ...this.state, confirmed: true }; this.notify(); }
+  setSaved(saved: State["saved"]) { this.state = { ...this.state, saved }; this.notify(); }
 
   /** Convenience for the UI: the emitted query, or null when the guard refuses. */
   emitted() { return this.state.guard.ok ? emit(this.state.q) : null; }

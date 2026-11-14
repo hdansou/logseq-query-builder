@@ -5,6 +5,15 @@ All notable changes to this plugin are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+- **Editing an existing query.** *Open in Query Builder* in a block's context menu, and a *saved* list in the panel footer with every query the builder wrote in the graph, so a query can be reopened without first putting the cursor in its block. A reopened query's button reads *Update query* and rewrites that block.
+- A `#Query` block the builder did not write (hand-written, or from another tool) opens empty with *Replace this query*: build the query again and it is written over the old one, after a second press.
+- A warning when the query text was edited by hand after the builder wrote it; updating then takes a second press. Queries saved before this version carry no fingerprint and give no warning.
+- On reopen, chips take the current title of a renamed tag, property, page or node, and anything deleted since is named in a notice.
+
+### Changed
+- A reopened query takes its name from the block's title, so a block renamed in the graph keeps its new name on update (from the slash command the saved name is still used).
+
 ## [1.0.0] - 2026-10-11
 
 First release, submitted to the Logseq marketplace. Everything below is new in this version.

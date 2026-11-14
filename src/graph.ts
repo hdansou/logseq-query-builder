@@ -18,6 +18,13 @@ export interface NodeInfo { uuid: string; title: string; page: { uuid: string; t
 /** The host strips `:block/` from pull-map keys (observed live). */
 interface NodePull { uuid: string; title: string; page?: { uuid: string; title: string }; refs?: RefTitle[] }
 export interface AssetInfo { uuid: string; title: string }
+export interface SavedQueryInfo { uuid: string; name: string; page: string | null }
+
+/** Same rule as the emitter: only a safe character set is embedded in query text. */
+const uuidLit = (u: string): string => {
+  if (!/^[0-9A-Za-z-]+$/.test(u)) throw new Error(`invalid uuid: ${JSON.stringify(u)}`);
+  return `#uuid "${u}"`;
+};
 
 /** Where a ref value entity keeps its comparable scalar (same rule as the emitter). */
 const labelAttr = (type: PropertyType) => (type === "number" ? ":logseq.property/value" : ":block/title");
@@ -148,5 +155,43 @@ export class Graph {
   async assets(): Promise<AssetInfo[]> {
     const rows = await this.rows<[string, string]>(`[:find ?u ?title :where [?a :block/tags :logseq.class/Asset] [?a :block/uuid ?u] [?a :block/title ?title]]`);
     return rows.map(([uuid, title]) => ({ uuid, title })).sort((a, b) => a.title.localeCompare(b.title));
+  }
+
+  /** ident → title of every tag and property that still exists, hidden ones included (a saved query may name them). */
+  async identTitles(): Promise<Map<string, string>> {
+    const rows = await this.rows<[string, string, unknown]>(
+      `[:find ?i ?title ?del :where [?e :db/ident ?i] [?e :block/title ?title] [(get-else $ ?e :logseq.property/deleted-at false) ?del]]`,
+    );
+    return new Map(rows.filter(([, , del]) => !del).map(([ident, title]) => [ident, title]));
+  }
+
+  /** uuid → title (links resolved) for the nodes that still exist; a deleted or unknown uuid is absent. */
+  async nodeTitles(uuids: string[]): Promise<Map<string, string>> {
+    const found = await Promise.all(uuids.map(async (u) => {
+      const rows = await this.rows<[NodePull, unknown]>(
+        `[:find (pull ?b [:block/uuid :block/title {:block/refs [:block/uuid :block/title]}]) ?del :where [?b :block/uuid ${uuidLit(u)}] [?b :block/title _] [(get-else $ ?b :logseq.property/deleted-at false) ?del]]`,
+      );
+      const hit = rows.find(([, del]) => !del);
+      return hit ? ([u, resolveRefs(hit[0].title, hit[0].refs)] as const) : null;
+    }));
+    return new Map(found.filter((f) => f !== null));
+  }
+
+  /** The query text of a #Query node, or null when the block carries none. */
+  async queryText(uuid: string): Promise<string | null> {
+    const rows = await this.rows<[string]>(`[:find ?qt :where [?b :block/uuid ${uuidLit(uuid)}] [?b :logseq.property/query ?q] [?q :block/title ?qt]]`);
+    return rows.length ? rows[0][0] : null;
+  }
+
+  /** Blocks that carry builder state under the given property ident, by name. */
+  async savedQueries(stateIdent: string): Promise<SavedQueryInfo[]> {
+    if (!/^:[\w.*+!?$%&=<>/-]+$/.test(stateIdent)) throw new Error(`invalid ident: ${JSON.stringify(stateIdent)}`);
+    const rows = await this.rows<[string, string, string, unknown]>(
+      `[:find ?u ?title ?pt ?del :where [?b ${stateIdent} _] [?b :block/uuid ?u] [?b :block/title ?title] [?b :block/page ?p] [?p :block/title ?pt] [(get-else $ ?b :logseq.property/deleted-at false) ?del]]`,
+    );
+    return rows
+      .filter(([, , , del]) => !del)
+      .map(([uuid, name, page]) => ({ uuid: String(uuid), name, page }))
+      .sort((a, b) => a.name.localeCompare(b.name) || (a.page ?? "").localeCompare(b.page ?? ""));
   }
 }

@@ -144,3 +144,33 @@ describe("Graph.pages (scope picker)", () => {
     expect(log[0]).toContain(`[(clojure.string/includes? ?lt "o")]`);
   });
 });
+
+describe("Graph: reopening saved queries", () => {
+  it("identTitles drops deleted entities", async () => {
+    const g = new Graph(fake({ "[?e :db/ident ?i]": [[":user.class/a", "A", false], [":user.class/b", "B", 1760000000000]] }));
+    expect([...(await g.identTitles())]).toEqual([[":user.class/a", "A"]]);
+  });
+  it("nodeTitles resolves links, and leaves out deleted or unknown uuids", async () => {
+    const g = new Graph(fake({
+      '#uuid "u-1"': [[{ uuid: "u-1", title: "About [[u-9]]", refs: [{ uuid: "u-9", title: "Iris" }] }, false]],
+      '#uuid "u-2"': [[{ uuid: "u-2", title: "Gone" }, 1760000000000]],
+      '#uuid "u-3"': [],
+    }));
+    expect([...(await g.nodeTitles(["u-1", "u-2", "u-3"]))]).toEqual([["u-1", "About [[Iris]]"]]);
+    await expect(g.nodeTitles(['x" [?b'])).rejects.toThrow(/invalid uuid/);
+  });
+  it("queryText is the #Query node's text, null for any other block", async () => {
+    expect(await new Graph(fake({ ":logseq.property/query ?q": [["(task Todo)"]] })).queryText("u-1")).toBe("(task Todo)");
+    expect(await new Graph(fake({ ":logseq.property/query ?q": [] })).queryText("u-1")).toBeNull();
+  });
+  it("savedQueries lists blocks carrying the state property by name, deleted ones left out", async () => {
+    const log: string[] = [];
+    const g = new Graph(fake({ "query-builder-state _]": [["u-2", "Open tasks", "Home", false], ["u-1", "All projects", "Home", false], ["u-3", "Old", "Home", 1]] }, log));
+    expect(await g.savedQueries(":plugin.property.qb/query-builder-state")).toEqual([
+      { uuid: "u-1", name: "All projects", page: "Home" },
+      { uuid: "u-2", name: "Open tasks", page: "Home" },
+    ]);
+    expect(log[0]).toContain("[?b :plugin.property.qb/query-builder-state _]");
+    await expect(g.savedQueries("x] [?b")).rejects.toThrow(/invalid ident/);
+  });
+});
