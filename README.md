@@ -26,9 +26,9 @@ The plugin needs a DB graph; it does nothing in a file graph.
 
 ## Using it
 
-Open the builder with **⌘⇧F** (also "Query Builder: open" in the command palette), or type
-**/Query Builder** inside a block. While the plugin is enabled, ⌘⇧F
-takes over Logseq's toggle-favorite shortcut; rebind either in Logseq's keymap settings. The panel floats: drag it by its title bar, resize it from the
+Open the builder with **⌘⌥F** (Ctrl+Alt+F on Windows and Linux; also "Query Builder: open" in
+the command palette), or type **/Query Builder** inside a block. Rebind it in Logseq's keymap
+settings. The panel floats: drag it by its title bar, resize it from the
 corner, click the graph behind it. It remembers where you left it and stays inside the window if
 that was a bigger screen.
 
@@ -110,7 +110,7 @@ one. Relative dates are stored as expressions, so the query stays current.
 ### Edit a query
 
 Three ways back into a query the builder wrote: right-click its bullet → *Open in Query Builder*;
-⌘⇧F while editing the block; or open the builder anywhere and press *saved* in the footer, which
+⌘⌥F while editing the block; or open the builder anywhere and press *saved* in the footer, which
 lists every builder query in the graph. The filters come back as chips, the button reads *Update
 query*, and the block is rewritten in place. Tags, properties and nodes renamed since show their
 current names; anything deleted is named in a notice. If the query text was edited by hand, the

@@ -17,6 +17,8 @@ All notable changes to this plugin are recorded here. The format follows
 - **Default property values are honoured.** A node whose tag owns a property with a default value and that stores no value of its own (a fresh `#Task`, which Logseq shows as Todo) now matches *contains* the default, is left out of *does not contain* the default and of *is empty*, and counts for *is not empty*; a checkbox reads its default the same way. Before, "Task where Status is Todo" missed those tasks and "Status is empty" returned them. Value counts in the picker include them. Queries saved earlier pick this up the next time they are opened and updated.
 
 ### Changed
+- **The open shortcut is now `⌘⌥F`** (Ctrl+Alt+F on Windows and Linux). `⌘⇧F` is Logseq's *Toggle favorite*; in Logseq 2.0.2 that binding wins, so the builder never opened and the page was favorited instead. Rebind it in Logseq's keymap settings if you prefer another key.
+- The panel's title bar reads "Query Builder" instead of the package name `logseq-query-builder` (the host titles it with the package name; a scoped stylesheet replaces the text).
 - A reopened query takes its name from the block's title, so a block renamed in the graph keeps its new name on update (from the slash command the saved name is still used).
 
 ## [1.0.0] - 2026-10-11

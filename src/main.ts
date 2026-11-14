@@ -31,7 +31,7 @@ function main() {
     onThemeModeChanged: (cb) => void logseq.App.onThemeModeChanged(cb),
     onThemeChanged: (cb) => void logseq.App.onThemeChanged(cb),
   });
-  installPanelStyle();
+  installPanelStyle(manifest.title);
   logseq.DB.onChanged(() => graph.invalidate());
   const root = document.getElementById("root")!;
   const close = () => { store.close(); hidePanel(); };
@@ -138,8 +138,11 @@ function main() {
     for (const ms of [50, 300, 800]) setTimeout(() => focusFirst(true), ms);
   };
 
+  // ⌘⌥F (Ctrl+Alt+F): free in Logseq. ⌘⇧F, the 1.0.0 binding, is Logseq's toggle-favorite, which
+  // wins in Logseq 2.0.2 (observed live 2026-11-14: the page was favorited, the builder never
+  // opened); ⌘⇧Q is the macOS log-out chord; ⌘⇧B is the browser's bookmarks bar in the web app.
   logseq.App.registerCommandPalette(
-    { key: "query-builder-open", label: "Query Builder: open", keybinding: { binding: "mod+shift+f", mode: "global" } },
+    { key: "query-builder-open", label: "Query Builder: open", keybinding: { binding: "mod+alt+f", mode: "global" } },
     (e) => void open(targetFromEvent("shortcut", e as { uuid?: string })),
   );
   logseq.Editor.registerBlockContextMenuItem("Open in Query Builder", async (e) => open(targetFromEvent("shortcut", e as { uuid?: string })));

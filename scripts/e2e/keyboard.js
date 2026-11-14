@@ -1,4 +1,4 @@
-// F1: keyboard only. A journal block is being edited; ⌘⇧F opens the builder on it; S2 is built with
+// F1: keyboard only. A journal block is being edited; ⌘⌥F opens the builder on it; S2 is built with
 // keys alone (type to filter, ↩ to pick, Tab to move, ⇧↩ for a new filter row); ⌘↩ inserts a sibling.
 async ({ page, frame }) => {
   const log = [];
@@ -8,10 +8,10 @@ async ({ page, frame }) => {
   // a block to open from
   const uuid = await page.evaluate(async () => { await logseq.api.push_state("page", { name: "Oct 9th, 2026" }); await new Promise((r) => setTimeout(r, 800)); const b = await logseq.api.append_block_in_page("Oct 9th, 2026", "Keyboard run anchor"); await logseq.api.edit_block(b.uuid); return b.uuid; });
   await sleep(600);
-  await page.keyboard.press("Meta+Shift+F");
+  await page.keyboard.press("Meta+Alt+KeyF");
   for (let i = 0; i < 40 && !(await shown()); i++) await sleep(100);
   await sleep(900);
-  if (!(await shown())) return { error: "panel did not open on ⌘⇧F", log };
+  if (!(await shown())) return { error: "panel did not open on ⌘⌥F", log };
   const f = () => frame();
   const active = () => f().evaluate(() => document.activeElement?.dataset?.fid ?? document.activeElement?.tagName);
   log.push(["focus on open", await active()]);
