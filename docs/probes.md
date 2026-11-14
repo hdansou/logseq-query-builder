@@ -358,3 +358,20 @@ is emitted only for a property that declares a default (`PropertyRef.defaults`, 
 `graph.ts`); a checkbox uses `:logseq.property/scalar-default-value`. Not covered: number
 comparisons and *contains all* of several values against a default; the picker's count for the
 default value counts direct instances of the owning tag, not sub-tag instances.
+
+## Time filters and part-of-a-value operators (2026-11-13)
+
+- The host returns the ident of `Node created at` / `Node updated at` as `created-at` /
+  `updated-at`: keyword values lose `:block/` like pull keys do. `graph.ts` restores it
+  (`fullIdent`); without that the two properties never reached the picker.
+- Desktop app, `qb-e2e-persona` reseeded the same day (so only today / not-today could be told
+  apart): Task · *Node created at* equals today → 10 (mouse and keys), before today → 0;
+  Task · *Node updated at* on or after -7d → 10; no tag · created on or after today → 234, against
+  303 on the engine without `(not [?b :logseq.property/created-from-property _])`.
+  Emitted: `[?b :block/created-at ?x1] [(>= ?x1 ?in1)] [(<= ?x1 ?in2)] (not …created-from-property _)`
+  with `:inputs [:start-of-today-ms :end-of-today-ms]`.
+- Person · Company *includes text* "north" → 2 (Northwind ×2, mouse and keys); *starts with* "AC"
+  → 1 (Acme). Form: `[?b P ?v] [?v :block/title ?x] [(clojure.string/lower-case ?x) ?l] [(clojure.string/includes? ?l "north")]`.
+- Not checked live: an inserted block with a time filter (the preview was; the inputs are the ones
+  date-time properties already use), and a range older than the seed day.
+

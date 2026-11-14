@@ -346,3 +346,30 @@ describe("default values: a node whose tag owns the property and stores no value
     expect(row(plain, "empty").where[1]).not.toContain("?dp1");
   });
 });
+
+describe("part of a text value, and node timestamps", () => {
+  const person: TagRef = { ident: ":user.class/person-1", title: "Person" };
+  const company: PropertyRef = { ident: ":user.property/company-1", title: "Company", type: "default", cardinality: "one" };
+  const created: PropertyRef = { ident: ":block/created-at", title: "Node created at", type: "datetime", cardinality: "one" };
+  const row = (property: PropertyRef, op: any, values: any[]) => {
+    let q = addRow(addTag(emptyQuery(), person));
+    q = setRow(q, q.rows[0].id, { property, op, values });
+    return emit(q);
+  };
+  it("includes text / starts with: lower-cased on both sides, on the value's title", () => {
+    expect(row(company, "text-includes", [{ kind: "text", text: "North" }]).where[1])
+      .toBe(`[?b :user.property/company-1 ?v1] [?v1 :block/title ?x1] [(clojure.string/lower-case ?x1) ?l1] [(clojure.string/includes? ?l1 "north")]`);
+    expect(row(company, "text-starts", [{ kind: "text", text: 'a"c' }]).where[1]).toContain(`[(clojure.string/starts-with? ?l1 "a\\"c")]`);
+  });
+  it("a default value is searched too", () => {
+    const w = row({ ...company, defaults: true }, "text-includes", [{ kind: "text", text: "x" }]).where[1];
+    expect(w).toMatch(/^\(or-join \[\?b\] /);
+    expect(w).toContain(`[?dp1 :logseq.property/default-value ?v1] [?v1 :block/title ?x1] [(clojure.string/lower-case ?x1) ?l1]`);
+  });
+  it("created at: the attribute itself, a relative day as an input, property-value entities left out", () => {
+    const e = row(created, "on-or-after", [{ kind: "date", date: { kind: "relative", expr: { offset: -7, unit: "d" } } }]);
+    expect(e.where[1]).toBe(`[?b :block/created-at ?x1] [(>= ?x1 ?in1)] (not [?b :logseq.property/created-from-property _])`);
+    expect(e.inputs).toEqual([":-7d-start"]);
+    expect(e.preview.query).toContain(":block/created-at");
+  });
+});

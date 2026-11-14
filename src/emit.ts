@@ -2,7 +2,7 @@ import { absoluteLiteral, bounds, relativeInput, type Boundary } from "./dates";
 import { guard, refComplete, refPositive, rowComplete, rowPositive, tagPositive } from "./guard";
 import { contextPull } from "./context";
 import { str } from "./edn";
-import { contentActive, type ContentClause, type DateValue, type FilterRow, type Join, type PropertyRef, type Query, type RefRow, type Scope, type TagClause, type Value } from "./model";
+import { TIMESTAMPS, contentActive, type ContentClause, type DateValue, type FilterRow, type Join, type PropertyRef, type Query, type RefRow, type Scope, type TagClause, type Value } from "./model";
 
 /**
  * Builder state → Datalog. One emitter for the preview (narrow pull, inputs passed as strings,
@@ -135,6 +135,13 @@ function rowClause(r: FilterRow, n: string, ctx: Ctx, s = "?b"): Clause {
       break;
     case "not-contains":
       text = `(not ${anyOf(r.values)})`; break;
+    case "text-includes": case "text-starts": {
+      // Part of a text value, case-insensitive like the content search; a default value counts too.
+      const needle = str((r.values[0] as { kind: "text"; text: string }).text.toLowerCase());
+      const fn = op === "text-includes" ? "includes?" : "starts-with?";
+      const match = `[${v} :block/title ${x}] [(clojure.string/lower-case ${x}) ?l${n}] [(clojure.string/${fn} ?l${n} ${needle})]`;
+      text = orDefault(`[${s} ${P} ${v}] ${match}`, `[${D} ${defaultAttr} ${v}] ${match}`); break;
+    }
     case "gt": case "lt":
       text = `[${s} ${P} ${v}] [${v} :logseq.property/value ${x}] [(${op === "gt" ? ">" : "<"} ${x} ${literal(r.values[0])})]`; break;
     case "between":
@@ -164,7 +171,9 @@ function dateClause(r: FilterRow, n: string, ctx: Ctx, s: string): string {
   const v = `?v${n}`, x = `?x${n}`;
   const bind = g === "day" ? `[${s} ${ident(p.ident)} ${v}] [${v} :block/journal-day ${x}]` : `[${s} ${ident(p.ident)} ${x}]`;
   const cmps = bounds(r.op!, dates, g).map((b) => `[(${b.cmp} ${x} ${dateTerm(b.value, b.boundary, ctx)})]`);
-  return [bind, ...cmps].join(" ");
+  // A property value is an entity with timestamps of its own; a time filter means the user's nodes.
+  const own = TIMESTAMPS.has(p.ident) ? [`(not [${s} :logseq.property/created-from-property _])`] : [];
+  return [bind, ...cmps, ...own].join(" ");
 }
 
 /** Everything beneath `page` in the `:block/parent` tree: child pages and their blocks, any depth. */

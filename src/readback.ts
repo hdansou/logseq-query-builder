@@ -24,6 +24,8 @@ const PHRASE: Record<OperatorId, (vals: Value[]) => string> = {
   "contains-any": (v) => (v.length === 1 ? `is ${value(v[0])}` : `is any of ${list(v)}`),
   "contains-all": (v) => `has all of ${list(v)}`,
   "not-contains": (v) => (v.length === 1 ? `is not ${value(v[0])}` : `is none of ${list(v)}`),
+  "text-includes": (v) => `includes "${value(v[0])}"`,
+  "text-starts": (v) => `starts with "${value(v[0])}"`,
   gt: (v) => `is greater than ${value(v[0])}`,
   lt: (v) => `is less than ${value(v[0])}`,
   between: (v) => `is between ${value(v[0])} and ${value(v[1])}`,

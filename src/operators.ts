@@ -1,4 +1,4 @@
-import type { OperatorId, PropertyType } from "./model";
+import { TIMESTAMPS, type OperatorId, type PropertyType } from "./model";
 
 /**
  * THE operator table. Which operators a type offers, how many values each takes, and which value
@@ -11,6 +11,8 @@ export const OPERATORS: Record<OperatorId, OperatorDef> = {
   "contains-any": { label: "contains any", arity: "many" },
   "contains-all": { label: "contains all", arity: "many" },
   "not-contains": { label: "does not contain", arity: "many" },
+  "text-includes": { label: "includes text", arity: 1 },
+  "text-starts": { label: "starts with", arity: 1 },
   gt: { label: "greater than", arity: 1 },
   lt: { label: "less than", arity: 1 },
   between: { label: "between", arity: 2 },
@@ -28,14 +30,16 @@ export const OPERATORS: Record<OperatorId, OperatorDef> = {
 };
 
 const MULTI: OperatorId[] = ["contains-any", "contains-all", "not-contains"];
+/** Part of a text value, case-insensitive; the MULTI operators match whole values. */
+const SUBSTRING: OperatorId[] = ["text-includes", "text-starts"];
 const EMPTINESS: OperatorId[] = ["empty", "not-empty"];
 const PRESENCE: OperatorId[] = ["has", "not-has"];
 const DATE: OperatorId[] = ["eq", "before", "on-or-before", "after", "on-or-after", "between"];
 
 const BY_TYPE: Record<PropertyType, OperatorId[]> = {
-  default: [...MULTI, ...EMPTINESS, ...PRESENCE],
+  default: [...MULTI, ...SUBSTRING, ...EMPTINESS, ...PRESENCE],
   node: [...MULTI, ...EMPTINESS, ...PRESENCE],
-  url: [...MULTI, ...EMPTINESS, ...PRESENCE],
+  url: [...MULTI, ...SUBSTRING, ...EMPTINESS, ...PRESENCE],
   number: [...MULTI, "gt", "lt", "between", ...EMPTINESS, ...PRESENCE],
   asset: ["contains-any", "contains-all", ...EMPTINESS, ...PRESENCE],
   date: [...DATE, ...EMPTINESS, ...PRESENCE],
@@ -43,8 +47,13 @@ const BY_TYPE: Record<PropertyType, OperatorId[]> = {
   checkbox: ["true", "false", ...PRESENCE],
 };
 
-export const operatorsFor = (type: PropertyType): OperatorId[] => BY_TYPE[type];
+/** With the property's ident, a node timestamp offers the date operators only: it is never empty or unset. */
+export const operatorsFor = (type: PropertyType, ident?: string): OperatorId[] =>
+  ident !== undefined && TIMESTAMPS.has(ident) ? DATE : BY_TYPE[type];
 export const arityOf = (op: OperatorId) => OPERATORS[op].arity;
+
+/** Operators whose single value is free text, whatever the type's own control is. */
+export const isTextOp = (op: OperatorId): boolean => SUBSTRING.includes(op);
 
 export type ControlKind = "text" | "number" | "node" | "asset" | "date" | "none";
 const CONTROL: Record<PropertyType, ControlKind> = {

@@ -1,6 +1,6 @@
 import { str } from "./edn";
 import { resolveRefs, type RefTitle } from "./titles";
-import type { PropertyRef, PropertyType, TagRef } from "./model";
+import { TIMESTAMPS, type PropertyRef, type PropertyType, type TagRef } from "./model";
 
 /**
  * The graph's vocabulary, fetched live and cached for the session. Every method is a datalog
@@ -40,6 +40,12 @@ export const STRUCTURAL_TAGS: ReadonlySet<string> = new Set([
   ":logseq.class/Whiteboard", ":logseq.class/Pdf-annotation", ":logseq.class/Code-block", ":logseq.class/Quote-block",
   ":logseq.class/Math-block", ":logseq.class/Comments", ":logseq.class/Comment",
 ]);
+
+/**
+ * The host strips `:block/` from keyword values as it does from pull keys (observed live: the
+ * ident of `Node created at` comes back as `created-at`); every other ident keeps its colon.
+ */
+const fullIdent = (i: string): string => (i.startsWith(":") ? i : `:block/${i}`);
 
 export class Graph {
   private cache = new Map<string, Promise<Row[]>>();
@@ -92,8 +98,9 @@ export class Graph {
     // Settings-like built-ins (Enable property history, Extends, Page Tags…) carry a view-context of
     // property/class/page/never; node-level properties (Status, Deadline…) carry none. Observed live.
     return rows
-      .filter(([, , , type, , vc, builtIn, pub, hide, deleted]) =>
-        !deleted && !hide && (!builtIn || pub) && BUILDER_TYPES.has(type) && vc.endsWith("none"))
+      .map((r): typeof r => [fullIdent(r[0]), ...r.slice(1)] as typeof r)
+      .filter(([ident, , , type, , vc, builtIn, pub, hide, deleted]) =>
+        TIMESTAMPS.has(ident) || (!deleted && !hide && (!builtIn || pub) && BUILDER_TYPES.has(type) && vc.endsWith("none")))
       .map(([ident, title, uuid, type, card, , , , , , dv, sdv]): PropertyInfo => ({
         ident, title, uuid, type: type as PropertyType,
         cardinality: card.endsWith("many") ? "many" : "one", owners: ownersOf.get(ident) ?? [],
@@ -168,7 +175,7 @@ export class Graph {
     const rows = await this.rows<[string, string, unknown]>(
       `[:find ?i ?title ?del :where [?e :db/ident ?i] [?e :block/title ?title] [(get-else $ ?e :logseq.property/deleted-at false) ?del]]`,
     );
-    return new Map(rows.filter(([, , del]) => !del).map(([ident, title]) => [ident, title]));
+    return new Map(rows.filter(([, , del]) => !del).map(([ident, title]) => [fullIdent(ident), title]));
   }
 
   /** uuid → title (links resolved) for the nodes that still exist; a deleted or unknown uuid is absent. */

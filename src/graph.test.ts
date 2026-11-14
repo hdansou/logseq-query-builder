@@ -147,8 +147,8 @@ describe("Graph.pages (scope picker)", () => {
 
 describe("Graph: reopening saved queries", () => {
   it("identTitles drops deleted entities", async () => {
-    const g = new Graph(fake({ "[?e :db/ident ?i]": [[":user.class/a", "A", false], [":user.class/b", "B", 1760000000000]] }));
-    expect([...(await g.identTitles())]).toEqual([[":user.class/a", "A"]]);
+    const g = new Graph(fake({ "[?e :db/ident ?i]": [[":user.class/a", "A", false], [":user.class/b", "B", 1760000000000], ["created-at", "Node created at", false]] }));
+    expect([...(await g.identTitles())]).toEqual([[":user.class/a", "A"], [":block/created-at", "Node created at"]]);
   });
   it("nodeTitles resolves links, and leaves out deleted or unknown uuids", async () => {
     const g = new Graph(fake({
@@ -193,5 +193,17 @@ describe("Graph: default values", () => {
       "empty-placeholder": [["Todo", 5, "u-todo"], ["Done", 2, "u-done"]],
     }));
     expect(await g.values(status)).toEqual([{ label: "Todo", count: 7, uuid: "u-todo" }, { label: "Done", count: 2, uuid: "u-done" }]);
+  });
+});
+
+describe("Graph: node timestamps", () => {
+  it("lets the two hidden built-in timestamps through, and nothing else hidden", async () => {
+    const hidden = (ident: string, title: string) => [ident, title, "u" + ident, "datetime", ":db.cardinality/one", ":none", true, false, true, false, "qb/none", "qb/none"];
+    const g = new Graph(fake({
+      ":logseq.property/type ?type": [hidden("created-at", "Node created at"), hidden("updated-at", "Node updated at"),   // as the host returns them: `:block/` stripped
+      hidden(":logseq.property/secret", "Secret")],
+      ":logseq.property.class/properties ?p] [?p :db/ident ?pi]": [],
+    }));
+    expect((await g.properties()).map((p) => [p.ident, p.title])).toEqual([[":block/created-at", "Node created at"], [":block/updated-at", "Node updated at"]]);
   });
 });

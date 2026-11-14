@@ -24,7 +24,7 @@ export function contextPull(props: PropertyRef[]): string {
  * namespace (`title`, `journal-day`), every other attribute keeps its full ident with the colon
  * (`:user.property/status-1`, `:logseq.property/value`).
  */
-const key = (ident: string) => ident;
+const key = (ident: string) => (ident.startsWith(":block/") ? ident.slice(":block/".length) : ident);
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const field = (v: unknown, k: string): unknown => (v && typeof v === "object" ? (v as Record<string, unknown>)[k] : undefined);

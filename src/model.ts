@@ -19,10 +19,18 @@ export interface TagClause { tag: TagRef | null; not: boolean; join: Join }
 
 export type OperatorId =
   | "contains-any" | "contains-all" | "not-contains"
+  | "text-includes" | "text-starts"
   | "gt" | "lt" | "between"
   | "eq" | "before" | "on-or-before" | "after" | "on-or-after"
   | "empty" | "not-empty" | "has" | "not-has"
   | "true" | "false";
+
+/**
+ * When a node was created or last changed. The host keeps them as hidden built-in properties
+ * (`Node created at`, `Node updated at`); the builder offers them as datetime filters. Every node
+ * has both, so only the date operators make sense on them.
+ */
+export const TIMESTAMPS: ReadonlySet<string> = new Set([":block/created-at", ":block/updated-at"]);
 
 export type RelativeExpr = "today" | "tomorrow" | "yesterday" | { offset: number; unit: "d" | "w" | "m" | "y" };
 export type DateValue = { kind: "absolute"; day: number } | { kind: "relative"; expr: RelativeExpr };

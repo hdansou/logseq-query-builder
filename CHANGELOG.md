@@ -9,6 +9,8 @@ All notable changes to this plugin are recorded here. The format follows
 - **Editing an existing query.** *Open in Query Builder* in a block's context menu, and a *saved* list in the panel footer with every query the builder wrote in the graph, so a query can be reopened without first putting the cursor in its block. A reopened query's button reads *Update query* and rewrites that block.
 - A `#Query` block the builder did not write (hand-written, or from another tool) opens empty with *Replace this query*: build the query again and it is written over the old one, after a second press.
 - A warning when the query text was edited by hand after the builder wrote it; updating then takes a second press. Queries saved before this version carry no fingerprint and give no warning.
+- **Time filters.** *Node created at* and *Node updated at* in the property list, with the date operators and the same relative dates as any date-time property (`today`, `-7d`…). Property-value entities are left out. On their own they match every node in the range, pages and untitled blocks included; combine them with a tag.
+- **Part-of-a-value operators** on text and URL properties: *includes text* and *starts with*, case-insensitive ("URL starts with https://github.com"). The existing *contains* operators still match whole values.
 - On reopen, chips take the current title of a renamed tag, property, page or node, and anything deleted since is named in a notice.
 
 ### Fixed
