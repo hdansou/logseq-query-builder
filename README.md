@@ -6,7 +6,7 @@ into a page as a named, live query node. No Datalog written by hand.
 
 ![Query Builder panel on a sample graph: the Idea tag, three typed filter rows, the read-back "Idea nodes where impact is High and effort is not High and idea status is not Dropped", and the two matching nodes with their property values](docs/screenshot.jpg)
 
-> **Status: released (v1.0.0).** Every zone is exercised on real graphs, by mouse and by keyboard,
+> **Status: released (v1.1.0).** Every zone is exercised on real graphs, by mouse and by keyboard,
 > against the engine's own counts (`docs/e2e-persona.md`). State and next steps:
 > [`TASKS.md`](./TASKS.md). Loading it for testing: [`INSTALL-DEV.md`](./INSTALL-DEV.md).
 > Design record: [`PLAN.md`](./PLAN.md), the spec and prototype in `logseq-query-builder-handoff/`,
@@ -63,6 +63,16 @@ the final AND applies to the whole OR before it.
 
 ![all nodes where text contains "Northwind": 11 nodes, tasks, calls, the organization and deal pages and notes](docs/example-content.jpg)
 
+**When it happened, and part of a value**: *Node created at* on or after `-7d`, *Node updated at*
+not today, then a text property that *includes* "north" or *starts with* "ac".
+
+![Demo: Task nodes created in the last 7 days, then not updated today; then Company includes "north", then starts with "ac"](docs/demo-filters.gif)
+
+**Default values count**: two tasks with no status set show as Todo in Logseq, and *Status is
+Todo* finds them too; they no longer count as *Status is empty*.
+
+![Demo: Status is Todo returns 7 tasks, 5 with a stored Todo plus 2 that only show the default; Status is empty returns 0](docs/demo-defaults.gif)
+
 ### Scopes
 
 A scope narrows the whole query before tags and filters apply. It counts as a filter on its own,
@@ -107,6 +117,7 @@ typing or `↓` opens a list · `↩` pick · `Tab` next control · `⇧↩` add
 *Insert* writes a `#Query` node: from the shortcut, a new sibling after the block you were editing;
 from the slash command, into that block. The node renders as a live query table like a hand-written
 one. Relative dates are stored as expressions, so the query stays current.
+
 ### Edit a query
 
 Three ways back into a query the builder wrote: right-click its bullet → *Open in Query Builder*;
@@ -118,6 +129,8 @@ builder says so and asks for a second press before overwriting it.
 
 On a `#Query` block the builder did not write, the builder opens empty and offers *Replace this
 query* (second press to confirm): it does not read hand-written queries, it replaces them.
+
+![Demo: build and insert an open-tasks query, reopen it from its block, change it and press Update query; the saved list; the hand-edit warning; replacing a query the builder did not write](docs/demo-edit.gif)
 
 ## Privacy
 
