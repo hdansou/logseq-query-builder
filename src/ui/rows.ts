@@ -164,7 +164,7 @@ export function renderFilterRow(r: FilterRow, i: number, ctx: Ctx, h: RowHost): 
     })),
     // Picking a property also picks the type's first operator, so the value control appears at once.
     onPick: (o) => {
-      store.update(h.ops.set(r.id, { property: { ident: o.value.ident, title: o.value.title, type: o.value.type, cardinality: o.value.cardinality }, op: operatorsFor(o.value.type)[0], values: [] }));
+      store.update(h.ops.set(r.id, { property: { ident: o.value.ident, title: o.value.title, type: o.value.type, cardinality: o.value.cardinality, ...(o.value.defaults ? { defaults: true } : {}) }, op: operatorsFor(o.value.type)[0], values: [] }));
       document.querySelector<HTMLElement>(`[data-fid="row-op-${r.id}"]`)?.focus();   // render is synchronous
     },
   }));

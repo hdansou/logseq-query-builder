@@ -11,6 +11,9 @@ All notable changes to this plugin are recorded here. The format follows
 - A warning when the query text was edited by hand after the builder wrote it; updating then takes a second press. Queries saved before this version carry no fingerprint and give no warning.
 - On reopen, chips take the current title of a renamed tag, property, page or node, and anything deleted since is named in a notice.
 
+### Fixed
+- **Default property values are honoured.** A node whose tag owns a property with a default value and that stores no value of its own (a fresh `#Task`, which Logseq shows as Todo) now matches *contains* the default, is left out of *does not contain* the default and of *is empty*, and counts for *is not empty*; a checkbox reads its default the same way. Before, "Task where Status is Todo" missed those tasks and "Status is empty" returned them. Value counts in the picker include them. Queries saved earlier pick this up the next time they are opened and updated.
+
 ### Changed
 - A reopened query takes its name from the block's title, so a block renamed in the graph keeps its new name on update (from the slash command the saved name is still used).
 

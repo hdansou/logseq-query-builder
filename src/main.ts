@@ -119,8 +119,8 @@ function main() {
       // From the slash command the block's text is the half-typed command, not the query's name.
       const blockName = target.mode === "shortcut" ? title : null;
       if (restored && saved !== null) {
-        const [idents, nodes] = await Promise.all([graph.identTitles(), graph.nodeTitles(nodeUuids(restored))]);
-        const fresh = refresh(restored, { idents, nodes });
+        const [idents, nodes, props] = await Promise.all([graph.identTitles(), graph.nodeTitles(nodeUuids(restored)), graph.properties()]);
+        const fresh = refresh(restored, { idents, nodes, defaults: new Set(props.filter((p) => p.defaults).map((p) => p.ident)) });
         q = { ...fresh.q, name: blockName ?? fresh.q.name };
         if (fresh.missing.length) notices.push(`No longer in the graph: ${fresh.missing.join(", ")}. Remove or replace ${fresh.missing.length === 1 ? "it" : "them"}; as written the query cannot match.`);
         target = { ...target, mode: "slash", existing: "builder" };

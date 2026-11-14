@@ -334,3 +334,27 @@ the target picker → click *+ condition on the target* → type "status" + Ente
 Enter. Read-back "all nodes that are linked from any Task whose Status is Todo", result
 `Task Testing Page`, matching the host-engine check in the FEAT-45 section. Enter on a picker
 waits for its async option list, which is what the keyboard path could not do reliably.
+
+## Default values (2026-11-13)
+
+`:logseq.property/status` declares `:logseq.property/default-value :logseq.property/status.todo`
+and the host's own rules (`deps/db/src/logseq/db/frontend/rules.cljc`, `property-missing-value`)
+read a missing value as that default on any instance of a class that owns the property. On
+`qb-e2e-persona` plus two tasks created with `logseq upsert block … --update-tags '["Task"]'`:
+10 Task nodes, 8 with a status datom (Todo 5, Doing 1, Done 2), 2 with none.
+
+| Row on Task | Before | Now | Form |
+|---|---|---|---|
+| Status contains any Todo | 5 | 7 | `(or-join [?b] (and [?b P ?v] [?v :block/title ?x] [(contains? #{"Todo"} ?x)]) (and OWNED (not [?b P _]) [?dp :logseq.property/default-value ?v] [?v :block/title ?x] [(contains? #{"Todo"} ?x)]))` |
+| Status contains any Done | 2 | 2 | same form; the default does not leak into other values |
+| Status does not contain Todo | 5 | 3 | `(not …)` of the first form |
+| Status is empty | 2 | 0 | old form + `(not OWNED)` |
+| Status is not empty | 8 | 10 | `(or-join [?b] (and …stored, not the placeholder…) (and OWNED (not [?b P _]) [?dp :logseq.property/default-value _]))` |
+
+`OWNED` = `[?dp :db/ident P] [?dc :logseq.property.class/properties ?dp] [?b :block/tags ?dt] (or [(= ?dt ?dc)] (class-extends ?dc ?dt))`.
+Counts are from the engine through the CLI with the emitter's own text, and the same five numbers
+came back through the panel in the desktop app (mouse; *contains any* also by keyboard). The branch
+is emitted only for a property that declares a default (`PropertyRef.defaults`, read in
+`graph.ts`); a checkbox uses `:logseq.property/scalar-default-value`. Not covered: number
+comparisons and *contains all* of several values against a default; the picker's count for the
+default value counts direct instances of the owning tag, not sub-tag instances.

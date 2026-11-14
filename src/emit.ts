@@ -112,14 +112,29 @@ function rowClause(r: FilterRow, n: string, ctx: Ctx, s = "?b"): Clause {
   const p = r.property!, P = ident(p.ident), op = r.op!;
   const v = `?v${n}`, x = `?x${n}`, e = `?e${n}`;
   const set = (vals: Value[]) => `#{${vals.map(literal).join(" ")}}`;
+  // Default values (probed on the engine, docs/probes.md "Default values"): a node whose tag owns
+  // the property and that stores no value reads as the property's default, so it must match where
+  // the default matches, and is neither empty nor without a value.
+  const D = p.defaults ? `?dp${n}` : null;
+  if (D) ctx.rules = true;
+  const defaultAttr = p.type === "checkbox" ? ":logseq.property/scalar-default-value" : ":logseq.property/default-value";
+  const owned = `[${D} :db/ident ${P}] [?dc${n} :logseq.property.class/properties ${D}] [${s} :block/tags ?dt${n}] (or [(= ?dt${n} ?dc${n})] (class-extends ?dc${n} ?dt${n}))`;
+  const unset = `${owned} (not [${s} ${P} _])`;
+  const orDefault = (own: string, viaDefault: string) => (D ? `(or-join [${s}] (and ${own}) (and ${unset} ${viaDefault}))` : own);
+  const anyOf = (vals: Value[]) => {
+    const match = `[${v} ${valueAttr(p)} ${x}] [(contains? ${set(vals)} ${x})]`;
+    return orDefault(`[${s} ${P} ${v}] ${match}`, `[${D} ${defaultAttr} ${v}] ${match}`);
+  };
   let text: string;
   switch (op) {
     case "contains-any":
-      text = `[${s} ${P} ${v}] [${v} ${valueAttr(p)} ${x}] [(contains? ${set(r.values)} ${x})]`; break;
+      text = anyOf(r.values); break;
     case "contains-all":
-      text = r.values.map((val, k) => `[${s} ${P} ${v}_${k + 1}] [${v}_${k + 1} ${valueAttr(p)} ${literal(val)}]`).join(" "); break;
+      text = D && r.values.length === 1 ? anyOf(r.values)
+        : r.values.map((val, k) => `[${s} ${P} ${v}_${k + 1}] [${v}_${k + 1} ${valueAttr(p)} ${literal(val)}]`).join(" ");
+      break;
     case "not-contains":
-      text = `(not [${s} ${P} ${v}] [${v} ${valueAttr(p)} ${x}] [(contains? ${set(r.values)} ${x})])`; break;
+      text = `(not ${anyOf(r.values)})`; break;
     case "gt": case "lt":
       text = `[${s} ${P} ${v}] [${v} :logseq.property/value ${x}] [(${op === "gt" ? ">" : "<"} ${x} ${literal(r.values[0])})]`; break;
     case "between":
@@ -130,12 +145,14 @@ function rowClause(r: FilterRow, n: string, ctx: Ctx, s = "?b"): Clause {
     case "eq": case "before": case "on-or-before": case "after": case "on-or-after":
       text = dateClause(r, n, ctx, s); break;
     case "empty":
-      text = isRef(p) ? `(or (not [${s} ${P} _]) [${s} ${P} :logseq.property/empty-placeholder])` : `(not [${s} ${P} _])`; break;
+      text = (isRef(p) ? `(or (not [${s} ${P} _]) [${s} ${P} :logseq.property/empty-placeholder])` : `(not [${s} ${P} _])`)
+        + (D ? ` (not ${owned})` : "");
+      break;
     case "not-empty":
-      text = isRef(p) ? `[${e} :db/ident :logseq.property/empty-placeholder] [${s} ${P} ${v}] [(not= ${v} ${e})]` : `[${s} ${P} _]`; break;
+      text = orDefault(isRef(p) ? `[${e} :db/ident :logseq.property/empty-placeholder] [${s} ${P} ${v}] [(not= ${v} ${e})]` : `[${s} ${P} _]`, `[${D} ${defaultAttr} _]`); break;
     case "has": text = `[${s} ${P} _]`; break;
     case "not-has": text = `(not [${s} ${P} _])`; break;
-    case "true": case "false": text = `[${s} ${P} ${op}]`; break;
+    case "true": case "false": text = orDefault(`[${s} ${P} ${op}]`, `[${D} ${defaultAttr} ${op}]`); break;
   }
   return { text: r.not ? `(not ${text})` : text, positive: rowPositive(r), join: r.join };
 }

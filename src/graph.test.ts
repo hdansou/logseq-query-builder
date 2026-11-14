@@ -174,3 +174,24 @@ describe("Graph: reopening saved queries", () => {
     await expect(g.savedQueries("x] [?b")).rejects.toThrow(/invalid ident/);
   });
 });
+
+describe("Graph: default values", () => {
+  const prop = (ident: string, type: string, dv: unknown, sdv: unknown) => [ident, ident, "u-" + ident, type, ":db.cardinality/one", ":none", false, false, false, false, dv, sdv];
+  it("flags a property that declares a default: value entity, or scalar for a checkbox", async () => {
+    const g = new Graph(fake({
+      ":logseq.property/type ?type": [prop(":p/status", "default", 42, "qb/none"), prop(":p/plain", "default", "qb/none", "qb/none"), prop(":p/flag", "checkbox", "qb/none", false), prop(":p/box", "checkbox", "qb/none", "qb/none")],
+      ":logseq.property.class/properties ?p] [?p :db/ident ?pi]": [],
+    }));
+    const byIdent = Object.fromEntries((await g.properties()).map((p) => [p.ident, p.defaults]));
+    expect(byIdent).toEqual({ ":p/status": true, ":p/plain": undefined, ":p/flag": true, ":p/box": undefined });
+  });
+  it("counts nodes that show the default toward the default's label", async () => {
+    const status = { ident: ":p/status", title: "Status", type: "default", cardinality: "one", defaults: true } as const;
+    const g = new Graph(fake({
+      ":block/closed-value-property": [["u-todo", "Todo", "a0"], ["u-done", "Done", "a1"]],
+      ":logseq.property/default-value ?v]": [["Todo", 2, "u-todo"]],
+      "empty-placeholder": [["Todo", 5, "u-todo"], ["Done", 2, "u-done"]],
+    }));
+    expect(await g.values(status)).toEqual([{ label: "Todo", count: 7, uuid: "u-todo" }, { label: "Done", count: 2, uuid: "u-done" }]);
+  });
+});

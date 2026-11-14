@@ -49,4 +49,12 @@ describe("refresh", () => {
     expect(missing).toEqual(["property “owner”", "node “Ada”", "node “Iris”", "tag “task”"]);
     expect(q.rows[0].property).toEqual(owner);
   });
+  it("sets or clears the default-value flag from the graph as it is now", () => {
+    const withFlag = refresh(built(), { ...all, defaults: new Set([owner.ident]) });
+    expect(withFlag.q.rows[0].property).toEqual({ ...owner, defaults: true });
+    const cleared = refresh(withFlag.q, { ...all, defaults: new Set() });
+    expect(cleared.q.rows[0].property).toEqual(owner);
+    expect(cleared.q.rows[0].property).not.toHaveProperty("defaults");
+    expect(refresh(withFlag.q, all).q.rows[0].property?.defaults).toBe(true);   // no information: left alone
+  });
 });

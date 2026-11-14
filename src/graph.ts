@@ -81,8 +81,8 @@ export class Graph {
    */
   async properties(selected: string[] = []): Promise<PropertyInfo[]> {
     const [rows, owners] = await Promise.all([
-      this.rows<[string, string, string, string, string, string, boolean, boolean, boolean, unknown]>(
-        `[:find ?i ?title ?u ?type ?card ?vc ?bi ?pub ?hide ?del :where [?p :block/tags :logseq.class/Property] [?p :db/ident ?i] [?p :block/title ?title] [?p :block/uuid ?u] [?p :logseq.property/type ?type] [?p :db/cardinality ?card] [(get-else $ ?p :logseq.property/view-context :none) ?vc] [(get-else $ ?p :logseq.property/built-in? false) ?bi] [(get-else $ ?p :logseq.property/public? false) ?pub] [(get-else $ ?p :logseq.property/hide? false) ?hide] [(get-else $ ?p :logseq.property/deleted-at false) ?del]]`,
+      this.rows<[string, string, string, string, string, string, boolean, boolean, boolean, unknown, unknown, unknown]>(
+        `[:find ?i ?title ?u ?type ?card ?vc ?bi ?pub ?hide ?del ?dv ?sdv :where [?p :block/tags :logseq.class/Property] [?p :db/ident ?i] [?p :block/title ?title] [?p :block/uuid ?u] [?p :logseq.property/type ?type] [?p :db/cardinality ?card] [(get-else $ ?p :logseq.property/view-context :none) ?vc] [(get-else $ ?p :logseq.property/built-in? false) ?bi] [(get-else $ ?p :logseq.property/public? false) ?pub] [(get-else $ ?p :logseq.property/hide? false) ?hide] [(get-else $ ?p :logseq.property/deleted-at false) ?del] [(get-else $ ?p :logseq.property/default-value "qb/none") ?dv] [(get-else $ ?p :logseq.property/scalar-default-value "qb/none") ?sdv]]`,
       ),
       this.rows<[string, string]>(`[:find ?pi ?ci :where [?c :logseq.property.class/properties ?p] [?p :db/ident ?pi] [?c :db/ident ?ci]]`),
     ]);
@@ -94,9 +94,11 @@ export class Graph {
     return rows
       .filter(([, , , type, , vc, builtIn, pub, hide, deleted]) =>
         !deleted && !hide && (!builtIn || pub) && BUILDER_TYPES.has(type) && vc.endsWith("none"))
-      .map(([ident, title, uuid, type, card]): PropertyInfo => ({
+      .map(([ident, title, uuid, type, card, , , , , , dv, sdv]): PropertyInfo => ({
         ident, title, uuid, type: type as PropertyType,
         cardinality: card.endsWith("many") ? "many" : "one", owners: ownersOf.get(ident) ?? [],
+        // A checkbox keeps its default as a scalar, every other type as a value entity.
+        ...((type === "checkbox" ? sdv : dv) !== "qb/none" && (type === "checkbox" ? sdv : dv) != null ? { defaults: true } : {}),
       }))
       .sort((a, b) => {
         const ao = a.owners.some((o) => sel.has(o)) ? 0 : 1, bo = b.owners.some((o) => sel.has(o)) ? 0 : 1;
@@ -115,8 +117,12 @@ export class Graph {
       this.rows<[string, string | number, string]>(`[:find ?u ?label ?order :in $ ?prop :where [?p :db/ident ?prop] [?cv :block/closed-value-property ?p] [?cv :block/uuid ?u] [?cv :block/order ?order] [?cv ${attr} ?label]]`, p.ident),
       this.rows<[string | number, number, string]>(`[:find ?label (count-distinct ?b) ?u :in $ ?prop :where [?e :db/ident :logseq.property/empty-placeholder] [?b ?prop ?v] [(not= ?v ?e)] (not [?v :logseq.property/deleted-at _]) [?v ${attr} ?label] [?v :block/uuid ?u]]`, p.ident),
     ]);
+    // Nodes that show the default without storing it count toward the default's label.
+    const byDefault = p.defaults
+      ? await this.rows<[string | number, number, string]>(`[:find ?label (count-distinct ?b) ?u :in $ ?prop :where [?p :db/ident ?prop] [?p :logseq.property/default-value ?v] [?v ${attr} ?label] [?v :block/uuid ?u] [?c :logseq.property.class/properties ?p] [?b :block/tags ?c] (not [?b ?prop _])]`, p.ident)
+      : [];
     const counts = new Map<string, { count: number; uuid: string }>();
-    for (const [label, n, u] of used) {
+    for (const [label, n, u] of [...used, ...byDefault]) {
       const key = String(label);
       const prev = counts.get(key);
       counts.set(key, { count: (prev?.count ?? 0) + n, uuid: prev?.uuid ?? u });

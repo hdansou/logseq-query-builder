@@ -7,7 +7,12 @@ export type Cardinality = "one" | "many";
 export type Join = "and" | "or";
 
 export interface TagRef { ident: string; title: string }
-export interface PropertyRef { ident: string; title: string; type: PropertyType; cardinality: Cardinality }
+/**
+ * `defaults`: the property declares a default value. The host shows that value on every node whose
+ * tag owns the property and that has no value of its own (a fresh #Task reads Todo), with nothing
+ * stored on the node, so the emitter has to match those nodes too.
+ */
+export interface PropertyRef { ident: string; title: string; type: PropertyType; cardinality: Cardinality; defaults?: boolean }
 
 /** `tag: null` = "any tag" (presence); with `not` it is "untagged". */
 export interface TagClause { tag: TagRef | null; not: boolean; join: Join }

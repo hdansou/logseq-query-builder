@@ -1,4 +1,4 @@
-import type { FilterRow, Query, RefRow, TagRef } from "./model";
+import type { FilterRow, PropertyRef, Query, RefRow, TagRef } from "./model";
 
 /**
  * A saved query's state holds snapshots: each tag, property and node is kept with the title it had
@@ -12,6 +12,8 @@ export interface Vocabulary {
   idents: ReadonlyMap<string, string>;
   /** uuid → current title, for the nodes the query names. */
   nodes: ReadonlyMap<string, string>;
+  /** Idents of the properties that declare a default value today (see PropertyRef.defaults). */
+  defaults?: ReadonlySet<string>;
 }
 
 /** Every node uuid the query names: scope page, node values, node targets. */
@@ -39,10 +41,16 @@ export function refresh(q: Query, v: Vocabulary): { q: Query; missing: string[] 
     if (title === undefined) { missing.add(`${what} “${e.title}”`); return e; }
     return title === e.title ? e : { ...e, title };
   };
+  // A query saved before defaults were honoured, or before the property had one, picks the flag up here.
+  const withDefault = (p: PropertyRef): PropertyRef => {
+    if (!v.defaults || !!p.defaults === v.defaults.has(p.ident)) return p;
+    const { defaults: _, ...rest } = p;
+    return v.defaults.has(p.ident) ? { ...rest, defaults: true } : rest;
+  };
   const tag = (t: TagRef) => named(t, "tag");
   const rows = (list: FilterRow[]): FilterRow[] => list.map((r) => ({
     ...r,
-    property: r.property && named(r.property, "property"),
+    property: r.property && withDefault(named(r.property, "property")),
     values: r.values.map((val) => (val.kind === "ref" ? node(val, "node") : val)),
   }));
   const ref = (r: RefRow): RefRow => {

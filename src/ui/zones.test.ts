@@ -215,3 +215,18 @@ describe("editing an existing query", () => {
     expect(q("#saved")).toBeNull();
   });
 });
+
+describe("default values", () => {
+  it("a picked property keeps its default flag, so the emitted query matches defaulted nodes", async () => {
+    const graph = async (query: string) =>
+      query.includes(":logseq.property/type ?type") ? [[":logseq.property/status", "Status", "u-st", "default", ":db.cardinality/one", ":none", true, true, false, false, 76, "qb/none"]]
+      : [];
+    const { store } = renderPanel(graph);
+    const id = store.addRow();
+    const input = fid(`row-prop-${id}`)!;
+    input.focus();
+    input.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, cancelable: true })); await settle();
+    listOf(input).querySelector("li")!.dispatchEvent(new MouseEvent("mousedown", { bubbles: true, cancelable: true })); await settle();
+    expect(store.state.q.rows[0].property).toEqual({ ident: ":logseq.property/status", title: "Status", type: "default", cardinality: "one", defaults: true });
+  });
+});
